@@ -210,38 +210,4 @@ def load_conf():
         return {}
 
 
-if __name__ == '__main__':
-    # Some simple sanity checks
-    try:
-        get_session()
-        assert False
-    except NoSessionError:
-        pass
 
-    # New "fresh" cookie session check
-    init_session('127.0.0.1')
-    
-    try:
-        session = get_session()
-        session['foo'] = 'bar'
-    except NoSessionError:
-        assert False
-
-    # Pickle check
-    init_session('127.0.0.1')
-    tmp_file_path = None
-    try:
-        tmp_file_fh, tmp_file_path = mkstemp()
-        os_close(tmp_file_fh)
-        session = get_session()
-        session['foo'] = 'bar'
-        with open(tmp_file_path, 'wb') as tmp_file:
-            pickle_dump(session, tmp_file)
-        del session
-
-        with open(tmp_file_path, 'rb') as tmp_file:
-            session = pickle_load(tmp_file)
-            assert session['foo'] == 'bar'
-    finally:
-        if tmp_file_path is not None:
-            remove(tmp_file_path)
