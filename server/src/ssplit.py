@@ -22,20 +22,22 @@ from shlex import split as shlex_split
 # Reasonably well-behaved sentence end regular expression
 SENTENCE_END_REGEX = re_compile(ur'''
         # Require a leading non-whitespace character for the sentence
-        \S
+        [^\s　]
         # Then, anything goes, but don't be greedy
         .*?
         # Anchor the sentence at...
         (:?
             # One (or multiple) terminal character(s)
             #   followed by one (or multiple) whitespace
-            (:?(\.|!|\?|。|！|？)+(?=\s+))
+            (:?(\.|!|\?|。|！|？)+(?=[\s]+))
+        | # Or for japanese
+        (:?(。|！|？))
         | # Or...
             # Newlines, to respect file formatting
             (:?(?=\n+))
         | # Or...
             # End-of-file, excluding whitespaces before it
-            (:?(?=\s*$))
+            (:?(?=[\s　]*$))
         )
     ''', DOTALL | VERBOSE)
 # Only newlines can end a sentence to preserve pre-processed formatting
@@ -130,6 +132,9 @@ def newline_sentence_boundary_gen(text):
     for o in _sentence_boundary_gen(text, SENTENCE_END_NEWLINE_REGEX):
         yield o
 
+en_sentence_boundary_gen = regex_sentence_boundary_gen
+jp_sentence_boundary_gen = regex_sentence_boundary_gen
+
 if __name__ == '__main__':
     from sys import argv
 
@@ -162,33 +167,5 @@ if __name__ == '__main__':
         except IOError:
             pass # Most likely a broken pipe
     else:
-        sentence = 'This is a short sentence.\nthis is another one.'
-        print 'Sentence:', sentence
-        print 'Len sentence:', len(sentence)
-
-        ret = [o for o in en_sentence_boundary_gen(sentence)]
-        last_end = 0
-        for start, end in ret:
-            if last_end != start:
-                print 'DROPPED: "%s"' % sentence[last_end:start]
-            print 'SENTENCE: "%s"' % sentence[start:end]
-            last_end = end
-        print ret
-
-        sentence = u'　変しん！　両になった。うそ！　かも　'
-        print 'Sentence:', sentence
-        print 'Len sentence:', len(sentence)
-
-        ret = [o for o in jp_sentence_boundary_gen(sentence)]
-        ans = [(1, 5), (6, 12), (12, 15), (16, 18)]
-        assert ret == ans, '%s != %s' % (ret, ans)
-        print 'Successful!'
-
-        sentence = ' One of these days Jimmy, one of these days. Boom! Kaboom '
-        print 'Sentence:', sentence
-        print 'Len sentence:', len(sentence)
-
-        ret = [o for o in en_sentence_boundary_gen(sentence)]
-        ans = [(1, 44), (45, 50), (51, 57)]
-        assert ret == ans, '%s != %s' % (ret, ans)
-        print 'Successful!'
+        print("usage %s <filename>")
+        exit(1)
