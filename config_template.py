@@ -40,7 +40,7 @@ WORK_DIR = CHANGE_ME
 # removing the three lines above and deleting the initial '#'
 # character from the following four lines:
 
-#from os.path import dirname, join
+from os.path import dirname, join
 #BASE_DIR = dirname(__file__)
 #DATA_DIR = join(BASE_DIR, 'data')
 #WORK_DIR = join(BASE_DIR, 'work')
@@ -98,7 +98,7 @@ LOG_LEVEL = LL_WARNING
 # Define to enable backups
 
 # from os.path import join
-#BACKUP_DIR = join(WORK_DIR, 'backup')
+BACKUP_DIR = join(WORK_DIR, 'backup')
 
 try:
     assert DATA_DIR != BACKUP_DIR, 'DATA_DIR cannot equal BACKUP_DIR'

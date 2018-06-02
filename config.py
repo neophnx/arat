@@ -35,7 +35,7 @@ WORK_DIR = path_join(BASE_DIR, 'work')
 # instructions, you can set up BASE_DIR, DATA_DIR and WORK_DIR by
 # removing the three lines above and deleting the initial '#'
 # character from the following four lines:
-#from os.path import dirname, join
+from os.path import dirname, join
 #BASE_DIR = dirname(__file__)
 #DATA_DIR = path_join(BASE_DIR, 'data')
 #WORK_DIR = path_join(BASE_DIR, 'work')
@@ -75,7 +75,7 @@ LOG_LEVEL = LL_WARNING
 ### BACKUP_DIR
 # Define to enable backups
 # from os.path import join
-#BACKUP_DIR = join(WORK_DIR, 'backup')
+BACKUP_DIR = join(WORK_DIR, 'backup')
 try:
     assert DATA_DIR != BACKUP_DIR, 'DATA_DIR cannot equal BACKUP_DIR'
 except NameError:
