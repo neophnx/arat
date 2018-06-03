@@ -116,9 +116,4 @@ class Messager:
         Messager.__pending_messages.append((msg, type, duration))
     __message = staticmethod(__message)
 
-if __name__ == '__main__':
-    # Try out Unicode, that is always fun
-    Messager.warning(u'Hello 世界！')
-    json_dic = {}
-    Messager.output_json(json_dic)
-    print json_dic
+
