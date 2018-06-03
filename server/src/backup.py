@@ -17,6 +17,7 @@ Version:    2011-02-22
 #       changed, if it has been changed it will not do a back-up although
 #       there is no existing back-up
 
+from __future__ import absolute_import
 from os.path import getmtime, isfile, dirname, abspath, basename
 from os.path import join as join_path
 from shlex import split as split_shlex

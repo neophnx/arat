@@ -4,6 +4,8 @@
 A very simple tokenization service.
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 import re
 
 from argparse import ArgumentParser
@@ -20,13 +22,13 @@ except ImportError:
     from ujson import dumps
 
 from sys import stderr
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 try:
-    from urlparse import parse_qs
+    from six.moves.urllib.parse import parse_qs
 except ImportError:
     # old Python again?
     from cgi import parse_qs
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 ### Constants
 ARGPARSER = ArgumentParser(description='An trivial tokenization service')
@@ -76,7 +78,7 @@ class TokenizerHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(dumps(json_dic))
-        print >> stderr, ('Generated %d tokens' % len(json_dic))
+        print(('Generated %d tokens' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
         return # Too much noise from the default implementation
@@ -86,13 +88,13 @@ def main(args):
 
     server_class = HTTPServer
     httpd = server_class(('localhost', argp.port), TokenizerHandler)
-    print >> stderr, 'Tokenizer service started on port %s' % (argp.port)
+    print('Tokenizer service started on port %s' % (argp.port), file=stderr)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print >> stderr, 'Tokenizer service stopped'
+    print('Tokenizer service stopped', file=stderr)
 
 if __name__ == '__main__':
     from sys import argv

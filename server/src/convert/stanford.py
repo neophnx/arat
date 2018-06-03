@@ -12,13 +12,15 @@ Version:    2012-06-26
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from collections import defaultdict
 from itertools import chain
 from sys import argv, path as sys_path, stderr, stdout
 from os.path import dirname, join as path_join
 from xml.etree import ElementTree
 
-from ptbesc import unescape as ptb_unescape
+from .ptbesc import unescape as ptb_unescape
+import six
 
 try:
     from collections import namedtuple
@@ -57,12 +59,12 @@ def _token_by_ids(soup):
         sent_id = int(sent_e.get('id'))
         for tok_e in sent_e.getiterator('token'):
             tok_id = int(tok_e.get('id'))
-            tok_word = unicode(tok_e.find('word').text)
-            tok_lemma = unicode(tok_e.find('lemma').text)
+            tok_word = six.text_type(tok_e.find('word').text)
+            tok_lemma = six.text_type(tok_e.find('lemma').text)
             tok_start = int(tok_e.find('CharacterOffsetBegin').text)
             tok_end = int(tok_e.find('CharacterOffsetEnd').text)
-            tok_pos = unicode(tok_e.find('POS').text)
-            tok_ner = unicode(tok_e.find('NER').text)
+            tok_pos = six.text_type(tok_e.find('POS').text)
+            tok_ner = six.text_type(tok_e.find('NER').text)
 
             token_by_ids[sent_id][tok_id] = Token(
                     word=tok_word,
@@ -96,7 +98,7 @@ def sentence_offsets(xml):
     for s_id, _, tok in _tok_it(token_by_ids):
         s_entry = sent_min_max[s_id]
         sent_min_max[s_id] = (min(tok.start, s_entry[0]), max(tok.end, s_entry[1]), )
-    return sorted((s_start, s_end) for s_start, s_end in sent_min_max.itervalues())
+    return sorted((s_start, s_end) for s_start, s_end in six.itervalues(sent_min_max))
 
 def text(xml):
     # It would be nice to have access to the original text, but this actually

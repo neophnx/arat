@@ -6,6 +6,7 @@ Version:    2011-04-21
 '''
 
 # use ultrajson if set up
+from __future__ import absolute_import
 try:
     from sys import path as sys_path
     from os.path import join as path_join
@@ -21,7 +22,7 @@ try:
     lib_dumps = _lib_dumps
     lib_loads = _lib_loads
 
-except ImportError, e:
+except ImportError as e:
 
     # fall back to native json if available
     try:

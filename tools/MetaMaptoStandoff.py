@@ -3,6 +3,8 @@
 # Script to convert MetaMap "fielded" ("-N" argument) output into
 # standoff with reference to the original text.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
@@ -40,7 +42,7 @@ def MetaMap_lines_to_standoff(metamap_lines, reftext=None):
         fields = l.split('|')
 
         if len(fields) < 9:
-            print >> sys.stderr, "Note: skipping unparseable MetaMap output line: %s" % l
+            print("Note: skipping unparseable MetaMap output line: %s" % l, file=sys.stderr)
             continue
 
         ctext, CUI, semtype, offset = fields[3], fields[4], fields[5], fields[8]
@@ -59,7 +61,7 @@ def MetaMap_lines_to_standoff(metamap_lines, reftext=None):
         idseq += 1
 
 
-    print >> sys.stderr, "MetaMaptoStandoff: returning %s tagged spans" % len(tagged)
+    print("MetaMaptoStandoff: returning %s tagged spans" % len(tagged), file=sys.stderr)
 
     return tagged
 
@@ -67,5 +69,5 @@ if __name__ == "__main__":
     lines = [l for l in sys.stdin]
     standoff = MetaMap_lines_to_standoff(lines)
     for s in standoff:
-        print s
+        print(s)
 

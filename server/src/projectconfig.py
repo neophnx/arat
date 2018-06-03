@@ -13,15 +13,18 @@ Author:     Illes Solt          <solt tmit bme hu>
 Version:    2011-08-15
 '''
 
+from __future__ import absolute_import
 import re
-import robotparser # TODO reduce scope
-import urlparse # TODO reduce scope
+import six.moves.urllib_robotparser # TODO reduce scope
+import six.moves.urllib.parse # TODO reduce scope
 import sys
 
 from annotation import open_textfile
 from message import Messager
+import six
+from six.moves import range
 
-ENTITY_CATEGORY, EVENT_CATEGORY, RELATION_CATEGORY, UNKNOWN_CATEGORY = xrange(4)
+ENTITY_CATEGORY, EVENT_CATEGORY, RELATION_CATEGORY, UNKNOWN_CATEGORY = range(4)
 
 class InvalidProjectConfigException(Exception):
     pass
@@ -157,7 +160,7 @@ def normalize_to_storage_form(t):
         import unicodedata
 
         n = t.replace(" ", "_")
-        if isinstance(n, unicode):
+        if isinstance(n, six.text_type):
             ascii = unicodedata.normalize('NFKD', n).encode('ascii', 'ignore')
         n  = re.sub(r'[^a-zA-Z0-9_-]', '_', n)
 
@@ -267,11 +270,11 @@ class TypeHierarchyNode:
             elif rep == '*':
                 # any number
                 minimum_count = 0
-                maximum_count = sys.maxint
+                maximum_count = sys.maxsize
             elif rep == '+':
                 # one or more
                 minimum_count = 1
-                maximum_count = sys.maxint
+                maximum_count = sys.maxsize
             else:
                 # exact number or range constraint
                 assert '{' in rep and '}' in rep, "INTERNAL ERROR"
@@ -520,7 +523,7 @@ def __parse_kb_shortcuts(shortcutstr, default, source):
     
 def __parse_access_control(acstr, source):
     try:
-        parser = robotparser.RobotFileParser()
+        parser = six.moves.urllib_robotparser.RobotFileParser()
         parser.parse(acstr.split("\n"))
     except:
         # TODO: specific exception handling
@@ -588,7 +591,7 @@ def __parse_configs(configstr, source, expected_sections, optional_sections):
     for s, sl in section_lines.items():
         try:
             configs[s] = __read_term_hierarchy(sl, s)
-        except Exception, e:
+        except Exception as e:
             Messager.warning("Project configuration: error parsing section [%s] in %s: %s" % (s, source, str(e)), 5)
             raise
 
@@ -620,7 +623,7 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
         except:
             Messager.warning("Project configuration: Falling back to minimal default. Configuration is likely wrong.", 5)
             configs = minconf
-            section_labels = dict(map(lambda a: (a,a), sections))
+            section_labels = dict([(a,a) for a in sections])
 
         # very, very special case processing: if we have a type
         # "Equiv" defined in a "relations" section that doesn't

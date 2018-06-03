@@ -11,10 +11,11 @@ Version:    2011-04-22
 
 from __future__ import with_statement
 
-from httplib import HTTPConnection
+from __future__ import absolute_import
+from six.moves.http_client import HTTPConnection
 from os.path import join as path_join
 from socket import error as SocketError
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 from annotation import TextAnnotations, TextBoundAnnotationWithText
 from annotation import NormalizationAnnotation
@@ -24,6 +25,7 @@ from document import real_directory
 from jsonwrap import loads
 from message import Messager
 from projectconfig import ProjectConfiguration
+import six
 
 ### Constants
 QUERY_TIMEOUT = 30
@@ -109,7 +111,7 @@ def tag(collection, document, tagger):
             #   missing if you roll your own Python, for once we should not
             #   fail early since tagging is currently an edge case and we
             #   can't allow it to bring down the whole server.
-            from httplib import HTTPSConnection
+            from six.moves.http_client import HTTPSConnection
             Connection = HTTPSConnection
         else:
             raise InvalidConnectionSchemeError(tagger_token, url_soup.scheme)
@@ -135,7 +137,7 @@ def tag(collection, document, tagger):
                         str(service_url),
                         data,
                         headers=req_headers)
-            except SocketError, e:
+            except SocketError as e:
                 raise TaggerConnectionError(tagger_token, e)
             resp = conn.getresponse()
 
@@ -157,7 +159,7 @@ def tag(collection, document, tagger):
         mods = ModificationTracker()
         cidmap = {}
 
-        for cid, ann in ((i, a) for i, a in json_resp.iteritems()
+        for cid, ann in ((i, a) for i, a in six.iteritems(json_resp)
                          if _is_textbound(a)):
             assert 'offsets' in ann, 'Tagger response lacks offsets'
             offsets = ann['offsets']
@@ -181,13 +183,13 @@ def tag(collection, document, tagger):
             mods.addition(tb)
             ann_obj.add_annotation(tb)
 
-        for norm in (a for a in json_resp.itervalues() if _is_normalization(a)):
+        for norm in (a for a in six.itervalues(json_resp) if _is_normalization(a)):
             try:
                 _type = norm['type']
                 target = norm['target']
                 refdb = norm['refdb']
                 refid = norm['refid']
-            except KeyError, e:
+            except KeyError as e:
                 raise # TODO
 
             _id = ann_obj.get_new_id('N')

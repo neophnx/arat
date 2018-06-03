@@ -14,7 +14,8 @@ Version:    2011-03-11
 
 from __future__ import with_statement
 
-from Cookie import CookieError, SimpleCookie
+from __future__ import absolute_import
+from six.moves.http_cookies import CookieError, SimpleCookie
 from atexit import register as atexit_register
 from datetime import datetime, timedelta
 from hashlib import sha224
@@ -25,7 +26,7 @@ from shutil import move
 from tempfile import mkstemp
 
 try:
-    from cPickle import dump as pickle_dump, load as pickle_load
+    from six.moves.cPickle import dump as pickle_dump, load as pickle_load
 except ImportError:
     from pickle import dump as pickle_dump, load as pickle_load
 
@@ -144,7 +145,7 @@ def init_session(remote_address, cookie_data=None):
             with open(ppath, 'rb') as session_pickle:
                 CURRENT_SESSION = pickle_load(session_pickle)
             CURRENT_SESSION.init_cookie(CURRENT_SESSION.get_sid())
-        except Exception, e:
+        except Exception as e:
             # On any error, just create a new session
             CURRENT_SESSION = Session(cookie)            
     else:
@@ -174,7 +175,7 @@ def close_session():
 
     try:
         makedirs(SESSIONS_DIR)
-    except OSError, e:
+    except OSError as e:
         if e.errno == 17:
             # Already exists
             pass

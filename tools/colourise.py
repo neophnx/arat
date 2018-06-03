@@ -11,6 +11,7 @@ Version:    2012-06-28
 #   intelligently, attempting to use the space optimally by keeping frequent
 #   labels apart? Ultimately, we need some sort of desired distance measure.
 
+from __future__ import absolute_import
 from argparse import ArgumentParser, FileType
 from colorsys import hls_to_rgb, rgb_to_hls
 from sys import stdin, stdout

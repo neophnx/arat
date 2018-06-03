@@ -5,6 +5,7 @@ Created on Sun Jun  3 10:16:24 2018
 @author: phnx
 """
 
+from __future__ import absolute_import
 import unittest
 
 import tests_common

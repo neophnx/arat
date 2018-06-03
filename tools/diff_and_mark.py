@@ -5,11 +5,15 @@
 
 # Preamble {{{
 from __future__ import with_statement
+from __future__ import print_function
+from __future__ import absolute_import
+import six
 
 '''
 Mark the differences between two annotation files, creating a diff annotation
 '''
 
+from __future__ import absolute_import
 try:
     import annotation
 except ImportError:
@@ -328,7 +332,7 @@ class AnnotationDiff: # {{{
 
         seen = []
         import operator
-        sorted_hist = sorted(correspondence_hist.iteritems(), key=operator.itemgetter(1))
+        sorted_hist = sorted(six.iteritems(correspondence_hist), key=operator.itemgetter(1))
         for key, equiv_item in sorted_hist:
             count, correspondence_pair, entities = equiv_item
             first_group, second_group = correspondence_pair
@@ -395,7 +399,7 @@ def copy_annotations(original_name, new_name):
     for extension in KNOWN_FILE_SUFF:
         try:
             shutil.copyfile('%s.%s' % (original_name, extension), '%s.%s' % (new_name, extension))
-        except IOError, e:
+        except IOError as e:
             pass # that extension file does not exist
     return annotation.TextAnnotations(new_name)
 
@@ -404,7 +408,7 @@ def delete_annotations(name):
     for extension in KNOWN_FILE_SUFF:
         try:
             os.remove('%s.%s' % (name, extension))
-        except OSError, e:
+        except OSError as e:
             pass # that extension file does not exist
 
 def diff_files(first_name, second_name, result_name):
@@ -481,7 +485,7 @@ def diff_files_and_dirs(firsts, second, result, force=False, verbose=False):
             basename = os.path.basename(first_name)
 
             if verbose:
-                print "Comparing", basename
+                print("Comparing", basename)
 
             if second_dir:
                 second_name = os.path.join(second, basename)

@@ -2,6 +2,7 @@
 
 """An example of a tagging service using RESTful Open Annotation."""
 
+from __future__ import absolute_import
 import sys
 import logging
 import requests
@@ -11,7 +12,7 @@ from logging import info, warn
 from json import dumps
 
 from cgi import FieldStorage
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 TAGGER_URI = 'http://tagger.jensenlab.org/OpenAnnotation'
 

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
 
 '''
 Tokenisation related functionality.
@@ -62,23 +64,23 @@ if __name__ == '__main__':
 
     try:
         for txt_file_path in argv[1:]:
-            print
-            print '### Tokenising:', txt_file_path
+            print()
+            print('### Tokenising:', txt_file_path)
             with open(txt_file_path, 'r') as txt_file:
                 text = txt_file.read()
-                print text
-            print '# Original text:'
-            print text.replace('\n', '\\n')
+                print(text)
+            print('# Original text:')
+            print(text.replace('\n', '\\n'))
             #offsets = [o for o in jp_token_boundary_gen(text)]
             #offsets = [o for o in whitespace_token_boundary_gen(text)]
             offsets = [o for o in gtb_token_boundary_gen(text)]
-            print '# Offsets:'
-            print offsets
-            print '# Tokens:'
+            print('# Offsets:')
+            print(offsets)
+            print('# Tokens:')
             for tok in _text_by_offsets_gen(text, offsets):
                 assert tok, 'blank tokens disallowed'
                 assert not tok[0].isspace() and not tok[-1].isspace(), (
                         'tokens may not start or end with white-space "%s"' % tok)
-                print '"%s"' % tok
+                print('"%s"' % tok)
     except IOError:
         raise

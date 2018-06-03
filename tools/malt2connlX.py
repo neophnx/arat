@@ -15,6 +15,7 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2011-12-05
 '''
 
+from __future__ import absolute_import
 from sys import stdin, stdout
 from re import compile as _compile
 from codecs import open as _open

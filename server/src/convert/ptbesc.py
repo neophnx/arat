@@ -9,6 +9,8 @@ Version:    2011-09-12
 
 ### Constants
 # From: To
+from __future__ import absolute_import
+import six
 PTB_ESCAPES = {
         u'(': u'-LRB-',
         u')': u'-RRB-',
@@ -23,13 +25,13 @@ PTB_ESCAPES = {
 
 def escape(s):
     r = s
-    for _from, to in PTB_ESCAPES.iteritems():
+    for _from, to in six.iteritems(PTB_ESCAPES):
         r = r.replace(_from, to)
     return r
 
 def unescape(s):
     r = s
-    for _from, to in PTB_ESCAPES.iteritems():
+    for _from, to in six.iteritems(PTB_ESCAPES):
         r = r.replace(to, _from)
     return r
 

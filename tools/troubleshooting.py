@@ -7,10 +7,12 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-05-22
 '''
 
-from httplib import HTTPConnection, HTTPSConnection
-from httplib import FORBIDDEN, MOVED_PERMANENTLY, NOT_FOUND, OK, TEMPORARY_REDIRECT
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves.http_client import HTTPConnection, HTTPSConnection
+from six.moves.http_client import FORBIDDEN, MOVED_PERMANENTLY, NOT_FOUND, OK, TEMPORARY_REDIRECT
 from sys import stderr
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 ### Constants
 CONNECTION_BY_SCHEME = {
@@ -47,7 +49,7 @@ def _request_wrap(conn, method, url, body=None,
 def main(args):
     # Old-style argument handling for portability
     if len(args) != 2:
-        print >> stderr, 'Usage: %s url_to_brat_installation' % (args[0], )
+        print('Usage: %s url_to_brat_installation' % (args[0], ), file=stderr)
         return -1
     brat_url = args[1]
     url_soup = urlparse(brat_url)
@@ -56,17 +58,17 @@ def main(args):
         try:
             Connection = CONNECTION_BY_SCHEME[url_soup.scheme.split(':')[0]]
         except KeyError:
-            print >> stderr, ('ERROR: Unknown url scheme %s, try http or '
-                    'https') % url_soup.scheme
+            print(('ERROR: Unknown url scheme %s, try http or '
+                    'https') % url_soup.scheme, file=stderr)
             return -1
     else:
         # Not a well-formed url, we'll try to guess the user intention
         path_soup = url_soup.path.split('/')
         assumed_netloc = path_soup[0]
         assumed_path = '/' + '/'.join(path_soup[1:])
-        print >> stderr, ('WARNING: No url scheme given, assuming scheme: '
+        print(('WARNING: No url scheme given, assuming scheme: '
                 '"http", netloc: "%s" and path: "%s"'
-                ) % (assumed_netloc, assumed_path, )
+                ) % (assumed_netloc, assumed_path, ), file=stderr)
         url_soup = url_soup._replace(scheme='http', netloc=assumed_netloc,
                 path=assumed_path)
         Connection = HTTPConnection
@@ -75,10 +77,10 @@ def main(args):
     conn = Connection(url_soup.netloc)
     res = _request_wrap(conn, 'HEAD', url_soup.path)
     if res.status != OK:
-        print >> stderr, ('Unable to load "%s", please check the url.'
-                ) % (brat_url, )
-        print >> stderr, ('Does the url you provdide point to your brat '
-                'installation?')
+        print(('Unable to load "%s", please check the url.'
+                ) % (brat_url, ), file=stderr)
+        print(('Does the url you provdide point to your brat '
+                'installation?'), file=stderr)
         return -1
     res.read() # Dump the data so that we can make another request
 
@@ -87,14 +89,14 @@ def main(args):
     ajax_cgi_url = url_soup._replace(path=ajax_cgi_path).geturl()
     res = _request_wrap(conn, 'HEAD', ajax_cgi_path)
     if res.status == FORBIDDEN:
-        print >> stderr, ('Received forbidden (403) when trying to access '
-                '"%s"') % (ajax_cgi_url, )
+        print(('Received forbidden (403) when trying to access '
+                '"%s"') % (ajax_cgi_url, ), file=stderr)
         print ('Have you perhaps forgotten to enable execution of CGI in '
                 ' your web server configuration?')
         return -1
     elif res.status != OK:
-        print >> stderr, ('Unable to load "%s", please check your url. Does '
-                'it point to your brat installation?') % (ajax_cgi_url, )
+        print(('Unable to load "%s", please check your url. Does '
+                'it point to your brat installation?') % (ajax_cgi_url, ), file=stderr)
         return -1
     # Verify that we actually got json data back
     res_headers = dict(res.getheaders())
@@ -104,16 +106,16 @@ def main(args):
         content_type = None
 
     if content_type != 'application/json':
-        print >> stderr, ('Didn\'t receive json data when accessing "%s"%s.'
+        print(('Didn\'t receive json data when accessing "%s"%s.'
                 ) % (ajax_cgi_url,
                         ', instead we received %s' % content_type
-                            if content_type is not None else '')
-        print >> stderr, ('Have you perhaps forgotten to add a handler for '
-                'CGI in your web server configuration?')
+                            if content_type is not None else ''), file=stderr)
+        print(('Have you perhaps forgotten to add a handler for '
+                'CGI in your web server configuration?'), file=stderr)
         return -1
 
     # Doctor says, this seems okay
-    print 'Congratulations! Your brat server appears to be ready to run.'
+    print('Congratulations! Your brat server appears to be ready to run.')
     print ('However, there is the possibility that there are further errors, '
             'but at least the server should be capable of communicating '
             'these errors to the client.')

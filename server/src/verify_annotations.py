@@ -6,6 +6,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import annotation
 
 from projectconfig import ProjectConfiguration
@@ -418,14 +420,14 @@ def main(argv=None):
             with annotation.TextAnnotations(nosuff_fn) as ann_obj:
                 issues = verify_annotation(ann_obj, projectconf)
                 for i in issues:
-                    print "%s:\t%s" % (fn, i.human_readable_str())
+                    print("%s:\t%s" % (fn, i.human_readable_str()))
         except annotation.AnnotationFileNotFoundError:
-            print >> sys.stderr, "%s:\tFailed check: file not found" % fn
-        except annotation.AnnotationNotFoundError, e:
-            print >> sys.stderr, "%s:\tFailed check: %s" % (fn, e)
+            print("%s:\tFailed check: file not found" % fn, file=sys.stderr)
+        except annotation.AnnotationNotFoundError as e:
+            print("%s:\tFailed check: %s" % (fn, e), file=sys.stderr)
 
     if arg.verbose:
-        print >> sys.stderr, "Check complete."
+        print("Check complete.", file=sys.stderr)
 
 if __name__ == "__main__":
     import sys

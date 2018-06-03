@@ -7,10 +7,13 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
 import codecs
+from six.moves import range
 
 def parse_id(l):
     m = re.match(r'^((\S)(\S*))', l)
@@ -207,7 +210,7 @@ def main(argv):
                 l = remap_note_idrefs(l, idmap)
             else:
                 # ???
-                print >> sys.stderr, "Warning: unrecognized annotation, cannot remap ID references: %s" % l
+                print("Warning: unrecognized annotation, cannot remap ID references: %s" % l, file=sys.stderr)
 
             anns[i][j] = l+tail
                 

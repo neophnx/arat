@@ -5,6 +5,7 @@ Created on Sat Jun  2 06:19:53 2018
 
 @author: phnx
 """
+from __future__ import absolute_import
 import unittest
 from tempfile import mkdtemp
 from shutil import rmtree

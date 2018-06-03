@@ -6,10 +6,14 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 
 import codecs
+import six
+from six.moves import range
 # import numpy
 
 DEFAULT_ENCODING = 'UTF-8'
@@ -115,7 +119,7 @@ class Textbound(Annotation):
     def retext(self, text):
         self.text = ' '.join(text[o[0]:o[1]] for o in self.offsets)
         if any(is_newline(c) for c in self.text):
-            print >> sys.stderr, 'Warning: newline in text: %s' % self.text
+            print('Warning: newline in text: %s' % self.text, file=sys.stderr)
 
     def __unicode__(self):
         return u"%s\t%s %s\t%s" % (self.id_, self.type_, 
@@ -332,7 +336,7 @@ def space_boundary(s, i):
     else:
         return False
 
-CH_OUT, CH_MATCH, CH_DELETE, CH_SPC_DELETE, CH_INSERT, CH_SPC_INSERT = range(6)
+CH_OUT, CH_MATCH, CH_DELETE, CH_SPC_DELETE, CH_INSERT, CH_SPC_INSERT = list(range(6))
 
 def delete_cost(A, B, i, j, choices):   
     if choices[i-1][j] == CH_DELETE:
@@ -374,7 +378,7 @@ def swchoice(A, B, i, j, F, choices):
     if best == match:        
         choice = CH_MATCH
         if DEBUG and A[i-1] != B[j-1]:
-            print >> sys.stderr, "MISMATCH! '%s' vs '%s'" % (A[i-1], B[j-1])
+            print("MISMATCH! '%s' vs '%s'" % (A[i-1], B[j-1]), file=sys.stderr)
     elif best == delete:
         choice = del_choice
     elif best == insert:
@@ -452,21 +456,21 @@ def smithwaterman(A, B, cost=swcost, as_str=False, align_full_A=True):
     while i > 0 and j > 0 and F[i][j] > 0:
         if choices[i][j] == CH_MATCH:
             if options and options.verbose or DEBUG:
-                print >> sys.stderr, 'match : "%s"-"%s" (%d)' % \
-                    (A[i-1], B[j-1], F[i][j])
+                print('match : "%s"-"%s" (%d)' % \
+                    (A[i-1], B[j-1], F[i][j]), file=sys.stderr)
             alignA.insert(0, A[i-1])
             alignB.insert(0, B[j-1])
             i -= 1
             j -= 1
         elif choices[i][j] in (CH_DELETE, CH_SPC_DELETE):
             if options and options.verbose or DEBUG:
-                print >> sys.stderr, 'delete: "%s" (%d)' % (A[i-1], F[i][j])
+                print('delete: "%s" (%d)' % (A[i-1], F[i][j]), file=sys.stderr)
             alignA.insert(0, A[i-1])
             alignB.insert(0, None)
             i -= 1
         elif choices[i][j] in (CH_INSERT, CH_SPC_INSERT):
             if options and options.verbose or DEBUG:
-                print >> sys.stderr, 'insert: "%s" (%d)' % (B[j-1], F[i][j])
+                print('insert: "%s" (%d)' % (B[j-1], F[i][j]), file=sys.stderr)
             alignA.insert(0, None)
             alignB.insert(0, B[j-1])
             j -= 1
@@ -605,8 +609,8 @@ def align(text1, text2):
         a, b = spacealign(text1, text2)
     except CannotSpaceAlign:
         if len(text1) * len(text2) > WARN_LENGTH_PRODUCT:
-            print >> sys.stderr, 'Warning: running Smith-Waterman on long' \
-                ' texts, O(nm) in memory and time.'
+            print('Warning: running Smith-Waterman on long' \
+                ' texts, O(nm) in memory and time.', file=sys.stderr)
         a, b = smithwaterman(text1, text2)
 
     # create offset map from text1 to text2
@@ -664,7 +668,7 @@ def main(argv=None):
         a.remap(Remapper(offset_map))
         a.fragment(newtext)
         a.retext(newtext)
-        print unicode(a).encode(options.encoding)
+        print(six.text_type(a).encode(options.encoding))
 
     return 0
 

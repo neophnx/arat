@@ -10,6 +10,7 @@ Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-04-21
 '''
 
+from __future__ import absolute_import
 from hashlib import sha512
 from os.path import dirname, join as path_join, isdir
 

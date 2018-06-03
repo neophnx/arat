@@ -7,6 +7,8 @@
 from __future__ import with_statement
 
 
+from __future__ import absolute_import
+import six
 try:
     import annotation
 except ImportError:
@@ -99,8 +101,8 @@ def collect_annotations(annotations, ann, words):
     norms = defaultdict(lambda: defaultdict(list))
     for a in ann.get_normalizations():
         norms[a.target][a.type].append("%s:%s" % (a.refdb, a.refid))
-    for target, types in norms.iteritems():
-        for typ, refs in types.iteritems():
+    for target, types in six.iteritems(norms):
+        for typ, refs in six.iteritems(types):
             anns[target].set(typ, " ".join(refs))
         
     for a in ann.get_attributes():

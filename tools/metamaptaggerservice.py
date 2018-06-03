@@ -4,6 +4,8 @@
 An example of a tagging service using metamap.
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from argparse import ArgumentParser
 
 from os.path import join as path_join
@@ -21,13 +23,13 @@ from subprocess import PIPE, Popen
 
 from random import choice, randint
 from sys import stderr
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 try:
-    from urlparse import parse_qs
+    from six.moves.urllib.parse import parse_qs
 except ImportError:
     # old Python again?
     from cgi import parse_qs
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import re
 
 # use the brat sentence splitter
@@ -50,15 +52,15 @@ def run_tagger(cmd):
     try:
         tagger_process = Popen(cmd, stdin=PIPE, stdout=PIPE, bufsize=1)
         return tagger_process
-    except Exception, e:
-        print >> stderr, "Error running '%s':" % cmd, e
+    except Exception as e:
+        print("Error running '%s':" % cmd, e, file=stderr)
         raise    
 
 def _apply_tagger_to_sentence(text):
     # can afford to restart this on each invocation
     tagger_process = run_tagger(METAMAP_COMMAND)
 
-    print >> tagger_process.stdin, text
+    print(text, file=tagger_process.stdin)
     tagger_process.stdin.close()
     tagger_process.wait()
 
@@ -72,7 +74,7 @@ def _apply_tagger_to_sentence(text):
         tagged_entities = MetaMap_lines_to_standoff(response_lines, text)
     except:
         # if anything goes wrong, bail out
-        print >> stderr, "Warning: MetaMap-to-standoff conversion failed for output:\n'%s'" % '\n'.join(response_lines)
+        print("Warning: MetaMap-to-standoff conversion failed for output:\n'%s'" % '\n'.join(response_lines), file=stderr)
         raise
         #return {}
 
@@ -91,7 +93,7 @@ def _apply_tagger(text):
     except:
         # if anything goes wrong, just go with the
         # original text instead
-        print >> stderr, "Warning: sentence splitting failed for input:\n'%s'" % text
+        print("Warning: sentence splitting failed for input:\n'%s'" % text, file=stderr)
         splittext = text
 
     sentences = splittext.split('\n')
@@ -139,7 +141,7 @@ class MetaMapTaggerHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(dumps(json_dic))
-        print >> stderr, ('Generated %d annotations' % len(json_dic))
+        print(('Generated %d annotations' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
         return # Too much noise from the default implementation
@@ -147,18 +149,18 @@ class MetaMapTaggerHandler(BaseHTTPRequestHandler):
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
 
-    print >> stderr, 'Starting MetaMap ...'
+    print('Starting MetaMap ...', file=stderr)
 
     server_class = HTTPServer
     httpd = server_class(('localhost', argp.port), MetaMapTaggerHandler)
 
-    print >> stderr, 'MetaMap tagger service started'
+    print('MetaMap tagger service started', file=stderr)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print >> stderr, 'MetaMap tagger service stopped'
+    print('MetaMap tagger service stopped', file=stderr)
 
 if __name__ == '__main__':
     from sys import argv

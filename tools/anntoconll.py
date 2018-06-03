@@ -4,6 +4,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
@@ -12,6 +14,8 @@ from collections import namedtuple
 from os import path
 from subprocess import Popen, PIPE
 from cStringIO import StringIO
+from six.moves import range
+from six.moves import zip
 
 # assume script in brat tools/ directory, extend path to find sentencesplit.py
 sys.path.append(os.path.join(os.path.dirname(__file__), '../server/src'))
@@ -153,7 +157,7 @@ def relabel(lines, annotations):
     for tb in annotations:
         for i in range(tb.start, tb.end):
             if i in offset_label:
-                print >> sys.stderr, "Warning: overlapping annotations"
+                print("Warning: overlapping annotations", file=sys.stderr)
             offset_label[i] = tb
 
     prev_label = None
@@ -168,7 +172,7 @@ def relabel(lines, annotations):
         for o in range(start, end):
             if o in offset_label:
                 if o != start:
-                    print >> sys.stderr, 'Warning: annotation-token boundary mismatch: "%s" --- "%s"' % (token, offset_label[o].text)
+                    print('Warning: annotation-token boundary mismatch: "%s" --- "%s"' % (token, offset_label[o].text), file=sys.stderr)
                 label = offset_label[o].type
                 break
 
@@ -220,7 +224,7 @@ def process_files(files):
             except:
                 # TODO: error processing
                 raise
-    except Exception, e:
+    except Exception as e:
         for p in nersuite_proc:
             p.kill()
         if not isinstance(e, FormatError):
@@ -265,10 +269,10 @@ def eliminate_overlaps(textbounds):
                 continue
             # eliminate shorter
             if t1.end-t1.start > t2.end-t2.start:
-                print >> sys.stderr, "Eliminate %s due to overlap with %s" % (t2, t1)
+                print("Eliminate %s due to overlap with %s" % (t2, t1), file=sys.stderr)
                 eliminate[t2] = True
             else:
-                print >> sys.stderr, "Eliminate %s due to overlap with %s" % (t1, t2)
+                print("Eliminate %s due to overlap with %s" % (t1, t2), file=sys.stderr)
                 eliminate[t1] = True
 
     return [t for t in textbounds if not t in eliminate]

@@ -4,10 +4,13 @@
 # into BioNLP ST-flavored standoff with reference to the original
 # text.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
 import codecs
+from six.moves import range
 
 try:
     import psyco
@@ -19,7 +22,7 @@ except:
 # I-T2") is encountered: recover/discard the erroneously tagged 
 # sequence, or abord the entire process
 # TODO: add a command-line option for this
-SEQUENCE_ERROR_RECOVER, SEQUENCE_ERROR_DISCARD, SEQUENCE_ERROR_FAIL = range(3)
+SEQUENCE_ERROR_RECOVER, SEQUENCE_ERROR_DISCARD, SEQUENCE_ERROR_FAIL = list(range(3))
 
 SEQUENCE_ERROR_PROCESSING = SEQUENCE_ERROR_RECOVER
 
@@ -60,7 +63,7 @@ def process(fn):
         #reffile = open(reffn)
         reffile = codecs.open(reffn, "rt", "UTF-8")
     except:
-        print >> sys.stderr, "ERROR: failed to open reference file %s" % reffn
+        print("ERROR: failed to open reference file %s" % reffn, file=sys.stderr)
         raise
     reftext = reffile.read()
     reffile.close()
@@ -70,7 +73,7 @@ def process(fn):
         #tagfile = open(fn)
         tagfile = codecs.open(fn, "rt", "UTF-8")
     except:
-        print >> sys.stderr, "ERROR: failed to open file %s" % fn
+        print("ERROR: failed to open file %s" % fn, file=sys.stderr)
         raise
     tagtext = tagfile.read()
     tagfile.close()
@@ -175,7 +178,7 @@ def process(fn):
             # previous entity does not continue into this tag; output
             assert currType is not None and currStart is not None, "ERROR at %s (%d-%d) in %s" % (reftext[startoff:endoff], startoff, endoff, fn)
             
-            print >> out, entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8")
+            print(entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8"), file=out)
 
             idIdx += 1
 
@@ -196,7 +199,7 @@ def process(fn):
     # if there's an open entity after all tokens have been processed,
     # we need to output it separately
     if prevTag != "O":
-        print >> out, entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8")
+        print(entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8"), file=out)
 
     if output_directory is not None:
         # we've opened a specific output for this
@@ -212,7 +215,7 @@ def main(argv):
     # unsegmented and untagged reference files.
 
     if len(argv) < 3 or argv[1] != "-d":
-        print >> sys.stderr, "USAGE:", argv[0], "-d REF-DIR [-o OUT-DIR] (FILES|DIR)"
+        print("USAGE:", argv[0], "-d REF-DIR [-o OUT-DIR] (FILES|DIR)", file=sys.stderr)
         return 1
 
     reference_directory = argv[2]
@@ -223,7 +226,7 @@ def main(argv):
     filenames = argv[3:]
     if len(argv) > 4 and argv[3] == "-o":
         output_directory = argv[4]
-        print >> sys.stderr, "Writing output to %s" % output_directory
+        print("Writing output to %s" % output_directory, file=sys.stderr)
         filenames = argv[5:]
 
 
@@ -233,14 +236,14 @@ def main(argv):
     if len(filenames) == 1 and os.path.isdir(filenames[0]):
         input_directory = filenames[0]
         filenames = [os.path.join(input_directory, fn) for fn in os.listdir(input_directory)]
-        print >> sys.stderr, "Processing %d files in %s ..." % (len(filenames), input_directory)
+        print("Processing %d files in %s ..." % (len(filenames), input_directory), file=sys.stderr)
 
     fail_count = 0
     for fn in filenames:
         try:
             process(fn)
-        except Exception, e:
-            print >> sys.stderr, "Error processing %s: %s" % (fn, e)
+        except Exception as e:
+            print("Error processing %s: %s" % (fn, e), file=sys.stderr)
             fail_count += 1
 
             # if we're storing output on disk, remove the output file
@@ -253,13 +256,13 @@ def main(argv):
                 pass
 
     if fail_count > 0:
-        print >> sys.stderr, """
+        print("""
 ##############################################################################
 #
 # WARNING: error in processing %d/%d files, output is incomplete!
 #
 ##############################################################################
-""" % (fail_count, len(filenames))
+""" % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
 

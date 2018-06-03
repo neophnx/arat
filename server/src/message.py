@@ -7,6 +7,7 @@ Wrapper for safely importing Messager with a fallback that will
 get _something_ to the user even if Messager itself breaks.
 '''
 
+from __future__ import absolute_import
 try:
     from realmessage import Messager
 except:

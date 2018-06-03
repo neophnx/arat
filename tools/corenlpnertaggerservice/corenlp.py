@@ -7,6 +7,8 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-04-18
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from os import listdir
 from os.path import isdir, join as path_join
 from re import compile as re_compile, match
@@ -123,5 +125,5 @@ class CoreNLPTagger(object):
 if __name__ == '__main__':
     # XXX: Hard-coded for testing
     tagger = CoreNLPTagger('stanford-corenlp-2012-04-09')
-    print tagger.tag('Just a test, like the ones they do at IBM.\n'
-            'Or Microsoft for that matter.')
+    print(tagger.tag('Just a test, like the ones they do at IBM.\n'
+            'Or Microsoft for that matter.'))

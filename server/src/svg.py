@@ -15,6 +15,7 @@ Version:    2011-04-22
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from os.path import join as path_join
 from os.path import isfile, exists
 from os import makedirs, mkdir

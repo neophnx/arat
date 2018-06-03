@@ -5,10 +5,13 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
 import codecs
+from six.moves import range
 
 class taggedEntity:
     def __init__(self, startOff, endOff, eType, idNum, fullText):
@@ -46,7 +49,7 @@ def BIO_lines_to_standoff(BIOlines, reftext, tokenidx=2, tagidx=-1):
     ri, bi = 0, 0
     while(ri < len(reftext)):
         if bi >= len(BIOlines):
-            print >> sys.stderr, "Warning: received BIO didn't cover given text"
+            print("Warning: received BIO didn't cover given text", file=sys.stderr)
             break
 
         BIOline = BIOlines[bi]
@@ -61,15 +64,15 @@ def BIO_lines_to_standoff(BIOlines, reftext, tokenidx=2, tagidx=-1):
             try:
                 tokentext = fields[tokenidx]
             except:
-                print >> sys.stderr, "Error: failed to get token text " \
-                    "(field %d) on line: %s" % (tokenidx, BIOline)
+                print("Error: failed to get token text " \
+                    "(field %d) on line: %s" % (tokenidx, BIOline), file=sys.stderr)
                 raise
 
             try:
                 tag = fields[tagidx]
             except:
-                print >> sys.stderr, "Error: failed to get token text " \
-                    "(field %d) on line: %s" % (tagidx, BIOline)
+                print("Error: failed to get token text " \
+                    "(field %d) on line: %s" % (tagidx, BIOline), file=sys.stderr)
                 raise
 
             m = re.match(r'^([BIO])((?:-[A-Za-z0-9_-]+)?)$', tag)
@@ -121,7 +124,7 @@ def BIO_lines_to_standoff(BIOlines, reftext, tokenidx=2, tagidx=-1):
     prevTag = None
     for startoff, endoff, ttag, ttype in taggedTokens:
         if prevTag == "O" and ttag == "I":
-            print >> sys.stderr, "Note: rewriting \"I\" -> \"B\" after \"O\""
+            print("Note: rewriting \"I\" -> \"B\" after \"O\"", file=sys.stderr)
             ttag = "B"
         revisedTagged.append((startoff, endoff, ttag, ttype))
         prevTag = ttag
@@ -133,7 +136,7 @@ def BIO_lines_to_standoff(BIOlines, reftext, tokenidx=2, tagidx=-1):
     prevTag, prevType = None, None
     for startoff, endoff, ttag, ttype in taggedTokens:
         if prevTag in ("B", "I") and ttag == "I" and prevType != ttype:
-            print >> sys.stderr, "Note: rewriting \"I\" -> \"B\" at type switch"
+            print("Note: rewriting \"I\" -> \"B\" at type switch", file=sys.stderr)
             ttag = "B"
         revisedTagged.append((startoff, endoff, ttag, ttype))
         prevTag, prevType = ttag, ttype
@@ -198,7 +201,7 @@ def parse_indices(idxstr):
 
 def main(argv):
     if len(argv) < 3 or len(argv) > 5:
-        print >> sys.stderr, "Usage:", argv[0], "TEXTFILE BIOFILE [TOKENIDX [BIOIDX]]"
+        print("Usage:", argv[0], "TEXTFILE BIOFILE [TOKENIDX [BIOIDX]]", file=sys.stderr)
         return 1
     textfn, biofn = argv[1], argv[2]
 
@@ -222,14 +225,14 @@ def main(argv):
         try:
             indices = parse_indices(bioIdx)
         except:
-            print >> sys.stderr, 'Error: failed to parse indices "%s"' % bioIdx
+            print('Error: failed to parse indices "%s"' % bioIdx, file=sys.stderr)
             return 1
         so = []
         for i in indices:
             so.extend(BIO_to_standoff(bio, text, tokenIdx, i))
 
     for s in so:
-        print s
+        print(s)
 
     return 0
 

@@ -5,9 +5,12 @@
 
 # TODO: replace with a proper lib.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 from string import lowercase
+from six.moves import range
 
 options = None
 
@@ -64,7 +67,7 @@ class Term:
         # is_a
         for ptid, pname in self.is_a:
             if ptid not in term_by_id:
-                print >> sys.stderr, "Warning: is_a term '%s' not found, ignoring" % ptid
+                print("Warning: is_a term '%s' not found, ignoring" % ptid, file=sys.stderr)
                 continue
             parent = term_by_id[ptid]
             # name is not required information; check if included
@@ -72,7 +75,7 @@ class Term:
             if pname is not None and term_by_name is not None and term_by_name[pname] is not None:
                 assert parent == term_by_name[pname]
             if self in parent.children:
-                print >> sys.stderr, "Warning: dup is-a parent %s for %s, ignoring" % (ptid, str(self))
+                print("Warning: dup is-a parent %s for %s, ignoring" % (ptid, str(self)), file=sys.stderr)
             else:
                 self.parents.add(parent)
                 parent.children.add(self)
@@ -80,14 +83,14 @@ class Term:
         # part_of
         for prel, ptid, pname in self.part_of:
             if ptid not in term_by_id:
-                print >> sys.stderr, "Error: part_of term '%s' not found, ignoring" % ptid
+                print("Error: part_of term '%s' not found, ignoring" % ptid, file=sys.stderr)
                 continue
             pobject = term_by_id[ptid]
             # same as above for name
             if pname is not None and term_by_name is not None and term_by_name[pname] is not None:
                 assert pobject == term_by_name[pname]
             if self in pobject.components:
-                print >> sys.stderr, "Warning: dup part-of parent %s for %s, ignoring" % (ptid, str(self))
+                print("Warning: dup part-of parent %s for %s, ignoring" % (ptid, str(self)), file=sys.stderr)
             else:
                 self.objects.add((prel, pobject))
                 pobject.components.add((prel, self))
@@ -117,7 +120,7 @@ class Term:
                 # only remove period if preceded by "normal word"
                 if re.search(r'\b[a-z]{2,}\.$', s):
                     c = s[:-1]
-                    print >> sys.stderr, "Note: cleanup: '%s' -> '%s'" % (s, c)
+                    print("Note: cleanup: '%s' -> '%s'" % (s, c), file=sys.stderr)
                     self.synonyms[i] = c
 
     def __str__(self):
@@ -152,7 +155,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
             #m = re.match(r'^id: (([A-Z]{2,}[a-z0-9_]*):\d+)\s*$', l)
             m = re.match(r'^id: (([A-Za-z](?:\S*(?=:)|[A-Za-z_]*)):?\S+)\s*$', l)
             if m is None:
-                print >> sys.stderr, "line %d: failed to match id, ignoring: %s" % (ln, l.rstrip())
+                print("line %d: failed to match id, ignoring: %s" % (ln, l.rstrip()), file=sys.stderr)
                 tid, prefix, name, synonyms, is_a, part_of, obsolete = None, None, None, [], [], [], False
                 skip_block = True
             else:
@@ -178,7 +181,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
                 if m is not None:
                     is_a.append((m.group(1), None))
                 else:
-                    print >> sys.stderr, "Error: failed to parse '%s'; ignoring is_a" % l
+                    print("Error: failed to parse '%s'; ignoring is_a" % l, file=sys.stderr)
         elif re.match(r'^relationship:\s*\S*part_of', l) and not skip_block:
             assert tid is not None
             assert name is not None
@@ -192,7 +195,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
                 if m is not None:
                     part_of.append((m.group(1), m.group(2), None))
                 else:
-                    print >> sys.stderr, "Error: failed to parse '%s'; ignoring part_of" % l
+                    print("Error: failed to parse '%s'; ignoring part_of" % l, file=sys.stderr)
         elif re.match(r'^synonym:.*', l) and not skip_block:
             assert tid is not None
             assert name is not None
@@ -202,7 +205,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
             assert m is not None, "Error: failed to parse '%s'" % l
             synstr, syntype = m.groups()
             if synstr == "":
-                print >> sys.stderr, "Note: ignoring empty synonym on line %d: %s" % (ln, l.strip())
+                print("Note: ignoring empty synonym on line %d: %s" % (ln, l.strip()), file=sys.stderr)
             else:
                 synonyms.append((synstr,syntype))
         elif re.match(r'^def:.*', l) and not skip_block:
@@ -212,7 +215,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
             assert m is not None, "Error: failed to parse '%s'" % l
             definition = m.group(1)
             if definition == "":
-                print >> sys.stderr, "Note: ignoring empty def on line %d: %s" % (ln, l.strip())
+                print("Note: ignoring empty def on line %d: %s" % (ln, l.strip()), file=sys.stderr)
             else:
                 definitions.append(definition)
         elif re.match(r'^comment:.*', l) and not skip_block:
@@ -222,7 +225,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
             assert m is not None, "Error: failed to parse '%s'" % l
             comment = m.group(1).strip()
             if comment == "":
-                print >> sys.stderr, "Note: ignoring empty def on line %d: %s" % (ln, l.strip())
+                print("Note: ignoring empty def on line %d: %s" % (ln, l.strip()), file=sys.stderr)
             else:
                 comments.append(comment)
         elif re.match(r'^is_obsolete:', l):
@@ -246,7 +249,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
             elif not skip_block:
                 assert tid is not None, "line %d: no ID for '%s'!" % (ln, name)
                 if name is None and not include_nameless:
-                    print >> sys.stderr, "Note: ignoring term without name (%s) on line %d" % (tid, ln)
+                    print("Note: ignoring term without name (%s) on line %d" % (tid, ln), file=sys.stderr)
                 else:
                     if tid not in term_by_id:
                         t = Term(tid, name, synonyms, definitions, comments,
@@ -254,7 +257,7 @@ def parse_obo(f, limit_prefixes=None, include_nameless=False):
                         all_terms.append(t)
                         term_by_id[tid] = t
                     else:
-                        print >> sys.stderr, "Error: duplicate ID '%s'; discarding all but first definition" % tid
+                        print("Error: duplicate ID '%s'; discarding all but first definition" % tid, file=sys.stderr)
                 tid, prefix, name, synonyms, definitions, comments, is_a, part_of, obsolete = None, None, None, [], [], [], [], [], False
             else:
                 pass
@@ -304,9 +307,9 @@ def get_subtree_terms(root, collection=None, depth=0):
     if options.no_multiple_inheritance and len(root.parents) > 1:
         # don't make too much noise about this
         if multiple_parent_skip_count < 10:
-            print >> sys.stderr, "Note: not traversing subtree at %s %s: %d parents" % (root.tid, root.name, len(root.parents))
+            print("Note: not traversing subtree at %s %s: %d parents" % (root.tid, root.name, len(root.parents)), file=sys.stderr)
         elif multiple_parent_skip_count == 10:
-            print >> sys.stderr, "(further 'not traversing subtree; multiple parents' notes suppressed)"
+            print("(further 'not traversing subtree; multiple parents' notes suppressed)", file=sys.stderr)
         multiple_parent_skip_count += 1
         return False
 
@@ -354,7 +357,7 @@ def main(argv=None):
 
     f = open(fn)
     if limit_prefixes:
-        print >> sys.stderr, 'None: experimental: applying limit_prefixes only in output'
+        print('None: experimental: applying limit_prefixes only in output', file=sys.stderr)
     all_terms, term_by_id = parse_obo(f, None) # limit_prefixes)
     # resolve references, e.g. the is_a ID list into parent and child
     # object references
@@ -371,14 +374,14 @@ def main(argv=None):
             elif t.obo_idspace() == "SAO":
                 t.case_normalize_all_words()
 
-    print >> sys.stderr, "OK, parsed %d (non-obsolete) terms." % len(all_terms)
+    print("OK, parsed %d (non-obsolete) terms." % len(all_terms), file=sys.stderr)
 
     term_by_name = {}
     for t in all_terms:
         if t.name not in term_by_name:
             term_by_name[t.name] = t
         else:
-            print >> sys.stderr, "Warning: duplicate name '%s'; no name->ID mapping possible" % t.name
+            print("Warning: duplicate name '%s'; no name->ID mapping possible" % t.name, file=sys.stderr)
             # mark unavailable by name
             term_by_name[t.name] = None
 
@@ -393,16 +396,16 @@ def main(argv=None):
     for t in all_terms:
         for ptid, pname in t.is_a:
             if ptid not in term_by_id:
-                print >> sys.stderr, "Error: is_a term '%s' not found, removing" % ptid
+                print("Error: is_a term '%s' not found, removing" % ptid, file=sys.stderr)
                 continue
             parent = term_by_id[ptid]
             # name is not required information; check if included
             # and mapping defined (may be undef for dup names)
             if pname is not None and pname in term_by_name and term_by_name[pname] is not None:
                 if parent != term_by_name[pname]:
-                    print >> sys.stderr, "Warning: given parent name '%s' mismatches parent term name (via ID) '%s'" % (parent.name, pname)
+                    print("Warning: given parent name '%s' mismatches parent term name (via ID) '%s'" % (parent.name, pname), file=sys.stderr)
             if t in parent.children:
-                print >> sys.stderr, "Warning: ignoring dup parent %s for %s" % (ptid, str(t))
+                print("Warning: ignoring dup parent %s for %s" % (ptid, str(t)), file=sys.stderr)
             else:
                 t.parents.add(parent)
                 parent.children.add(t)
@@ -423,7 +426,7 @@ def main(argv=None):
         # normal processing
         for t in arg.terms:
             if t not in term_by_name:
-                print >> sys.stderr, "Error: given term '%s' not found!" % t
+                print("Error: given term '%s' not found!" % t, file=sys.stderr)
                 return 1
             else:
                 rootterms.append(term_by_name[t])
@@ -434,7 +437,7 @@ def main(argv=None):
                 if len(t.parents) == 0:
                     rootterms.append(t)
             #print >> sys.stderr, "Extracting from %d root terms (%s)" % (len(rootterms), ", ".join(rootterms))
-            print >> sys.stderr, "Extracting from %d root terms." % len(rootterms)
+            print("Extracting from %d root terms." % len(rootterms), file=sys.stderr)
 
     else:
         assert not arg.separate_children, "Incompatible arguments"
@@ -460,7 +463,7 @@ def main(argv=None):
         arg.separate_children = True
 
         # debugging
-        print >> sys.stderr, "Splitting at the following:", ",".join(rootterms)
+        print("Splitting at the following:", ",".join(rootterms), file=sys.stderr)
 
     for rootterm in rootterms:
         if not arg.separate_children:
@@ -488,7 +491,7 @@ def main(argv=None):
                         strs.append("info:Comment:"+c.replace('\t', ' '))
                 # don't include ontology prefix in ID
                 id_ = t.tid.replace(t.obo_idspace()+':', '', 1) 
-                print id_ + '\t' + '\t'.join(strs)
+                print(id_ + '\t' + '\t'.join(strs))
 #                 print "%s\t%s\t%s" % (n, tid, ntype)
         else:
             # separate the children of the root term in output
@@ -496,7 +499,7 @@ def main(argv=None):
                 stt = []
                 get_subtree_terms(c, stt)
             for n, tid, ntype in stt:
-                    print "%s\t%s\t%s\t%s" % (c.name, n, tid, ntype)
+                    print("%s\t%s\t%s\t%s" % (c.name, n, tid, ntype))
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

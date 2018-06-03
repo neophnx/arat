@@ -5,6 +5,9 @@
 # XXX: This module along with stats and annotator is pretty much pure chaos
 
 from __future__ import with_statement
+from __future__ import absolute_import
+import six
+from six.moves import range
 
 '''
 Document handling functionality.
@@ -347,7 +350,7 @@ def get_base_types(directory):
     project_conf = ProjectConfiguration(directory)
 
     keymap = project_conf.get_kb_shortcuts()
-    hotkey_by_type = dict((v, k) for k, v in keymap.iteritems())
+    hotkey_by_type = dict((v, k) for k, v in six.iteritems(keymap))
 
     # fill config for nodes for which annotation is configured
 
@@ -369,7 +372,7 @@ def get_base_types(directory):
     # make visual config available also for nodes for which there is
     # no annotation config. Note that defaults (SPAN_DEFAULT etc.)
     # are included via get_drawing_types() if defined.
-    unconfigured = [l for l in (project_conf.get_labels().keys() +
+    unconfigured = [l for l in (list(project_conf.get_labels().keys()) +
                                 project_conf.get_drawing_types()) if
                     not project_conf.is_configured_type(l)]
     unconf_types = _fill_visual_configuration(unconfigured, project_conf)
@@ -428,7 +431,7 @@ def _listdir(directory):
         assert_allowed_to_read(directory)
         return [f for f in listdir(directory) if not _is_hidden(f)
                 and allowed_to_read(path_join(directory, f))]
-    except OSError, e:
+    except OSError as e:
         Messager.error("Error listing %s: %s" % (directory, e))
         raise AnnotationCollectionNotFoundError(directory)
 
@@ -444,7 +447,7 @@ def _getmtime(file_path):
 
     try:
         return getmtime(file_path)
-    except OSError, e:
+    except OSError as e:
         if e.errno in (EACCES, ENOENT):
             # The file did not exist or permission denied, we use -1 to
             #   indicate this since mtime > 0 is an actual time.
@@ -685,26 +688,26 @@ def _enrich_json_with_data(j_dic, ann_obj):
     for event_ann in ann_obj.get_events():
         trigger_ids.add(event_ann.trigger)
         j_dic['events'].append(
-                [unicode(event_ann.id), unicode(event_ann.trigger), event_ann.args]
+                [six.text_type(event_ann.id), six.text_type(event_ann.trigger), event_ann.args]
                 )
 
     for rel_ann in ann_obj.get_relations():
         j_dic['relations'].append(
-            [unicode(rel_ann.id), unicode(rel_ann.type),
+            [six.text_type(rel_ann.id), six.text_type(rel_ann.type),
              [(rel_ann.arg1l, rel_ann.arg1),
               (rel_ann.arg2l, rel_ann.arg2)]]
             )
 
     for tb_ann in ann_obj.get_textbounds():
         #j_tb = [unicode(tb_ann.id), tb_ann.type, tb_ann.start, tb_ann.end]
-        j_tb = [unicode(tb_ann.id), tb_ann.type, tb_ann.spans]
+        j_tb = [six.text_type(tb_ann.id), tb_ann.type, tb_ann.spans]
 
         # If we spotted it in the previous pass as a trigger for an
         # event or if the type is known to be an event type, we add it
         # as a json trigger.
         # TODO: proper handling of disconnected triggers. Currently
         # these will be erroneously passed as 'entities'
-        if unicode(tb_ann.id) in trigger_ids:
+        if six.text_type(tb_ann.id) in trigger_ids:
             j_dic['triggers'].append(j_tb)
             # special case for BioNLP ST 2013 format: send triggers
             # also as entities for those triggers that are referenced
@@ -730,18 +733,18 @@ def _enrich_json_with_data(j_dic, ann_obj):
 
     for att_ann in ann_obj.get_attributes():
         j_dic['attributes'].append(
-                [unicode(att_ann.id), unicode(att_ann.type), unicode(att_ann.target), att_ann.value]
+                [six.text_type(att_ann.id), six.text_type(att_ann.type), six.text_type(att_ann.target), att_ann.value]
                 )
 
     for norm_ann in ann_obj.get_normalizations():
         j_dic['normalizations'].append(
-                [unicode(norm_ann.id), unicode(norm_ann.type),
-                 unicode(norm_ann.target), unicode(norm_ann.refdb),
-                 unicode(norm_ann.refid), unicode(norm_ann.reftext)]
+                [six.text_type(norm_ann.id), six.text_type(norm_ann.type),
+                 six.text_type(norm_ann.target), six.text_type(norm_ann.refdb),
+                 six.text_type(norm_ann.refid), six.text_type(norm_ann.reftext)]
                 )
 
     for com_ann in ann_obj.get_oneline_comments():
-        comment = [unicode(com_ann.target), unicode(com_ann.type),
+        comment = [six.text_type(com_ann.target), six.text_type(com_ann.type),
                 com_ann.tail.strip()]
         try:
             j_dic['comments'].append(comment)
@@ -753,8 +756,8 @@ def _enrich_json_with_data(j_dic, ann_obj):
                 '\n'.join(
                 [('%s: %s' % (
                             # The line number is off by one
-                            unicode(line_num + 1),
-                            unicode(ann_obj[line_num])
+                            six.text_type(line_num + 1),
+                            six.text_type(ann_obj[line_num])
                             )).strip()
                  for line_num in ann_obj.failed_lines])
                 )
@@ -773,13 +776,13 @@ def _enrich_json_with_data(j_dic, ann_obj):
             issues = verify_annotation(ann_obj, projectconf)
         else:
             issues = []
-    except Exception, e:
+    except Exception as e:
         # TODO add an issue about the failure?
         issues = []
         Messager.error('Error: verify_annotation() failed: %s' % e, -1)
 
     for i in issues:
-        issue = (unicode(i.ann_id), i.type, i.description)
+        issue = (six.text_type(i.ann_id), i.type, i.description)
         try:
             j_dic['comments'].append(issue)
         except:

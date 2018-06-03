@@ -31,6 +31,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import codecs
@@ -155,7 +157,7 @@ def process_line(l):
             try:
                 field_processor[i](f, record)
             except:
-                print >> sys.stderr, "Error processing field %d: '%s'" % (i+1,f)
+                print("Error processing field %d: '%s'" % (i+1,f), file=sys.stderr)
                 raise
 
     # record key (primary ID) processed separately
@@ -181,7 +183,7 @@ def process_line(l):
             uniqued.append(r)
     record = uniqued
 
-    print '\t'.join([key[2]]+[':'.join(r) for r in record])
+    print('\t'.join([key[2]]+[':'.join(r) for r in record]))
 
 def process(fn):
     with codecs.open(fn, encoding=INPUT_ENCODING) as f:
@@ -194,13 +196,13 @@ def process(fn):
 
             try:
                 process_line(l)
-            except Exception, e:
-                print >> sys.stderr, "Error processing line %d: %s" % (ln, l)
+            except Exception as e:
+                print("Error processing line %d: %s" % (ln, l), file=sys.stderr)
                 raise
             
 def main(argv):
     if len(argv) < 2:
-        print >> sys.stderr, "Usage:", argv[0], "GENE-INFO-FILE"
+        print("Usage:", argv[0], "GENE-INFO-FILE", file=sys.stderr)
         return 1
 
     fn = argv[1]

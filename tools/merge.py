@@ -3,6 +3,9 @@
 # vim:set ft=python ts=4 sw=4 sts=4 autoindent:
 
 from __future__ import with_statement
+from __future__ import print_function
+from __future__ import absolute_import
+import six
 
 '''
 Merge BioNLP Shared Task annotation format into a single annotation file.
@@ -14,6 +17,7 @@ Author:     Pontus Stenetorp
 Version:    2011-01-17
 '''
 
+from __future__ import absolute_import
 from collections import defaultdict
 from os.path import join as join_path
 from os.path import split as split_path
@@ -69,16 +73,16 @@ def main(args):
         if not any((file_path.endswith(suff) for suff in UNMERGED_SUFFIXES)):
             if not argp.no_warn:
                 import sys
-                print >> sys.stderr, (
+                print((
                         'WARNING: invalid file suffix for %s, ignoring'
-                        ) % (file_path, )
+                        ) % (file_path, ), file=sys.stderr)
             continue
         
         dirname, basename = split_path(file_path)
         id = join_path(dirname, basename.split('.')[0])
         id_to_ann_files[id].append(file_path)
 
-    for id, ann_files in id_to_ann_files.iteritems():
+    for id, ann_files in six.iteritems(id_to_ann_files):
         #XXX: Check if output file exists
         lines = []
         for ann_file_path in ann_files:

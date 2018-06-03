@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
@@ -38,7 +40,7 @@ def read_ids(fn):
         for l in f:
             l = l.rstrip('\n')
             if not BIOCONTEXT_ID_RE.match(l):
-                print >> sys.stderr, 'Warning: ID %s not in expected format' % l
+                print('Warning: ID %s not in expected format' % l, file=sys.stderr)
             ids.add(l)
     return ids
 
@@ -63,7 +65,7 @@ def convert_line(l, converted):
             return 0
         start, end = int(start), int(end)
     except:
-        print >> sys.stderr, 'Format error: %s' % l
+        print('Format error: %s' % l, file=sys.stderr)
         raise
 
     # textbound annotation
@@ -76,7 +78,7 @@ def convert_line(l, converted):
 
 def output_(out, ann):
     for a in ann:
-        print >> out, a
+        print(a, file=out)
 
 def output(id_, ann, append):
     if not options.directory:
@@ -103,7 +105,7 @@ def process_(f, ids):
                 processed.add(current)
             if id_ in ids:
                 if id_ in processed and options.verbose:
-                    print >> sys.stderr, 'Warning: %s split' % id_
+                    print('Warning: %s split' % id_, file=sys.stderr)
                 convert_line(l, ann)
             current = id_
             # short-circuit after processing last
@@ -114,7 +116,7 @@ def process_(f, ids):
         output(current, ann, current in processed)
 
     for id_ in ids - processed:
-        print >> sys.stderr, 'Warning: id %s not found' % id_
+        print('Warning: id %s not found' % id_, file=sys.stderr)
 
 def process(fn, ids):
     try:
@@ -122,10 +124,10 @@ def process(fn, ids):
             # first line should be header; skip and confirm
             header = f.readline()
             if not header.startswith('doc_id\tid'):
-                print >> sys.stderr, 'Warning: %s missing header' % fn
+                print('Warning: %s missing header' % fn, file=sys.stderr)
             process_(f, ids)
-    except IOError, e:
-        print >> sys.stderr, e, '(try -f argument?)'
+    except IOError as e:
+        print(e, '(try -f argument?)', file=sys.stderr)
 
 def main(argv=None):
     global options

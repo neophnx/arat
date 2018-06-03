@@ -16,12 +16,18 @@ Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
 Version:    2011-05-31
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 import re
+from six.moves import map
+from six import unichr
+import six
+from six.moves import range
 
 # for cleaning up control chars from a string, from 
 # http://stackoverflow.com/questions/92438/stripping-non-printable-characters-from-a-string-in-python
 # allow tab (9) and [unix] newline (10)
-__control_chars = ''.join(map(unichr, range(0,9) + range(11,32) + range(127,160)))
+__control_chars = ''.join(map(unichr, list(range(0,9)) + list(range(11,32)) + list(range(127,160))))
 __control_char_re = re.compile('[%s]' % re.escape(__control_chars))
 def remove_control_chars(s):
     return __control_char_re.sub('', s)
@@ -48,13 +54,13 @@ class Messager:
 
     def output(o):
         for m, c, d in Messager.__pending_messages:
-            print >> o, c, ":", m
+            print(c, ":", m, file=o)
     output = staticmethod(output)
 
     def output_json(json_dict):
         try:
             return Messager.__output_json(json_dict)
-        except Exception, e:
+        except Exception as e:
             # TODO: do we want to always give the exception?
             json_dict['messages'] = [['Messager error adding messages to json (internal error in message.py, please contact administrator): %s' % str(e),'error', -1]]
             return json_dict
@@ -109,7 +115,7 @@ class Messager:
     __escape = staticmethod(__escape)
 
     def __message(msg, type, duration, escaped):
-        if not isinstance(msg, str) and not isinstance(msg, unicode):
+        if not isinstance(msg, str) and not isinstance(msg, six.text_type):
             msg = str(msg)
         if not escaped:
             msg = Messager.__escape(msg)

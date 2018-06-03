@@ -7,17 +7,20 @@
 #     APACHE_USER=`./apache-user.sh`
 #     sudo -u $APACHE_USER python standalone.py
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 
 from posixpath import normpath
-from urllib import unquote
+from six.moves.urllib.parse import unquote
 
 from cgi import FieldStorage
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-from SocketServer import ForkingMixIn
+from six.moves.BaseHTTPServer import HTTPServer
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
+from six.moves.socketserver import ForkingMixIn
 import socket
+import six
 
 # brat imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'server/src'))
@@ -182,7 +185,7 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         remote_addr = self.client_address[0]
         remote_host = self.address_string()
-        cookie_data = ', '.join(filter(None, self.headers.getheaders('cookie')))
+        cookie_data = ', '.join([_f for _f in self.headers.get('cookie') if _f])
 
         query_string = ''
         i = self.path.find('?')
@@ -195,13 +198,13 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         # set env to get FieldStorage to read params
         env = {}
         env['REQUEST_METHOD'] = self.command
-        content_length = self.headers.getheader('content-length')
+        content_length = self.headers.get('content-length')
         if content_length:
             env['CONTENT_LENGTH'] = content_length
         if query_string:
             env['QUERY_STRING'] = query_string
         os.environ.update(env)
-        params = FieldStorage()
+        params = FieldStorage(self.rfile)
 
         # Call main server
         cookie_hdrs, response_data = serve(params, remote_addr, remote_host,
@@ -217,11 +220,13 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         response_hdrs.extend(response_data[0])
 
         self.send_response(200)
-        self.wfile.write('\n'.join('%s: %s' % (k, v) for k, v in response_hdrs))
-        self.wfile.write('\n')
-        self.wfile.write('\n')
+        for k, v in response_hdrs:
+            self.send_header(k, v)
+#        self.wfile.write(('\n'.join('%s: %s' % (k, v) for k, v in response_hdrs)).encode("utf-8"))
+#        self.wfile.write(b'\n')
+#        self.wfile.write(b'\n')
         # Hack to support binary data and general Unicode for SVGs and JSON
-        if isinstance(response_data[1], unicode):
+        if isinstance(response_data[1], six.text_type):
             self.wfile.write(response_data[1].encode('utf-8'))
         else:
             self.wfile.write(response_data[1])
@@ -237,7 +242,7 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         path = unquote(path)
         path = normpath(path)
         parts = path.split('/')
-        parts = filter(None, parts)
+        parts = [_f for _f in parts if _f]
         if '..' in parts:
             return False
         path = '/'+'/'.join(parts)
@@ -281,40 +286,40 @@ def main(argv):
     # warn if root/admin
     try:
         if os.getuid() == 0:
-            print >> sys.stderr, """
+            print("""
 ! WARNING: running as root. The brat standalone server is experimental   !
 ! and may be a security risk. It is recommend to run the standalone      !
 ! server as a non-root user with write permissions to the brat work/ and !
 ! data/ directories (e.g. apache if brat is set up using standard        !
 ! installation).                                                         !
-"""
+""", file=sys.stderr)
     except AttributeError:
         # not on UNIX
-        print >> sys.stderr, """
+        print("""
 Warning: could not determine user. Note that the brat standalone
 server is experimental and should not be run as administrator.
-"""
+""", file=sys.stderr)
 
     if len(argv) > 1:
         try:
             port = int(argv[1])
         except ValueError:
-            print >> sys.stderr, "Failed to parse", argv[1], "as port number."
+            print("Failed to parse", argv[1], "as port number.", file=sys.stderr)
             return 1
     else:
         port = _DEFAULT_SERVER_PORT
 
     try:
         server = BratServer((_DEFAULT_SERVER_ADDR, port))
-        print >> sys.stderr, "Serving brat at http://%s:%d" % server.server_address
+        print("Serving brat at http://%s:%d" % server.server_address, file=sys.stderr)
         server.serve_forever()
     except KeyboardInterrupt:
         # normal exit
         pass
-    except socket.error, why:
-        print >> sys.stderr, "Error binding to port", port, ":", why[1]
-    except Exception, e:
-        print >> sys.stderr, "Server error", e
+    except socket.error as why:
+        print("Error binding to port", port, ":", why[1], file=sys.stderr)
+    except Exception as e:
+        print("Server error", e, file=sys.stderr)
         raise
     return 0
 

@@ -9,6 +9,8 @@ Author:     Han-Cheol Cho
 Version:    2014-04-05
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from argparse import ArgumentParser
 from cgi import FieldStorage
 
@@ -24,17 +26,17 @@ except ImportError:
 
 from random import choice, randint
 from sys import stderr
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 try:
-	from urlparse import parse_qs
+	from six.moves.urllib.parse import parse_qs
 except ImportError:
 	# old Python again?
 	from cgi import parse_qs
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 import json
-import urllib
-import urllib2
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 import base64
 
 
@@ -97,9 +99,9 @@ class RandomTaggerHandler(BaseHTTPRequestHandler):
 			
 			# Make a request and retrieve the result
 			annotator_url = "http://pubdictionaries.dbcls.jp:80/dictionaries/EntrezGene%20-%20Homo%20Sapiens/text_annotation?matching_method=approximate&max_tokens=6&min_tokens=1&threshold=0.8&top_n=0"
-			request = urllib2.Request(annotator_url, data=data, headers=headers)
+			request = six.moves.urllib.request.Request(annotator_url, data=data, headers=headers)
 			
-			f   = urllib2.urlopen(request)
+			f   = six.moves.urllib.request.urlopen(request)
 			res = f.read()
 			f.close()
 
@@ -116,7 +118,7 @@ class RandomTaggerHandler(BaseHTTPRequestHandler):
 		self.end_headers()
 
 		self.wfile.write(dumps(json_dic))
-		print >> stderr, ('Generated %d annotations' % len(json_dic))
+		print(('Generated %d annotations' % len(json_dic)), file=stderr)
 
 	def log_message(self, format, *args):
 		return # Too much noise from the default implementation
@@ -128,13 +130,13 @@ def main(args):
 		server_class = HTTPServer
 		httpd = server_class(('localhost', argp.port), RandomTaggerHandler)
 
-		print >> stderr, 'PubDictionary NER tagger service started on port %s' % (argp.port)
+		print('PubDictionary NER tagger service started on port %s' % (argp.port), file=stderr)
 		try:
 				httpd.serve_forever()
 		except KeyboardInterrupt:
 				pass
 		httpd.server_close()
-		print >> stderr, 'PubDictionary tagger service stopped'
+		print('PubDictionary tagger service stopped', file=stderr)
 
 
 if __name__ == '__main__':

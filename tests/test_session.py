@@ -4,6 +4,8 @@ Created on Fri Jun  1 23:47:41 2018
 
 @author: neophnx
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 
 import tests_common
@@ -17,7 +19,7 @@ class TestSentenceSplit(unittest.TestCase):
         # Some simple sanity checks
         try:
             session.get_session()
-            print(session.CURRENT_SESSION)
+            print((session.CURRENT_SESSION))
             assert False
         except session.NoSessionError:
             pass

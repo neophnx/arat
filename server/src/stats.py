@@ -3,7 +3,7 @@
 # vim:set ft=python ts=4 sw=4 sts=4 autoindent:
 
 from __future__ import with_statement
-
+from __future__ import absolute_import
 '''
 Annotation statistics generation.
 
@@ -11,9 +11,10 @@ Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-04-21
 '''
 
-from cPickle import UnpicklingError
-from cPickle import dump as pickle_dump
-from cPickle import load as pickle_load
+
+from six.moves.cPickle import UnpicklingError
+from six.moves.cPickle import dump as pickle_dump
+from six.moves.cPickle import load as pickle_load
 from logging import info as log_info
 from os import listdir
 from os.path import isfile, getmtime
@@ -43,7 +44,7 @@ def get_statistics(directory, base_names, use_cache=True):
 
     try:
         cache_mtime = getmtime(cache_file_path);
-    except OSError, e:
+    except OSError as e:
         if e.errno == 2:
             cache_mtime = -1;
         else:
@@ -78,7 +79,7 @@ def get_statistics(directory, base_names, use_cache=True):
             except EOFError:
                 # Corrupt data, re-generate
                 generate = True
-    except OSError, e:
+    except OSError as e:
         Messager.warning('Failed checking file modification times for stats cache check; regenerating')
         generate = True
 
@@ -120,7 +121,7 @@ def get_statistics(directory, base_names, use_cache=True):
                             # TODO: error reporting
                             issue_count = -1
                         docstats.append([tb_count, rel_count, event_count, issue_count])
-            except Exception, e:
+            except Exception as e:
                 log_info('Received "%s" when trying to generate stats' % e)
                 # Pass exceptions silently, just marking stats missing
                 docstats.append([-1] * len(stat_types))
@@ -129,7 +130,7 @@ def get_statistics(directory, base_names, use_cache=True):
         try:
             with open(cache_file_path, 'wb') as cache_file:
                 pickle_dump(docstats, cache_file)
-        except IOError, e:
+        except IOError as e:
             Messager.warning("Could not write statistics cache file to directory %s: %s" % (directory, e))
 
     return stat_types, docstats

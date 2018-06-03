@@ -5,6 +5,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 
@@ -221,7 +223,7 @@ def process(fn):
 
 def main(argv):
     if len(argv) < 2:
-        print >> sys.stderr, "Usage:", argv[0], "FILE [FILE ...]"
+        print("Usage:", argv[0], "FILE [FILE ...]", file=sys.stderr)
         return 1
 
     for fn in argv[1:]:

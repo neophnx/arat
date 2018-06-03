@@ -14,6 +14,7 @@ Use e.g. as
         from sosmessage import Messager
 '''
 
+from __future__ import print_function
 class SosMessager:
     def output_json(json_dict):
         json_dict['messages'] = [['HELP: messager down! (internal error in message.py, please contact administrator)','error', -1]]
@@ -21,7 +22,7 @@ class SosMessager:
     output_json = staticmethod(output_json)
 
     def output(o):
-        print >> o, 'HELP: messager down! (internal error in message.py, please contact administrator)'
+        print('HELP: messager down! (internal error in message.py, please contact administrator)', file=o)
     output = staticmethod(output)
 
     def info(msg, duration=3, escaped=False): pass

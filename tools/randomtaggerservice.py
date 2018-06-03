@@ -7,8 +7,11 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-03-05
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from argparse import ArgumentParser
 from cgi import FieldStorage
+from six.moves import range
 
 try:
     from json import dumps
@@ -22,13 +25,13 @@ except ImportError:
 
 from random import choice, randint
 from sys import stderr
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 try:
-    from urlparse import parse_qs
+    from six.moves.urllib.parse import parse_qs
 except ImportError:
     # old Python again?
     from cgi import parse_qs
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 ### Constants
 ARGPARSER = ArgumentParser(description='An example HTTP tagging service, '
@@ -71,7 +74,7 @@ def _random_tagger(text):
         return anns
 
     num_anns = randint(1, len(text) / 100)
-    for ann_num in xrange(num_anns):
+    for ann_num in range(num_anns):
         ann_id = 'T%d' % ann_num
         # Annotation type
         _type = choice(('Confuse-a-Cat', 'Dead-parrot', ))
@@ -109,7 +112,7 @@ class RandomTaggerHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(dumps(json_dic))
-        print >> stderr, ('Generated %d random annotations' % len(json_dic))
+        print(('Generated %d random annotations' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
         return # Too much noise from the default implementation
@@ -119,13 +122,13 @@ def main(args):
 
     server_class = HTTPServer
     httpd = server_class(('localhost', argp.port), RandomTaggerHandler)
-    print >> stderr, 'Random tagger service started on port %s' % (argp.port)
+    print('Random tagger service started on port %s' % (argp.port), file=stderr)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print >> stderr, 'Random tagger service stopped'
+    print('Random tagger service stopped', file=stderr)
 
 if __name__ == '__main__':
     from sys import argv

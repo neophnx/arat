@@ -5,6 +5,7 @@ Created on Sat Jun  2 06:47:34 2018
 
 @author: phnx
 """
+from __future__ import absolute_import
 import unittest
 from multiprocessing import Process
 from os import rmdir

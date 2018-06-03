@@ -11,6 +11,8 @@ Author:   Pontus Stenetorp    <pontus stenetorp se>
 Version:  2011-07-11
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 try:
     import ply.yacc as yacc
 except ImportError:
@@ -195,7 +197,7 @@ def p_id(p):
     return p
 
 def p_error(p):
-    print 'Syntax error in input! "%s"'  % (str(p), )
+    print('Syntax error in input! "%s"'  % (str(p), ))
     raise Exception
 
 parser = yacc.yacc()
@@ -203,8 +205,8 @@ parser = yacc.yacc()
 if __name__ == '__main__':
     from sys import stdin
     for line in stdin:
-        print 'Input: "%s"' % line.rstrip('\n')
+        print('Input: "%s"' % line.rstrip('\n'))
         result = parser.parse(line)
         assert result == line, ('"%s" != "%s"' % (result, line)
                 ).replace('\n', '\\n')
-        print result,
+        print(result, end=' ')

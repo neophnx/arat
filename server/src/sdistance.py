@@ -7,11 +7,14 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2011-08-09
 '''
 
-from string import digits, lowercase
-from sys import maxint
+from __future__ import absolute_import
+from string import digits
+from sys import maxsize
+from six.moves import range
+import six
 
 DIGITS = set(digits)
-LOWERCASE = set(lowercase)
+LOWERCASE = set([six.unichr(i).lower() for i in range(32, 256)])
 TSURUOKA_2004_INS_CHEAP = set((' ', '-', ))
 TSURUOKA_2004_DEL_CHEAP = TSURUOKA_2004_INS_CHEAP
 TSURUOKA_2004_REPL_CHEAP = set([(a, b) for a in DIGITS for b in DIGITS] +
@@ -27,6 +30,7 @@ TSURUOKA_INS  = dict([(c, 10) for c in TSURUOKA_2004_INS_CHEAP])
 TSURUOKA_DEL  = dict([(c, 10) for c in TSURUOKA_2004_DEL_CHEAP])
 #TSURUOKA_REPL = dict([(c, 10) for c in TSURUOKA_2004_REPL_CHEAP])
 TSURUOKA_REPL = dict([(c, 10) for c in NONNUM_T2004_REPL_CHEAP])
+DEFAULT_MAXCOST = 10**6
 
 def tsuruoka(a, b):
     # Special case for empties
@@ -56,7 +60,7 @@ def tsuruoka(a, b):
 
     return curr_min_col[-1]
 
-def tsuruoka_local(a, b, edge_insert_cost=1, max_cost=maxint):
+def tsuruoka_local(a, b, edge_insert_cost=1, max_cost=DEFAULT_MAXCOST):
     # Variant of the tsuruoka metric for local (substring) alignment:
     # penalizes initial or final insertion for a by a different
     # (normally small or zero) cost than middle insertion.

@@ -7,6 +7,8 @@ Author:     Pontus Stenetorp <pontus stenetorp se>
 Version:    2011-11-25
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from argparse import ArgumentParser
 
 ### Constants
@@ -65,7 +67,7 @@ def main(args):
                 log_lines.append(log_line)
 
         clock_time = log_lines[-1].time - log_lines[0].time
-        print >> stderr, 'Clock time:', clock_time
+        print('Clock time:', clock_time, file=stderr)
         from datetime import timedelta
         ann_time = timedelta()
         last_span_selected = None
@@ -80,8 +82,8 @@ def main(args):
                 last_span_selected = None
             #print action
         ann_port_of_clock = float(ann_time.seconds) / clock_time.seconds
-        print >> stderr, 'Annotation time: %s (portion of clock time: %.1f%%)' % (
-                ann_time, ann_port_of_clock * 100, )
+        print('Annotation time: %s (portion of clock time: %.1f%%)' % (
+                ann_time, ann_port_of_clock * 100, ), file=stderr)
 
 '''
 Ordinary sequence:

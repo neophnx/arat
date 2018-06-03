@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
 
 '''
 Provides a stylish pythonic file-lock:
@@ -129,7 +131,7 @@ def file_lock(path, wait=0.1, timeout=1,
             write(fd, str(getpid()))
             fsync(fd)
             break
-        except OSError, e:
+        except OSError as e:
             if e.errno == EEXIST:
                 if pid_policy == PID_DISALLOW:
                     pass # Standard, just do nothing
@@ -140,9 +142,7 @@ def file_lock(path, wait=0.1, timeout=1,
                     if not _pid_exists(pid):
                         # Stale lock-file
                         if pid_policy == PID_WARN:
-                            print >> err_output, (
-                                    "Stale lock-file '%s', deleting" % (
-                                        path))
+                            print("Stale lock-file '%s', deleting" % path, file=err_output)
                         remove(path)
                         continue
                 else:

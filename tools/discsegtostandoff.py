@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 try:
@@ -182,7 +184,7 @@ convert_function = {
 
 def main(argv=[]):
     if len(argv) != 4:
-        print >> sys.stderr, "Usage:", argv[0], "IN-XML OUT-TEXT OUT-SO"
+        print("Usage:", argv[0], "IN-XML OUT-TEXT OUT-SO", file=sys.stderr)
         return -1
 
     in_fn, out_txt_fn, out_so_fn = argv[1:]
@@ -232,7 +234,7 @@ def main(argv=[]):
 
     out_txt.write(text.encode("utf-8"))
     for so in standoffs:
-        print >> out_so, so
+        print(so, file=out_so)
 
     out_txt.close()
     out_so.close()

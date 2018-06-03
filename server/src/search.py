@@ -7,10 +7,14 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import re
 import annotation
 
 from message import Messager
+import six
+from six.moves import range
 
 ### Constants
 DEFAULT_EMPTY_STRING = "***"
@@ -165,16 +169,16 @@ def __filenames_to_annotations(filenames):
             ann_obj = annotation.TextAnnotations(nosuff_fn, read_only=True)
             anns.append(ann_obj)
         except annotation.AnnotationFileNotFoundError:
-            print >> sys.stderr, "%s:\tFailed: file not found" % fn
-        except annotation.AnnotationNotFoundError, e:
-            print >> sys.stderr, "%s:\tFailed: %s" % (fn, e)
+            print("%s:\tFailed: file not found" % fn, file=sys.stderr)
+        except annotation.AnnotationNotFoundError as e:
+            print("%s:\tFailed: %s" % (fn, e), file=sys.stderr)
 
     if len(anns) != len(filenames):
-        print >> sys.stderr, "Note: only checking %d/%d given files" % (len(anns), len(filenames))
+        print("Note: only checking %d/%d given files" % (len(anns), len(filenames)), file=sys.stderr)
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "filenames_to_annotations: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("filenames_to_annotations: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return anns
 
@@ -310,7 +314,7 @@ def eq_text_neq_type_spans(ann_objs, restrict_types=None, ignore_types=None, nes
             # all matching texts have same type, OK
             continue
 
-        types = text_type_ann_map[text].keys()
+        types = list(text_type_ann_map[text].keys())
         # avoiding any() etc. to be compatible with python 2.4
         if restrict_types != [] and len([t for t in types if t in restrict_types]) == 0:
             # Does not involve any of the types restricted do
@@ -442,7 +446,7 @@ def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, n
             tokens = _split_tokens_more(tokens)
         except:
             # TODO: proper error handling
-            print >> sys.stderr, "ERROR: failed tokenization in %s, skipping" % ann_obj._input_files[0]
+            print("ERROR: failed tokenization in %s, skipping" % ann_obj._input_files[0], file=sys.stderr)
             continue
 
         # document-specific map
@@ -510,7 +514,7 @@ def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, n
                 matches.add_match(ann_obj, m)
             for ann_obj, m in untagged:
                 matches.add_match(ann_obj, m)
-            print "(note: omitting %d instances of tagged '%s')" % (len(tagged)-cutoff_limit, text.encode('utf-8'))
+            print("(note: omitting %d instances of tagged '%s')" % (len(tagged)-cutoff_limit, text.encode('utf-8')))
         elif (len(untagged) > freq_ratio_cutoff * len(tagged) and
               len(untagged) > cutoff_limit):
             # cut off all but cutoff_limit from tagged
@@ -518,7 +522,7 @@ def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, n
                 matches.add_match(ann_obj, m)
             for ann_obj, m in untagged[:cutoff_limit]:
                 matches.add_match(ann_obj, m)
-            print "(note: omitting %d instances of untagged '%s')" % (len(untagged)-cutoff_limit, text.encode('utf-8'))
+            print("(note: omitting %d instances of untagged '%s')" % (len(untagged)-cutoff_limit, text.encode('utf-8')))
         else:
             # include all
             for ann_obj, m in tagged + untagged:
@@ -672,7 +676,7 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "search_anns_for_textbound: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("search_anns_for_textbound: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return matches
 
@@ -745,7 +749,7 @@ def search_anns_for_note(ann_objs, text, category,
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "search_anns_for_textbound: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("search_anns_for_textbound: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return matches
 
@@ -863,7 +867,7 @@ def search_anns_for_relation(ann_objs, arg1, arg1type, arg2, arg2type,
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "search_anns_for_relation: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("search_anns_for_relation: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return matches
 
@@ -993,7 +997,7 @@ def search_anns_for_event(ann_objs, trigger_text, args,
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "search_anns_for_event: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("search_anns_for_event: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return matches
 
@@ -1070,7 +1074,7 @@ def search_anns_for_text(ann_objs, text,
 
     if REPORT_SEARCH_TIMINGS:
         process_delta = datetime.now() - process_start
-        print >> stderr, "search_anns_for_text: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds"
+        print("search_anns_for_text: processed in", str(process_delta.seconds)+"."+str(process_delta.microseconds/10000), "seconds", file=stderr)
 
     return matches
 
@@ -1502,7 +1506,7 @@ def argparser():
 def main(argv=None):
     import sys
     import os
-    import urllib
+    import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 
     # ignore search result number limits on command-line invocations
     global MAX_SEARCH_RESULT_NUMBER
@@ -1540,7 +1544,7 @@ def main(argv=None):
                                                   ignore_types=arg.ignore,
                                                   nested_types=arg.nested)
     else:
-        print >> sys.stderr, "Please specify action (-h for help)"
+        print("Please specify action (-h for help)", file=sys.stderr)
         return 1
 
     # guessing at the likely URL
@@ -1548,7 +1552,7 @@ def main(argv=None):
     username = getpass.getuser()
 
     for m in matches:
-        print m.criterion
+        print(m.criterion)
         for ann_obj, ann in m.get_matches():
             # TODO: get rid of specific URL hack and similar
             baseurl='http://127.0.0.1/~%s/brat/#/' % username
@@ -1557,10 +1561,10 @@ def main(argv=None):
                 annp = "%s~%s" % (ann.reference_id()[0], ann.reference_id()[1])
             else:
                 annp = ann.reference_id()[0]
-            anns = unicode(ann).rstrip()
+            anns = six.text_type(ann).rstrip()
             annloc = ann_obj.get_document().replace("data/","")
             outs = u"\t%s%s?focus=%s (%s)" % (baseurl, annloc, annp, anns)
-            print outs.encode('utf-8')
+            print(outs.encode('utf-8'))
 
 if __name__ == "__main__":
     import sys

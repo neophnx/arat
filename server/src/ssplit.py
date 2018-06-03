@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
 
 '''
 Primitive sentence splitting using Sampo Pyysalo's GeniaSS sentence split
@@ -17,31 +19,31 @@ from os.path import join as path_join
 from os.path import dirname
 from subprocess import Popen, PIPE
 from shlex import split as shlex_split
-
+import six
 ### Constants
 # Reasonably well-behaved sentence end regular expression
-SENTENCE_END_REGEX = re_compile(ur'''
+SENTENCE_END_REGEX = re_compile(six.u(r'''
         # Require a leading non-whitespace character for the sentence
-        [^\s　]
+        #[^\s　]
         # Then, anything goes, but don't be greedy
-        .*?
+        #.*?
         # Anchor the sentence at...
         (:?
             # One (or multiple) terminal character(s)
             #   followed by one (or multiple) whitespace
-            (:?(\.|!|\?|。|！|？)+(?=[\s]+))
+            #(:?(\.|!|\?|。|！|？)+(?=[\s]+))
         | # Or for japanese
-        (:?(。|！|？))
+        #(:?(。|！|？))
         | # Or...
             # Newlines, to respect file formatting
-            (:?(?=\n+))
+            #(:?(?=\n+))
         | # Or...
             # End-of-file, excluding whitespaces before it
-            (:?(?=[\s　]*$))
+            #(:?(?=[\s　]*$))
         )
-    ''', DOTALL | VERBOSE)
+    '''), flags=DOTALL | VERBOSE)
 # Only newlines can end a sentence to preserve pre-processed formatting
-SENTENCE_END_NEWLINE_REGEX = re_compile(ur'''
+SENTENCE_END_NEWLINE_REGEX = (six.u(r'''
         # Require a leading non-whitespace character for the sentence
         \S
         # Then, anything goes, but don't be greedy
@@ -54,7 +56,7 @@ SENTENCE_END_NEWLINE_REGEX = re_compile(ur'''
             # End-of-file, excluding whitespaces before it
             (:?(?=\s*$))
         )
-    ''', DOTALL | VERBOSE)
+    '''), DOTALL | VERBOSE)
 ###
 
 def _refine_split(offsets, original_text):
@@ -147,23 +149,23 @@ if __name__ == '__main__':
     if len(argv) > 1:
         try:
             for txt_file_path in argv[1:]:
-                print
-                print '### Splitting:', txt_file_path
+                print()
+                print('### Splitting:', txt_file_path)
                 with open_textfile(txt_file_path, 'r') as txt_file:
                     text = txt_file.read()
-                print '# Original text:'
-                print text.replace('\n', '\\n')
+                print('# Original text:')
+                print(text.replace('\n', '\\n'))
                 offsets = [o for o in newline_sentence_boundary_gen(text)]
-                print '# Offsets:'
-                print offsets
-                print '# Sentences:'
+                print('# Offsets:')
+                print(offsets)
+                print('# Sentences:')
                 for sentence in _text_by_offsets_gen(text, offsets):
                     # These should only be allowed when coming from original
                     #   explicit newlines.
                     #assert sentence, 'blank sentences disallowed'
                     #assert not sentence[0].isspace(), (
                     #        'sentence may not start with white-space "%s"' % sentence)
-                    print '"%s"' % sentence.replace('\n', '\\n')
+                    print('"%s"' % sentence.replace('\n', '\\n'))
         except IOError:
             pass # Most likely a broken pipe
     else:

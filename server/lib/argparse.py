@@ -77,6 +77,11 @@ considered public as object names -- the API of the formatter objects is
 still considered an implementation detail.)
 """
 
+from __future__ import absolute_import
+import six
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 __version__ = '1.1'
 __all__ = [
     'ArgumentParser',
@@ -105,7 +110,7 @@ except NameError:
     from sets import Set as _set
 
 try:
-    _basestring = basestring
+    _basestring = six.string_types
 except NameError:
     _basestring = str
 
@@ -165,7 +170,7 @@ class _AttributeHolder(object):
         return '%s(%s)' % (type_name, ', '.join(arg_strings))
 
     def _get_kwargs(self):
-        return _sorted(self.__dict__.items())
+        return _sorted(list(self.__dict__.items()))
 
     def _get_args(self):
         return []

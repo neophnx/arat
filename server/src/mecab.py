@@ -10,10 +10,13 @@ Author:     Pontus Stenetorp <pontus stenetorp se>
 Version:    2011-05-17
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from os.path import dirname
 from os.path import join as path_join
 from re import compile as re_compile
 from re import DOTALL
+import six
 
 ### Constants
 # TODO: EXTERNAL_DIR_PATH really should be specified elsewhere
@@ -62,4 +65,4 @@ if __name__ == '__main__':
     sentence = u'鴨かも？'
     token_offsets = [t for t in token_offsets_gen(sentence)]
     segmented = [sentence[start:end + 1] for start, end in token_offsets]
-    print '\t'.join((sentence, unicode(token_offsets), '|'.join(segmented)))
+    print('\t'.join((sentence, six.text_type(token_offsets), '|'.join(segmented))))

@@ -5,9 +5,11 @@ Created on Sat Jun  2 06:55:31 2018
 
 @author: phnx
 """
+from __future__ import absolute_import
 import unittest
 import tests_common
 import sdistance
+from six.moves import zip
 
 
 try:

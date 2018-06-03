@@ -18,6 +18,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import re
 
 INPUT_ENCODING = "UTF-8"
@@ -265,7 +267,7 @@ def tokenize(s, ptb_escaping=False, use_single_quotes_only=False,
         r1 = PTB_unescape(orig.replace(' ', '').replace('\n','').replace("'",'').replace('"','').replace('``',''))
         r2 = PTB_unescape(s.replace(' ', '').replace('\n','').replace("'",'').replace('"','').replace('``',''))
         if r1 != r2:
-            print >> sys.stderr, "tokenize(): error: text mismatch (returning original):\nORIG: '%s'\nNEW:  '%s'" % (orig, s)
+            print("tokenize(): error: text mismatch (returning original):\nORIG: '%s'\nNEW:  '%s'" % (orig, s), file=sys.stderr)
             s = orig
 
     return s+s_end
@@ -312,8 +314,8 @@ def main(argv):
                                  use_single_quotes_only=use_single_quotes_only,
                                  escape_token_internal_parens=escape_token_internal_parens)
                     sys.stdout.write(t.encode(OUTPUT_ENCODING))
-        except Exception, e:
-            print >> sys.stderr, "Failed to read", fn, ":", e
+        except Exception as e:
+            print("Failed to read", fn, ":", e, file=sys.stderr)
             
 if __name__ == "__main__":
     import sys

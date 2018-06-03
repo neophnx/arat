@@ -10,6 +10,7 @@ Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
 Version:    2011-11-22
 '''
 
+from __future__ import absolute_import
 import logging
 from session import get_session
 from message import Messager
@@ -19,6 +20,7 @@ from os.path import join as path_join
 
 from config import DATA_DIR
 from projectconfig import options_get_annlogfile
+import six
 
 def real_directory(directory, rel_to=DATA_DIR):
     assert isabs(directory), 'directory "%s" is not absolute' % directory
@@ -54,7 +56,7 @@ def ann_logger(directory):
                 handler.setFormatter(formatter)
                 l.addHandler(handler)
                 ann_logger.__logger = l
-            except IOError, e:
+            except IOError as e:
                 Messager.error("""Error: failed to initialize annotation log %s: %s.
 Edit action not logged.
 Please check the Annotation-log logfile setting in tools.conf""" % (annlogfile, e))
@@ -67,7 +69,7 @@ ann_logger.__logger = False
 
 # local abbrev; can't have literal tabs in log fields
 def _detab(s):
-    return unicode(s).replace('\t', '\\t')
+    return six.text_type(s).replace('\t', '\\t')
 
 def log_annotation(collection, document, status, action, args):
     """
@@ -104,4 +106,4 @@ def log_annotation(collection, document, status, action, args):
     l.info('%s\t%s\t%s\t%s\t%s\t%s' % (_detab(user), _detab(collection), 
                                        _detab(document), _detab(status), 
                                        _detab(action),
-                                       '\t'.join([_detab(unicode(a)) for a in other_args])))
+                                       '\t'.join([_detab(six.text_type(a)) for a in other_args])))

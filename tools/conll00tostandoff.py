@@ -6,6 +6,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
@@ -72,7 +74,7 @@ def output(infn, docnum, sentences):
             if curr_type is not None and (ttag != "I" or ttype != curr_type):
                 # a previously started tagged sequence does not
                 # continue into this position.
-                print >> soout, tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset])
+                print(tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset]), file=soout)
                 idnum += 1
                 curr_start, curr_type = None, None
 
@@ -95,14 +97,14 @@ def output(infn, docnum, sentences):
         
         # leftovers?
         if curr_type is not None:
-            print >> soout, tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset])
+            print(tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset]), file=soout)
             idnum += 1
 
         if si+1 != len(sentences):
             doctext = doctext + '\n'        
             offset += 1
             
-    print >> txtout, doctext
+    print(doctext, file=txtout)
 
 def process(fn):
     docnum = 1
@@ -167,25 +169,25 @@ def main(argv):
     filenames = argv[1:]
     if len(argv) > 2 and argv[1] == "-o":
         output_directory = argv[2]
-        print >> sys.stderr, "Writing output to %s" % output_directory
+        print("Writing output to %s" % output_directory, file=sys.stderr)
         filenames = argv[3:]
 
     fail_count = 0
     for fn in filenames:
         try:
             process(fn)
-        except Exception, e:
-            print >> sys.stderr, "Error processing %s: %s" % (fn, e)
+        except Exception as e:
+            print("Error processing %s: %s" % (fn, e), file=sys.stderr)
             fail_count += 1
 
     if fail_count > 0:
-        print >> sys.stderr, """
+        print("""
 ##############################################################################
 #
 # WARNING: error in processing %d/%d files, output is incomplete!
 #
 ##############################################################################
-""" % (fail_count, len(filenames))
+""" % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
 

@@ -34,6 +34,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import codecs
 from datetime import datetime
@@ -50,7 +52,7 @@ except ImportError:
     Please install simstring and its python bindings from 
     http://www.chokkan.org/software/simstring/
 """
-    print >> sys.stderr, errorstr
+    print(errorstr, file=sys.stderr)
     sys.exit(1)
 
 # Default encoding for input text
@@ -179,7 +181,7 @@ def default_db_dir():
         from config import WORK_DIR
         return WORK_DIR
     except ImportError:
-        print >> sys.stderr, "Warning: failed to determine brat work directory, using current instead."
+        print("Warning: failed to determine brat work directory, using current instead.", file=sys.stderr)
         return "."
 
 def argparser():
@@ -225,8 +227,8 @@ def main(argv):
         ssdbfn = arg.database+'.'+SS_DB_FILENAME_EXTENSION
 
     if arg.verbose:
-        print >> sys.stderr, "Storing SQL DB as %s and" % sqldbfn
-        print >> sys.stderr, "  simstring DB as %s" % ssdbfn
+        print("Storing SQL DB as %s and" % sqldbfn, file=sys.stderr)
+        print("  simstring DB as %s" % ssdbfn, file=sys.stderr)
     start_time = datetime.now()
 
     import_count, duplicate_count, error_count, simstring_count = 0, 0, 0, 0
@@ -236,26 +238,26 @@ def main(argv):
         # create SQL DB
         try:
             connection = sqlite.connect(sqldbfn)
-        except sqlite.OperationalError, e:
-            print >> sys.stderr, "Error connecting to DB %s:" % sqldbfn, e
+        except sqlite.OperationalError as e:
+            print("Error connecting to DB %s:" % sqldbfn, e, file=sys.stderr)
             return 1
         cursor = connection.cursor()
 
         # create SQL tables
         if arg.verbose:
-            print >> sys.stderr, "Creating tables ...",
+            print("Creating tables ...", end=' ', file=sys.stderr)
 
         for command in CREATE_TABLE_COMMANDS:
             try:
                 cursor.execute(command)
-            except sqlite.OperationalError, e:
-                print >> sys.stderr, "Error creating %s:" % sqldbfn, e, "(DB exists?)"
+            except sqlite.OperationalError as e:
+                print("Error creating %s:" % sqldbfn, e, "(DB exists?)", file=sys.stderr)
                 return 1
 
         # import data
         if arg.verbose:
-            print >> sys.stderr, "done."
-            print >> sys.stderr, "Importing data ...",
+            print("done.", file=sys.stderr)
+            print("Importing data ...", end=' ', file=sys.stderr)
 
         next_eid = 1
         label_id = {}
@@ -270,9 +272,9 @@ def main(argv):
                 id_, rest = l.split('\t', 1)
             except ValueError:
                 if error_count < MAX_ERROR_LINES:
-                    print >> sys.stderr, "Error: skipping line %d: expected tab-separated fields, got '%s'" % (i+1, l)
+                    print("Error: skipping line %d: expected tab-separated fields, got '%s'" % (i+1, l), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print >> sys.stderr, "(Too many errors; suppressing further error messages)"
+                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
@@ -282,13 +284,13 @@ def main(argv):
                 for triple in rest.split('\t'):
                     type_, label, string = triple.split(':', 2)
                     if type_ not in TYPE_VALUES:
-                        print >> sys.stderr, "Unknown TYPE %s" % type_
+                        print("Unknown TYPE %s" % type_, file=sys.stderr)
                     triples.append((type_, label, string))
             except ValueError:
                 if error_count < MAX_ERROR_LINES:
-                    print >> sys.stderr, "Error: skipping line %d: expected tab-separated TYPE:LABEL:STRING triples, got '%s'" % (i+1, rest)
+                    print("Error: skipping line %d: expected tab-separated TYPE:LABEL:STRING triples, got '%s'" % (i+1, rest), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print >> sys.stderr, "(Too many errors; suppressing further error messages)"
+                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
@@ -297,11 +299,11 @@ def main(argv):
             next_eid += 1
             try:
                 cursor.execute("INSERT into entities VALUES (?, ?)", (eid, id_))
-            except sqlite.IntegrityError, e:
+            except sqlite.IntegrityError as e:
                 if error_count < MAX_ERROR_LINES:
-                    print >> sys.stderr, "Error inserting %s (skipping): %s" % (id_, e)
+                    print("Error inserting %s (skipping): %s" % (id_, e), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print >> sys.stderr, "(Too many errors; suppressing further error messages)"
+                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
@@ -331,31 +333,31 @@ def main(argv):
             import_count += 1
 
             if arg.verbose and (i+1)%10000 == 0:
-                print >> sys.stderr, '.',
+                print('.', end=' ', file=sys.stderr)
 
         if arg.verbose:
-            print >> sys.stderr, "done."
+            print("done.", file=sys.stderr)
 
         # create SQL indices
         if arg.verbose:
-            print >> sys.stderr, "Creating indices ...",
+            print("Creating indices ...", end=' ', file=sys.stderr)
 
         for command in CREATE_INDEX_COMMANDS:
             try:
                 cursor.execute(command)
-            except sqlite.OperationalError, e:
-                print >> sys.stderr, "Error creating index", e
+            except sqlite.OperationalError as e:
+                print("Error creating index", e, file=sys.stderr)
                 return 1
 
         if arg.verbose:
-            print >> sys.stderr, "done."
+            print("done.", file=sys.stderr)
 
         # wrap up SQL table creation
         connection.commit()
 
         # create simstring DB
         if arg.verbose:
-            print >> sys.stderr, "Creating simstring DB ...",
+            print("Creating simstring DB ...", end=' ', file=sys.stderr)
         
         try:
             ssdb = simstring.writer(ssdbfn)
@@ -366,11 +368,11 @@ def main(argv):
                 simstring_count += 1
             ssdb.close()
         except:
-            print >> sys.stderr, "Error building simstring DB"
+            print("Error building simstring DB", file=sys.stderr)
             raise
 
         if arg.verbose:
-            print >> sys.stderr, "done."
+            print("done.", file=sys.stderr)
 
         cursor.close()
 
@@ -378,10 +380,10 @@ def main(argv):
     delta = datetime.now() - start_time
 
     if arg.verbose:
-        print >> sys.stderr
-        print >> sys.stderr, "Done in:", str(delta.seconds)+"."+str(delta.microseconds/10000), "seconds"
+        print(file=sys.stderr)
+        print("Done in:", str(delta.seconds)+"."+str(delta.microseconds/10000), "seconds", file=sys.stderr)
     
-    print "Done, imported %d entries (%d strings), skipped %d duplicate keys, skipped %d invalid lines" % (import_count, simstring_count, duplicate_count, error_count)
+    print("Done, imported %d entries (%d strings), skipped %d duplicate keys, skipped %d invalid lines" % (import_count, simstring_count, duplicate_count, error_count))
 
     return 0
     

@@ -23,6 +23,8 @@
 
 
 # Contact email for users to use if the software encounters errors
+from __future__ import absolute_import
+from six.moves import range
 ADMIN_CONTACT_EMAIL = CHANGE_ME
 
 # Directories required by the brat server:
@@ -90,7 +92,7 @@ TUTORIALS = False
 # If you are a developer you may want to turn on extensive server
 # logging by enabling LOG_LEVEL = LL_DEBUG
 
-LL_DEBUG, LL_INFO, LL_WARNING, LL_ERROR, LL_CRITICAL = range(5)
+LL_DEBUG, LL_INFO, LL_WARNING, LL_ERROR, LL_CRITICAL = list(range(5))
 LOG_LEVEL = LL_WARNING
 #LOG_LEVEL = LL_DEBUG
 

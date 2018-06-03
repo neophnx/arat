@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import glob
 import os
 import sys
@@ -7,6 +9,7 @@ import sys
 from common import ProtocolError
 from message import Messager
 from os.path import join as path_join, sep as path_sep
+from six.moves import range
 
 try:
     from config import BASE_DIR, WORK_DIR
@@ -103,7 +106,7 @@ def ssdb_build(strs, dbname, ngram_length=DEFAULT_NGRAM_LENGTH,
             db.insert(s)
         db.close()
     except:
-        print >> sys.stderr, "Error building simstring DB"
+        print("Error building simstring DB", file=sys.stderr)
         raise
 
     return dbfn
@@ -317,11 +320,11 @@ if __name__ == "__main__":
         "-12345",
         "012345",
         ]
-    print 'strings:', strings
+    print('strings:', strings)
     ssdb_build(strings, dbname)
     for t in ['0', '012', '012345', '0123456', '0123456789']:
-        print 'lookup for', t
+        print('lookup for', t)
         for s in ssdb_supstring_lookup(t, dbname):
-            print s, 'contains', t, '(threshold %f)' % DEFAULT_THRESHOLD
+            print(s, 'contains', t, '(threshold %f)' % DEFAULT_THRESHOLD)
     ssdb_delete(dbname)
     

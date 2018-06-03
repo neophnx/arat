@@ -11,13 +11,14 @@ Version:    2011-11-17
 '''
 
 ### Constants
+from __future__ import absolute_import
+from __future__ import print_function
 CUT_OFF = 0.95
 # In seconds
 QUERY_TIMEOUT = 30
-###
-
-from urllib import urlencode, quote_plus
-from urllib2 import urlopen, HTTPError, URLError
+from six.moves.urllib.parse import urlencode, quote_plus
+from six.moves.urllib.request import urlopen
+from six.moves.urllib.error import HTTPError, URLError
 
 from annlog import log_annotation
 from document import real_directory
@@ -97,4 +98,4 @@ def suggest_span_types(collection, document, start, end, text, model):
 
 if __name__ == '__main__':
     from config import DATA_DIR
-    print suggest_span_types(DATA_DIR, 'dummy', -1, -1, 'proposición', 'ner_spanish')
+    print(suggest_span_types(DATA_DIR, 'dummy', -1, -1, 'proposición', 'ner_spanish'))

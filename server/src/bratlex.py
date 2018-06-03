@@ -11,6 +11,8 @@ Author:  Pontus Stenetorp    <pontus stenetorp se>
 Version: 2011-07-11
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 try:
     import ply.lex as lex
 except ImportError:
@@ -122,7 +124,7 @@ def t_freetext_NEWLINE(t):
 
 # Error handling rule
 def t_error(t):
-    print "Illegal character '%s'" % t.value[0]
+    print("Illegal character '%s'" % t.value[0])
     raise Exception
     t.lexer.skip(1)
 
@@ -139,4 +141,4 @@ if __name__ == '__main__':
 
         for tok in lexer:
             pass
-            print tok
+            print(tok)

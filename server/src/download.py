@@ -7,6 +7,7 @@ Version:    2011-10-03
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from os import close as os_close, remove
 from os.path import join as path_join, dirname, basename, normpath
 from tempfile import mkstemp
@@ -15,12 +16,16 @@ from document import real_directory
 from annotation import open_textfile
 from common import NoPrintJSONError
 from subprocess import Popen
+from six.moves import range
 
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
-
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
+        
 def download_file(document, collection, extension):
     directory = collection
     real_dir = real_directory(directory)

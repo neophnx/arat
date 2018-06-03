@@ -5,6 +5,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
@@ -43,7 +45,7 @@ def char_offsets(text, start, end, ttext):
     # BC2 data
     if (text[char_start:char_end] == '/translation upstream factor' and
         ttext                     == 'translation upstream factor'):
-        print >> sys.stderr, "NOTE: applying special-case fix ..."
+        print("NOTE: applying special-case fix ...", file=sys.stderr)
         char_start += 1
 
     # sanity
@@ -54,7 +56,7 @@ def char_offsets(text, start, end, ttext):
 
 def main(argv):
     if len(argv) != 4:
-        print >> sys.stderr, "Usage:", argv[0], "BC2TEXT BC2TAGS OUTPUT-DIR"
+        print("Usage:", argv[0], "BC2TEXT BC2TAGS OUTPUT-DIR", file=sys.stderr)
         return 1
 
     textfn, tagfn, outdir = argv[1:]
@@ -97,11 +99,11 @@ def main(argv):
     # output one .txt and one .a1 file per sentence
     for sid in texts:
         with open(os.path.join(outdir, sid+".txt"), 'w') as txtf:
-            print >> txtf, texts[sid]
+            print(texts[sid], file=txtf)
         with open(os.path.join(outdir, sid+".ann"), 'w') as annf:
             tidx = 1
             for soff, eoff in offsets[sid]:
-                print >> annf, "T%d\tGENE %d %d\t%s" % (tidx, soff, eoff, texts[sid][soff:eoff])
+                print("T%d\tGENE %d %d\t%s" % (tidx, soff, eoff, texts[sid][soff:eoff]), file=annf)
                 tidx += 1
 
 if __name__ == "__main__":

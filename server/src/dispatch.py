@@ -9,6 +9,7 @@ Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-04-21
 '''
 
+from __future__ import absolute_import
 from os.path import abspath, normpath
 from os.path import join as path_join
 
@@ -24,7 +25,7 @@ from document import (get_directory_information, get_document,
         get_document_timestamp, get_configuration)
 from download import download_file, download_collection
 from inspect import getargspec
-from itertools import izip
+
 from jsonwrap import dumps
 from logging import info as log_info
 from annlog import log_annotation
@@ -37,6 +38,7 @@ from undo import undo
 from tag import tag
 from delete import delete_document, delete_collection
 from norm import norm_get_name, norm_search, norm_get_data
+from six.moves import zip
 
 # no-op function that can be invoked by client to log a user action
 def logging_no_op(collection, document, log):
@@ -278,7 +280,7 @@ def dispatch(http_args, client_ip, client_hostname):
 
     # These arguments already has default values
     default_val_by_arg = {}
-    for arg, default_val in izip(args[-len(defaults):], defaults):
+    for arg, default_val in zip(args[-len(defaults):], defaults):
         default_val_by_arg[arg] = default_val
 
     action_args = []

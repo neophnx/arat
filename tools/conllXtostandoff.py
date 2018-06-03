@@ -6,10 +6,13 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import os
 import codecs
+import six
 
 # maximum number of sentences to include in single output document
 # (if None, doesn't split into documents)
@@ -92,7 +95,7 @@ def output(infn, docnum, sentences):
                 offset += 1
 
             # output a token annotation
-            print >> soout, tokstr(offset, offset+len(form), POS, idnum, form)
+            print(tokstr(offset, offset+len(form), POS, idnum, form), file=soout)
             assert ID not in idmap, "Error in data: dup ID"
             idmap[ID] = idnum
             idnum += 1
@@ -109,14 +112,14 @@ def output(infn, docnum, sentences):
             if not OUTPUT_ROOT and head == '0':
                 continue
 
-            print >> soout, depstr(idmap[dep], idmap[head], rel, ridnum)
+            print(depstr(idmap[dep], idmap[head], rel, ridnum), file=soout)
             ridnum += 1
         
         if si+1 != len(sentences):
             doctext = doctext + '\n'        
             offset += 1
             
-    print >> txtout, doctext
+    print(doctext, file=txtout)
 
 def process(fn):
     docnum = 1
@@ -183,26 +186,26 @@ def main(argv):
     filenames = argv[1:]
     if len(argv) > 2 and argv[1] == "-o":
         output_directory = argv[2]
-        print >> sys.stderr, "Writing output to %s" % output_directory
+        print("Writing output to %s" % output_directory, file=sys.stderr)
         filenames = argv[3:]
 
     fail_count = 0
     for fn in filenames:
         try:
             process(fn)
-        except Exception, e:
-            m = unicode(e).encode(OUTPUT_ENCODING)
-            print >> sys.stderr, "Error processing %s: %s" % (fn, m)
+        except Exception as e:
+            m = six.text_type(e).encode(OUTPUT_ENCODING)
+            print("Error processing %s: %s" % (fn, m), file=sys.stderr)
             fail_count += 1
 
     if fail_count > 0:
-        print >> sys.stderr, """
+        print("""
 ##############################################################################
 #
 # WARNING: error in processing %d/%d files, output is incomplete!
 #
 ##############################################################################
-""" % (fail_count, len(filenames))
+""" % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
 

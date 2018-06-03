@@ -8,6 +8,7 @@ Deletion functionality.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from os.path import join as path_join
 from message import Messager
 

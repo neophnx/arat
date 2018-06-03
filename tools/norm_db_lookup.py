@@ -5,6 +5,8 @@
 
 # TODO: duplicates parts of primary norm DB implementation, dedup.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os.path
 import sqlite3 as sqlite
@@ -110,19 +112,19 @@ def main(argv):
             dbfn = p
             break
     if dbfn is None:
-        print >> sys.stderr, "Error: %s: no such file" % dbfn
+        print("Error: %s: no such file" % dbfn, file=sys.stderr)
         return 1
     
     try:
         connection = sqlite.connect(dbfn)
-    except sqlite.OperationalError, e:
-        print >> sys.stderr, "Error connecting to DB %s:" % dbfn, e
+    except sqlite.OperationalError as e:
+        print("Error connecting to DB %s:" % dbfn, e, file=sys.stderr)
         return 1
     cursor = connection.cursor()
 
     while True:
         if not arg.no_prompt:
-            print ">>> ",
+            print(">>> ", end=' ')
         l = sys.stdin.readline()
         if not l:
             break
@@ -134,13 +136,13 @@ def main(argv):
             if len(r) != 0:
                 d = datas_by_ids(cursor, r)
                 for i in d:
-                    print i+'\t', '\t'.join([' '.join(["%s:%s" % (k,v) for k,v in a]) for a in d[i]])
+                    print(i+'\t', '\t'.join([' '.join(["%s:%s" % (k,v) for k,v in a]) for a in d[i]]))
             elif l == '':
-                print "(Use Ctrl-D to exit)"
+                print("(Use Ctrl-D to exit)")
             else:
-                print "(no record found for '%s')" % l
-        except Exception, e:
-            print >> sys.stderr, "Unexpected error", e
+                print("(no record found for '%s')" % l)
+        except Exception as e:
+            print("Unexpected error", e, file=sys.stderr)
             return 1
     return 0
     

@@ -14,6 +14,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import re
@@ -45,9 +47,9 @@ def output(docid, text, anns):
     idseq = 1
     for start, end, type_, text in anns:
         # write type as separate attribute
-        print >> soout, "T%d\t%s %d %d\t%s" % (idseq, ENTITY_TYPE, start, end,
-                                               text)
-        print >> soout, "A%d\t%s T%d %s" % (idseq, ATTR_TYPE, idseq, type_)
+        print("T%d\t%s %d %d\t%s" % (idseq, ENTITY_TYPE, start, end,
+                                               text), file=soout)
+        print("A%d\t%s T%d %s" % (idseq, ATTR_TYPE, idseq, type_), file=soout)
         idseq += 1
 
     if output_directory is not None:
@@ -103,25 +105,25 @@ def main(argv):
     filenames = argv[1:]
     if len(argv) > 2 and argv[1] == "-o":
         output_directory = argv[2]
-        print >> sys.stderr, "Writing output to %s" % output_directory
+        print("Writing output to %s" % output_directory, file=sys.stderr)
         filenames = argv[3:]
 
     fail_count = 0
     for fn in filenames:
         try:
             process(fn)
-        except Exception, e:
-            print >> sys.stderr, "Error processing %s: %s" % (fn, e)
+        except Exception as e:
+            print("Error processing %s: %s" % (fn, e), file=sys.stderr)
             fail_count += 1
 
     if fail_count > 0:
-        print >> sys.stderr, """
+        print("""
 ##############################################################################
 #
 # WARNING: error in processing %d/%d files, output is incomplete!
 #
 ##############################################################################
-""" % (fail_count, len(filenames))
+""" % (fail_count, len(filenames)), file=sys.stderr)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

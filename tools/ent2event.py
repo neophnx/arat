@@ -14,8 +14,11 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
+from six.moves import range
 try:
     import annotation
 except ImportError:
@@ -74,12 +77,12 @@ def ent2event(anntype, fn):
                 mapped += 1
 
             if options.verbose:
-                print >> sys.stderr, mapped, 'mapped in', fn
+                print(mapped, 'mapped in', fn, file=sys.stderr)
 
     except annotation.AnnotationFileNotFoundError:
-        print >> sys.stderr, "%s:\tFailed: file not found" % fn
-    except annotation.AnnotationNotFoundError, e:
-        print >> sys.stderr, "%s:\tFailed: %s" % (fn, e)
+        print("%s:\tFailed: file not found" % fn, file=sys.stderr)
+    except annotation.AnnotationNotFoundError as e:
+        print("%s:\tFailed: %s" % (fn, e), file=sys.stderr)
 
 def argparser():
     import argparse

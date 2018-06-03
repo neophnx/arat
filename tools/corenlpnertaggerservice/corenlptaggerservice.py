@@ -7,6 +7,8 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-04-18
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from argparse import ArgumentParser
 from cgi import FieldStorage
 from os.path import dirname, join as path_join
@@ -22,7 +24,7 @@ except ImportError:
     from ujson import dumps
 
 from sys import stderr
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 ### Constants
 ARGPARSER = ArgumentParser(description='XXX')#XXX:
@@ -36,7 +38,7 @@ CORENLP_PATH = path_join(dirname(__file__), 'stanford-corenlp-2012-04-09')
 
 class CoreNLPTaggerHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        print >> stderr, 'Received request'
+        print('Received request', file=stderr)
         field_storage = FieldStorage(
                 headers=self.headers,
                 environ={
@@ -54,7 +56,7 @@ class CoreNLPTaggerHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(dumps(json_dic))
-        print >> stderr, ('Generated %d annotations' % len(json_dic))
+        print(('Generated %d annotations' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
         return # Too much noise from the default implementation
@@ -62,22 +64,22 @@ class CoreNLPTaggerHandler(BaseHTTPRequestHandler):
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
 
-    print >> stderr, "WARNING: Don't use this in a production environment!"
+    print("WARNING: Don't use this in a production environment!", file=stderr)
 
-    print >> stderr, 'Starting CoreNLP process (this takes a while)...',
+    print('Starting CoreNLP process (this takes a while)...', end=' ', file=stderr)
     global TAGGER
     TAGGER = CoreNLPTagger(CORENLP_PATH)
-    print >> stderr, 'Done!'
+    print('Done!', file=stderr)
 
     server_class = HTTPServer
     httpd = server_class(('localhost', argp.port), CoreNLPTaggerHandler)
-    print >> stderr, 'CoreNLP tagger service started'
+    print('CoreNLP tagger service started', file=stderr)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print >> stderr, 'CoreNLP tagger service stopped'
+    print('CoreNLP tagger service stopped', file=stderr)
 
 if __name__ == '__main__':
     from sys import argv

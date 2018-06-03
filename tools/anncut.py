@@ -6,6 +6,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 
@@ -220,7 +222,7 @@ def process(fn, selection):
             a.remap(selection)
 
     for a in annotations:
-        print a
+        print(a)
 
 class Selection(object):
     def __init__(self, options):
@@ -316,8 +318,8 @@ def main(argv=None):
 
     try:
         selection = Selection(arg)
-    except Exception, e:
-        print >> sys.stderr, e
+    except Exception as e:
+        print(e, file=sys.stderr)
         argparser().print_help()
         return 1        
 

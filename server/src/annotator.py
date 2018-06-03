@@ -13,6 +13,7 @@ Version:    2011-04-22
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from os.path import join as path_join
 from os.path import split as path_split
 from re import compile as re_compile
@@ -23,6 +24,8 @@ from annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
         AnnotationsIsReadOnlyError, AttributeAnnotation, 
         NormalizationAnnotation, SpanOffsetOverlapError, DISCONT_SEP)
 from common import ProtocolError, ProtocolArgumentError
+import six
+from six.moves import range
 try:
     from config import DEBUG
 except ImportError:
@@ -66,16 +69,16 @@ class ModificationTracker(object):
             msg_str = ''
             if self.__added:
                 msg_str += ('Added the following line(s):\n'
-                        + '\n'.join([unicode(a).rstrip() for a in self.__added]))
+                        + '\n'.join([six.text_type(a).rstrip() for a in self.__added]))
             if self.__changed:
                 changed_strs = []
                 for before, after in self.__changed:
-                    changed_strs.append('\t%s\n\tInto:\n\t%s' % (unicode(before).rstrip(), unicode(after).rstrip()))
+                    changed_strs.append('\t%s\n\tInto:\n\t%s' % (six.text_type(before).rstrip(), six.text_type(after).rstrip()))
                 msg_str += ('Changed the following line(s):\n'
-                        + '\n'.join([unicode(a).rstrip() for a in changed_strs]))
+                        + '\n'.join([six.text_type(a).rstrip() for a in changed_strs]))
             if self.__deleted:
                 msg_str += ('Deleted the following line(s):\n'
-                        + '\n'.join([unicode(a).rstrip() for a in self.__deleted]))
+                        + '\n'.join([six.text_type(a).rstrip() for a in self.__deleted]))
             if msg_str:
                 Messager.info(msg_str, duration=3*len(self))
             else:
@@ -222,7 +225,7 @@ def _edit_span(ann_obj, mods, id, offsets, projectconf, attributes, type,
             assert False, error_msg
         else:
             # TODO: Log modification too?
-            before = unicode(tb_ann)
+            before = six.text_type(tb_ann)
             #log_info('Will alter span of: "%s"' % str(to_edit_span).rstrip('\n'))
             tb_ann.spans = offsets[:]
             tb_ann.text = _text_for_offsets(ann_obj._document_text, tb_ann.spans)
@@ -240,7 +243,7 @@ def _edit_span(ann_obj, mods, id, offsets, projectconf, attributes, type,
                            duration=10)
             pass
         else:
-            before = unicode(ann)
+            before = six.text_type(ann)
             ann.type = type
 
             # Try to propagate the type change
@@ -264,7 +267,7 @@ def _edit_span(ann_obj, mods, id, offsets, projectconf, attributes, type,
                         # And we will change the type
                         new_ann_trig.type = ann.type
                         # Update the old annotation to use this trigger
-                        ann.trigger = unicode(new_ann_trig.id)
+                        ann.trigger = six.text_type(new_ann_trig.id)
                         ann_obj.add_annotation(new_ann_trig)
                         mods.addition(new_ann_trig)
                     else:
@@ -280,13 +283,13 @@ def _edit_span(ann_obj, mods, id, offsets, projectconf, attributes, type,
                         if found is None:
                             # Just change the trigger type since we are the
                             # only users
-                            before = unicode(ann_trig)
+                            before = six.text_type(ann_trig)
                             ann_trig.type = ann.type
                             mods.change(before, ann_trig)
                         else:
                             # Attach the new trigger THEN delete
                             # or the dep will hit you
-                            ann.trigger = unicode(found.id)
+                            ann.trigger = six.text_type(found.id)
                             ann_obj.del_annotation(ann_trig)
                             mods.deletion(ann_trig)
             except AttributeError:
@@ -365,7 +368,7 @@ def __create_span(ann_obj, mods, type, offsets, txt_file_path,
         else:
             # Create the event also
             new_event_id = ann_obj.get_new_id('E') #XXX: Cons
-            event = EventAnnotation(ann.id, [], unicode(new_event_id), type, '')
+            event = EventAnnotation(ann.id, [], six.text_type(new_event_id), type, '')
             ann_obj.add_annotation(event)
             mods.addition(event)
     else:
@@ -395,12 +398,12 @@ def _set_attributes(ann_obj, ann, attributes, mods, undo_resp={}):
             new_value = attributes[existing_attr_ann.type]
             #log_info('ATTR: "%s" "%s"' % (new_value, existing_attr_ann.value))
             if existing_attr_ann.value != new_value:
-                before = unicode(existing_attr_ann)
+                before = six.text_type(existing_attr_ann)
                 existing_attr_ann.value = new_value
                 mods.change(before, existing_attr_ann)
 
     # The remaining annotations are new and should be created
-    for attr_type, attr_val in attributes.iteritems():
+    for attr_type, attr_val in six.iteritems(attributes):
         if attr_type not in set((a.type for a in existing_attr_anns)):
             new_attr = AttributeAnnotation(ann.id, ann_obj.get_new_id('A'),
                     attr_type, '', attr_val)
@@ -464,7 +467,7 @@ def _set_normalizations(ann_obj, ann, normalizations, mods, undo_resp={}):
             # (this shouldn't happen on a stable norm DB, but anyway)
             new_reftext = new_norms[old_norm_id]
             if old_norm.reftext != new_reftext:
-                old = unicode(old_norm)
+                old = six.text_type(old_norm)
                 old_norm.reftext = new_reftext
                 mods.change(old, old_norm)
 
@@ -546,7 +549,7 @@ def _set_comments(ann_obj, ann, comment, mods, undo_resp={}):
         if found is not None:
             # Change the comment
             # XXX: Note the ugly tab, it is for parsing the tail
-            before = unicode(found)
+            before = six.text_type(found)
             found.tail = u'\t' + comment
             mods.change(before, found)
         else:
@@ -565,9 +568,9 @@ def _set_comments(ann_obj, ann, comment, mods, undo_resp={}):
 
 # Sanity check, a span can't overlap itself
 def _offset_overlaps(offsets):
-    for i in xrange(len(offsets)):
+    for i in range(len(offsets)):
         i_start, i_end = offsets[i]
-        for j in xrange(i + 1, len(offsets)):
+        for j in range(i + 1, len(offsets)):
             j_start, j_end = offsets[j]
             if (
                     # i overlapping or in j
@@ -680,8 +683,8 @@ def _create_equiv(ann_obj, projectconf, mods, origin, target, type, attributes,
         # sanity
         assert old_target is None, '_create_equiv: incoherent args: old_type is None, old_target is not None (client/protocol error?)'
 
-        ann = EquivAnnotation(type, [unicode(origin.id), 
-                                     unicode(target.id)], '')
+        ann = EquivAnnotation(type, [six.text_type(origin.id), 
+                                     six.text_type(target.id)], '')
         ann_obj.add_annotation(ann)
         mods.addition(ann)
 
@@ -713,7 +716,7 @@ def _create_relation(ann_obj, projectconf, mods, origin, target, type,
     if old_type is not None or old_target is not None:
         assert type in projectconf.get_relation_types(), (
                 ('attempting to convert relation to non-relation "%s" ' % (target.type, )) +
-                ('(legit types: %s)' % (unicode(projectconf.get_relation_types()), )))
+                ('(legit types: %s)' % (six.text_type(projectconf.get_relation_types()), )))
 
         sought_target = (old_target
                 if old_target is not None else target.id)
@@ -737,7 +740,7 @@ def _create_relation(ann_obj, projectconf, mods, origin, target, type,
             pass
         else:
             # type and/or target changed, mark.
-            before = unicode(found)
+            before = six.text_type(found)
             found.arg2 = target.id
             found.type = type
             mods.change(before, found)
@@ -769,13 +772,13 @@ def _create_relation(ann_obj, projectconf, mods, origin, target, type,
 def _create_argument(ann_obj, projectconf, mods, origin, target, type,
                      attributes, old_type, old_target):
     try:
-        arg_tup = (type, unicode(target.id))
+        arg_tup = (type, six.text_type(target.id))
 
         # Is this an addition or an update?
         if old_type is None and old_target is None:
             if arg_tup not in origin.args:
-                before = unicode(origin)
-                origin.add_argument(type, unicode(target.id))
+                before = six.text_type(origin)
+                origin.add_argument(type, six.text_type(target.id))
                 mods.change(before, origin)
             else:
                 # It already existed as an arg, we were called to do nothing...
@@ -786,9 +789,9 @@ def _create_argument(ann_obj, projectconf, mods, origin, target, type,
                     target if old_target is None else old_target)
 
             if old_arg_tup in origin.args and arg_tup not in origin.args:
-                before = unicode(origin)
+                before = six.text_type(origin)
                 origin.args.remove(old_arg_tup)
-                origin.add_argument(type, unicode(target.id))
+                origin.add_argument(type, six.text_type(target.id))
                 mods.change(before, origin)
             else:
                 # Collision etc. don't do anything
@@ -911,12 +914,12 @@ def _delete_arc_equiv(origin, target, type_, mods, ann_obj):
     for eq_ann in ann_obj.get_equivs():
         # We don't assume that the ids only occur in one Equiv, we
         # keep on going since the data "could" be corrupted
-        if (unicode(origin) in eq_ann.entities and 
-            unicode(target) in eq_ann.entities and
+        if (six.text_type(origin) in eq_ann.entities and 
+            six.text_type(target) in eq_ann.entities and
             type_ == eq_ann.type):
-            before = unicode(eq_ann)
-            eq_ann.entities.remove(unicode(origin))
-            eq_ann.entities.remove(unicode(target))
+            before = six.text_type(eq_ann)
+            eq_ann.entities.remove(six.text_type(origin))
+            eq_ann.entities.remove(six.text_type(target))
             mods.change(before, eq_ann)
 
         if len(eq_ann.entities) < 2:
@@ -924,7 +927,7 @@ def _delete_arc_equiv(origin, target, type_, mods, ann_obj):
             try:
                 ann_obj.del_annotation(eq_ann)
                 mods.deletion(eq_ann)
-            except DependingAnnotationDeleteError, e:
+            except DependingAnnotationDeleteError as e:
                 #TODO: This should never happen, dep on equiv
                 raise
 
@@ -944,9 +947,9 @@ def _delete_arc_nonequiv_rel(origin, target, type_, mods, ann_obj):
 def _delete_arc_event_arg(origin, target, type_, mods, ann_obj):
     event_ann = ann_obj.get_ann_by_id(origin)
     # Try if it is an event
-    arg_tup = (type_, unicode(target))
+    arg_tup = (type_, six.text_type(target))
     if arg_tup in event_ann.args:
-        before = unicode(event_ann)
+        before = six.text_type(event_ann)
         event_ann.args.remove(arg_tup)
         mods.change(before, event_ann)
     else:
@@ -1024,7 +1027,7 @@ def delete_span(collection, document, id):
                     pass
             except AttributeError:
                 pass
-        except DependingAnnotationDeleteError, e:
+        except DependingAnnotationDeleteError as e:
             Messager.error(e.html_error_str())
             return {
                     'exception': True,

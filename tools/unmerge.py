@@ -11,6 +11,8 @@ Author:     Sampo Pyysalo
 Version:    2011-02-24
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 
@@ -100,11 +102,11 @@ def parse_annotations(annlines, fn="(unknown)"):
     annotations = []
     for ln, l in enumerate(annlines):
         if not l.strip():
-            print >> sys.stderr, "Warning: ignoring empty line %d in %s" % (ln, fn)
+            print("Warning: ignoring empty line %d in %s" % (ln, fn), file=sys.stderr)
             continue
         try:
             annotations.append(Annotation(l))
-        except SyntaxError, e:
+        except SyntaxError as e:
             raise SyntaxError(l, e.errstr, ln)
     return annotations
 
@@ -207,13 +209,13 @@ def verify_split(origlines, splitlines):
 
     difference_found = False
     for l in split_only:
-        print >> sys.stderr, "Split error: split contains extra line '%s'" % l
+        print("Split error: split contains extra line '%s'" % l, file=sys.stderr)
         difference_found = True
     for l in orig_only:
         # allow blank lines to be removed
         if l.strip() == "":
             continue
-        print >> sys.stderr, "Split error: split is missing line '%s'" % l
+        print("Split error: split is missing line '%s'" % l, file=sys.stderr)
         difference_found = True
 
     if difference_found:
@@ -247,8 +249,8 @@ def main(argv=None):
 
     try:
         typemap = type_mapping(arg)
-    except ArgumentError, e:
-        print >> sys.stderr, e
+    except ArgumentError as e:
+        print(e, file=sys.stderr)
         return 2
 
     if arg.skipempty: 
@@ -259,12 +261,12 @@ def main(argv=None):
     for fn in arg.files:
         try:
             process_file(fn, typemap, arg.directory, mandatory_outputs)
-        except IOError, e:
-            print >> sys.stderr, "Error: failed %s, skip processing (%s)" % (fn, e)            
-        except SyntaxError, e:
-            print >> sys.stderr, "Error: failed %s, skip processing (%s)" % (fn, e)            
+        except IOError as e:
+            print("Error: failed %s, skip processing (%s)" % (fn, e), file=sys.stderr)            
+        except SyntaxError as e:
+            print("Error: failed %s, skip processing (%s)" % (fn, e), file=sys.stderr)            
         except:
-            print >> sys.stderr, "Fatal: unexpected error processing %s" % fn
+            print("Fatal: unexpected error processing %s" % fn, file=sys.stderr)
             raise
 
     return 0

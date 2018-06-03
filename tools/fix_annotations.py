@@ -4,6 +4,7 @@
 
 # Preamble {{{
 from __future__ import with_statement
+from __future__ import absolute_import
 from diff_match_patch import diff_match_patch  # NEEDS `pip install diff_match_patch`
 from shutil import copy
 import re

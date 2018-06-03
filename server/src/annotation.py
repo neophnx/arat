@@ -3,6 +3,11 @@
 # vim:set ft=python ts=4 sw=4 sts=4 autoindent:
 
 from __future__ import with_statement
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import map
+import six
+from six.moves import range
 
 '''
 Functionality related to the annotation file format.
@@ -12,6 +17,7 @@ Version:    2011-01-25
 '''
 
 # TODO: Major re-work, cleaning up and conforming with new server paradigm
+
 
 from logging import info as log_info
 from codecs import open as codecs_open
@@ -189,13 +195,13 @@ class DependingAnnotationDeleteError(Exception):
 
     def __str__(self):
         return u'%s can not be deleted due to depending annotations %s' % (
-                unicode(self.target).rstrip(), ",".join([unicode(d).rstrip() for d in self.dependants]))
+                six.text_type(self.target).rstrip(), ",".join([six.text_type(d).rstrip() for d in self.dependants]))
 
     def html_error_str(self, response=None):
         return u'''Annotation:
         %s
         Has depending annotations attached to it:
-        %s''' % (unicode(self.target).rstrip(), ",".join([unicode(d).rstrip() for d in self.dependants]))
+        %s''' % (six.text_type(self.target).rstrip(), ",".join([six.text_type(d).rstrip() for d in self.dependants]))
 
 
 class SpanOffsetOverlapError(ProtocolError):
@@ -203,8 +209,8 @@ class SpanOffsetOverlapError(ProtocolError):
         self.offsets = offsets
 
     def __str__(self):
-        return u'The offsets [%s] overlap' % (', '.join(unicode(e)
-            for e in self.offsets, ))
+        return u'The offsets [%s] overlap' % (', '.join(six.text_type(e)
+            for e in [self.offsets] ))
 
     def json(self, json_dic):
         json_dic['exception'] = 'spanOffsetOverlapError'
@@ -506,7 +512,7 @@ class Annotations(object):
                 try:
                     # Make sure that this Equiv duck quacks
                     eq_ann.entities
-                except AttributeError, e:
+                except AttributeError as e:
                     assert False, 'got a non-entity from an entity call'
 
                 # Do we have an entitiy in common with this equiv?
@@ -581,7 +587,7 @@ class Annotations(object):
 
         for other_ann in self:
             soft_deps, hard_deps = other_ann.get_deps()
-            if unicode(ann.id) in soft_deps | hard_deps:
+            if six.text_type(ann.id) in soft_deps | hard_deps:
                 ann_deps.append(other_ann)
               
         # If all depending are AttributeAnnotations or EquivAnnotations,
@@ -610,8 +616,8 @@ class Annotations(object):
                             tracker.deletion(d)
                     else:
                         if tracker is not None:
-                            before = unicode(d)
-                        d.entities.remove(unicode(ann.id))
+                            before = six.text_type(d)
+                        d.entities.remove(six.text_type(ann.id))
                         if tracker is not None:
                             tracker.change(before, d)
                 elif isinstance(d, OnelineCommentAnnotation):
@@ -654,7 +660,7 @@ class Annotations(object):
         del self._line_by_ann[ann]
         # Update the line shorthand of every annotation after this one
         # to reflect the new self._lines
-        for l_num in xrange(ann_line, len(self)):
+        for l_num in range(ann_line, len(self)):
             self._line_by_ann[self[l_num]] = l_num
         # Update the modification time
         from time import time
@@ -693,7 +699,7 @@ class Annotations(object):
         if suffix is None:
             suffix = ''
         #XXX: Arbitrary constant!
-        for suggestion in (prefix + unicode(i) + suffix for i in xrange(1, 2**15)):
+        for suggestion in (prefix + six.text_type(i) + suffix for i in range(1, 2**15)):
             # This is getting more complicated by the minute, two checks since
             # the developers no longer know when it is an id or string.
             if suggestion not in self._ann_by_id:
@@ -897,13 +903,13 @@ class Annotations(object):
 
                         assert new_ann is not None, "INTERNAL ERROR"
                         self.add_annotation(new_ann, read=True)
-                    except IdedAnnotationLineSyntaxError, e:
+                    except IdedAnnotationLineSyntaxError as e:
                         # Could parse an ID but not the whole line; add UnparsedIdedAnnotation
                         self.add_annotation(UnparsedIdedAnnotation(e.id,
                             e.line, source_id=e.filepath), read=True)
                         self.failed_lines.append(e.line_num - 1)
 
-                    except AnnotationLineSyntaxError, e:
+                    except AnnotationLineSyntaxError as e:
                         # We could not parse even an ID on the line, just add it as an unknown annotation
                         self.add_annotation(UnknownAnnotation(e.line,
                             source_id=e.filepath), read=True)
@@ -911,7 +917,7 @@ class Annotations(object):
                         self.failed_lines.append(e.line_num - 1)
 
     def __str__(self):
-        s = u'\n'.join(unicode(ann).rstrip(u'\r\n') for ann in self)
+        s = u'\n'.join(six.text_type(ann).rstrip(u'\r\n') for ann in self)
         if not s:
             return u''
         else:
@@ -945,7 +951,7 @@ class Annotations(object):
             # should have is a modification flag in the object but we can't
             # due to how we change the annotations.
             
-            out_str = unicode(self)
+            out_str = six.text_type(self)
             with open_textfile(self._input_files[0], 'r') as old_ann_file:
                 old_str = old_ann_file.read()
 
@@ -990,14 +996,14 @@ class Annotations(object):
                                 now = time()
                                 #XXX: Disabled for now!
                                 #utime(DATA_DIR, (now, now))
-                        except Exception, e:
+                        except Exception as e:
                             Messager.error('ERROR writing changes: generated annotations cannot be read back in!\n(This is almost certainly a system error, please contact the developers.)\n%s' % e, -1)
                             raise
                 finally:
                     try:
                         from os import remove
                         remove(tmp_fname)
-                    except Exception, e:
+                    except Exception as e:
                         Messager.error("Error removing temporary file '%s'" % tmp_fname)
             return
 
@@ -1124,7 +1130,7 @@ class Annotation(object):
         raise NotImplementedError
 
     def __repr__(self):
-        return u'%s("%s")' % (unicode(self.__class__), unicode(self))
+        return u'%s("%s")' % (six.text_type(self.__class__), six.text_type(self))
     
     def get_deps(self):
         return (set(), set())
@@ -1156,7 +1162,7 @@ class UnparsedIdedAnnotation(Annotation):
         self.id = id
 
     def __str__(self):
-        return unicode(self.tail)
+        return six.text_type(self.tail)
 
 class TypedAnnotation(Annotation):
     """
@@ -1295,7 +1301,7 @@ class EquivAnnotation(TypedAnnotation):
     def __str__(self):
         return u'*\t%s %s%s' % (
                 self.type,
-                ' '.join([unicode(e) for e in self.entities]),
+                ' '.join([six.text_type(e) for e in self.entities]),
                 self.tail
                 )
 
@@ -1316,7 +1322,7 @@ class EquivAnnotation(TypedAnnotation):
             return ['equiv', self.type, self.entities]
 
     def reference_text(self):
-        return '('+','.join([unicode(e) for e in self.entities])+')'
+        return '('+','.join([six.text_type(e) for e in self.entities])+')'
 
 class AttributeAnnotation(IdedAnnotation):
     def __init__(self, target, id, type, tail, value, source_id=None):
@@ -1330,7 +1336,7 @@ class AttributeAnnotation(IdedAnnotation):
                 self.type,
                 self.target,
                 # We hack in old modifiers with this trick using bools
-                ' ' + unicode(self.value) if self.value != True else '',
+                ' ' + six.text_type(self.value) if self.value != True else '',
                 self.tail,
                 )
 
@@ -1577,12 +1583,12 @@ class BinaryRelationAnnotation(IdedAnnotation):
 if __name__ == '__main__':
     from sys import stderr, argv
     for ann_path_i, ann_path in enumerate(argv[1:]):
-        print >> stderr, ("%s.) '%s' " % (ann_path_i, ann_path, )
-                ).ljust(80, '#')
+        print(("%s.) '%s' " % (ann_path_i, ann_path, )
+                ).ljust(80, '#'), file=stderr)
         try:
             with Annotations(ann_path) as anns:
                 for ann in anns:
-                    print >> stderr, unicode(ann).rstrip('\n')
+                    print(six.text_type(ann).rstrip('\n'), file=stderr)
         except ImportError:
             # Will try to load the config, probably not available
             pass

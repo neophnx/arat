@@ -16,11 +16,14 @@ Version:    2011-09-29
 '''
 
 # Standard library version
+from __future__ import absolute_import
+from __future__ import print_function
 from os.path import abspath
 from os.path import join as path_join
 from sys import version_info, stderr
 from time import time
-from thread import allocate_lock
+from six.moves._thread import allocate_lock
+import six
 
 ### Constants
 # This handling of version_info is strictly for backwards compatibility
@@ -98,7 +101,7 @@ def _config_check():
         try:
             import config
             del config
-        except ImportError, e:
+        except ImportError as e:
             path.extend(orig_path)
             # "Prettiest" way to check specific failure
             if e.message == 'No module named config':
@@ -188,23 +191,23 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
             # Also take the opportunity to convert Strings into Unicode,
             #   according to HTTP they should be UTF-8
             try:
-                http_args[k] = unicode(params.getvalue(k), encoding='utf-8')
+                http_args[k] = six.text_type(params.getvalue(k), encoding='utf-8')
             except TypeError:
                 Messager.error('protocol argument error: expected string argument %s, got %s' % (k, type(params.getvalue(k))))
                 raise ProtocolArgumentError
 
         # Dispatch the request
         json_dic = dispatch(http_args, client_ip, client_hostname)
-    except ProtocolError, e:
+    except ProtocolError as e:
         # Internal error, only reported to client not to log
         json_dic = {}
         e.json(json_dic)
 
         # Add a human-readable version of the error
-        err_str = unicode(e)
+        err_str = six.text_type(e)
         if err_str != '':
             Messager.error(err_str, duration=-1)
-    except NoPrintJSONError, e:
+    except NoPrintJSONError as e:
         # Terrible hack to serve other things than JSON
         response_data = (e.hdrs, e.data)
         response_is_JSON = False
@@ -261,7 +264,7 @@ def _server_crash(cookie_hdrs, e):
         Messager.error(error_msg, duration=-1)
 
     # Print to stderr so that the exception is logged by the webserver
-    print >> stderr, stack_trace
+    print(stack_trace, file=stderr)
 
     json_dic = {
             'exception': 'serverCrash',
@@ -302,7 +305,7 @@ def serve(params, client_ip, client_hostname, cookie_data):
             _config_check()
         finally:
             CONFIG_CHECK_LOCK.release()
-    except ConfigurationError, e:
+    except ConfigurationError as e:
         json_dic = {}
         e.json(json_dic)
         return cookie_hdrs, ((JSON_HDR, ), dumps(Messager.output_json(json_dic)))
@@ -311,7 +314,7 @@ def serve(params, client_ip, client_hostname, cookie_data):
 
     try:
         _permission_check()
-    except PermissionError, e:
+    except PermissionError as e:
         json_dic = {}
         e.json(json_dic)
         return cookie_hdrs, ((JSON_HDR, ), dumps(Messager.output_json(json_dic)))
@@ -319,6 +322,6 @@ def serve(params, client_ip, client_hostname, cookie_data):
     try:
         # Safe region, can throw any exception, has verified installation
         return _safe_serve(params, client_ip, client_hostname, cookie_data)
-    except BaseException, e:
+    except BaseException as e:
         # Handle the server crash
         return _server_crash(cookie_hdrs, e)

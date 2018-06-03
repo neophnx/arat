@@ -9,6 +9,7 @@ Author:     Pontus Stenetorp <pontus stenetorp se>
 Version:    2011-05-11
 '''
 
+from __future__ import absolute_import
 from datetime import datetime
 from os import mkdir, remove
 from os.path import dirname, exists, basename

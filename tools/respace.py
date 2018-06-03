@@ -5,10 +5,13 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import re
 import codecs
+from six.moves import range
 
 # TODO: switch to lxml
 try:
@@ -359,7 +362,7 @@ def process(fn):
     try:
         tree = ET.parse(fn)
     except:
-        print >> sys.stderr, "Error parsing %s" % fn
+        print("Error parsing %s" % fn, file=sys.stderr)
         raise
 
     root = tree.getroot()
@@ -514,14 +517,14 @@ def process(fn):
     # TODO: better checking of path identify to protect against
     # clobbering.
     if output_fn == fn and not options.overwrite:
-        print >> sys.stderr, 'respace: skipping output for %s: file would overwrite input (consider -d and -o options)' % fn
+        print('respace: skipping output for %s: file would overwrite input (consider -d and -o options)' % fn, file=sys.stderr)
     else:
         # OK to write output_fn
         try:
             with open(output_fn, 'w') as of:
                 tree.write(of, encoding=OUTPUT_ENCODING)
-        except IOError, ex:
-            print >> sys.stderr, 'respace: failed write: %s' % ex
+        except IOError as ex:
+            print('respace: failed write: %s' % ex, file=sys.stderr)
                 
     return True
 

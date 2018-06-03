@@ -23,6 +23,8 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import codecs
@@ -67,7 +69,7 @@ NAME_ORDER_BY_CLASS = [
 
 def main(argv):
     if len(argv) < 2:
-        print >> sys.stderr, "Usage:", argv[0], "names.dmp"
+        print("Usage:", argv[0], "names.dmp", file=sys.stderr)
         return 1
 
     namesfn = argv[1]
@@ -95,7 +97,7 @@ def main(argv):
             if filtered:
                 names_by_tax_id[tax_id] = filtered
             else:
-                print "emptied", tax_id, names_by_tax_id[tax_id]
+                print("emptied", tax_id, names_by_tax_id[tax_id])
 
     # map classes for remaining names
     for tax_id in names_by_tax_id:
