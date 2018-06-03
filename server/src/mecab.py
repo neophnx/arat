@@ -29,7 +29,10 @@ except ImportError:
     # We probably haven't added the path yet
     from sys import path as sys_path
     sys_path.append(MECAB_PYTHON_PATH)
-    import MeCab as mecab
+    try:
+        import MeCab as mecab
+    except ImportError:   
+        pass
 
 # Boundaries are on the form: [start, end]
 def token_offsets_gen(text):
