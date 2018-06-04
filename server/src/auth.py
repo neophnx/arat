@@ -8,27 +8,29 @@ Authentication and authorization mechanisms.
 Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
             Illes Solt          <solt tmit bme hu>
 Version:    2011-04-21
+
+TODO: Unittesting
 '''
 
+# future
 from __future__ import absolute_import
-from hashlib import sha512
-from os.path import dirname, join as path_join, isdir
 
-try:
-    from os.path import relpath
-except ImportError:
-    # relpath new to python 2.6; use our implementation if not found
-    from common import relpath
+# standard
+from os.path import dirname, join as path_join, isdir, relpath
+from hashlib import sha512
+
+# brat
 from common import ProtocolError
 from config import USER_PASSWORD, DATA_DIR
 from message import Messager
-from session import get_session, invalidate_session
+from session import get_session
 from projectconfig import ProjectConfiguration
 
 
 # To raise if the authority to carry out an operation is lacking
 class NotAuthorisedError(ProtocolError):
     def __init__(self, attempted_action):
+        ProtocolError.__init__(self)
         self.attempted_action = attempted_action
 
     def __str__(self):
@@ -41,8 +43,6 @@ class NotAuthorisedError(ProtocolError):
 
 # File/data access denial
 class AccessDeniedError(ProtocolError):
-    def __init__(self):
-        pass
 
     def __str__(self):
         return 'Access Denied'
@@ -55,8 +55,6 @@ class AccessDeniedError(ProtocolError):
 
 
 class InvalidAuthError(ProtocolError):
-    def __init__(self):
-        pass
 
     def __str__(self):
         return 'Incorrect login and/or password'
@@ -70,10 +68,12 @@ def _is_authenticated(user, password):
     # TODO: Replace with a database back-end
     return (user in USER_PASSWORD and
             password == USER_PASSWORD[user])
-            #password == _password_hash(USER_PASSWORD[user]))
+    # password == _password_hash(USER_PASSWORD[user]))
+
 
 def _password_hash(password):
     return sha512(password).hexdigest()
+
 
 def login(user, password):
     if not _is_authenticated(user, password):
@@ -82,6 +82,7 @@ def login(user, password):
     get_session()['user'] = user
     Messager.info('Hello!')
     return {}
+
 
 def logout():
     try:
@@ -93,6 +94,7 @@ def logout():
     Messager.info('Bye!')
     return {}
 
+
 def whoami():
     json_dic = {}
     try:
@@ -102,16 +104,17 @@ def whoami():
         Messager.error('Not logged in!', duration=3)
     return json_dic
 
+
 def allowed_to_read(real_path):
     data_path = path_join('/', relpath(real_path, DATA_DIR))
     # add trailing slash to directories, required to comply to robots.txt
     if isdir(real_path):
-        data_path = '%s/' % ( data_path )
-        
+        data_path = '%s/' % data_path
+
     real_dir = dirname(real_path)
     robotparser = ProjectConfiguration(real_dir).get_access_control()
     if robotparser is None:
-        return True # default allow
+        return True  # default allow
 
     try:
         user = get_session().get('user')
@@ -121,8 +124,6 @@ def allowed_to_read(real_path):
     if user is None:
         user = 'guest'
 
-    #display_message('Path: %s, dir: %s, user: %s, ' % (data_path, real_dir, user), type='error', duration=-1)
 
     return robotparser.can_fetch(user, data_path)
 
-# TODO: Unittesting
