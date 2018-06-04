@@ -1,41 +1,59 @@
 #!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+# -*- Mode: Python; tab-w_idth: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 # vim:set ft=python ts=4 sw=4 sts=4 autoindent:
-
-from __future__ import with_statement
-from __future__ import print_function
-from __future__ import absolute_import
-from six.moves import map
-import six
-from six.moves import range
-
 '''
 Functionality related to the annotation file format.
 
 Author:     Pontus Stenetorp   <pontus is s u-tokyo ac jp>
 Version:    2011-01-25
 '''
-
 # TODO: Major re-work, cleaning up and conforming with new server paradigm
 
+# future
+from __future__ import with_statement
+from __future__ import print_function
+from __future__ import absolute_import
 
-from logging import info as log_info
+# standard
 from codecs import open as codecs_open
-from functools import partial
 from itertools import chain, takewhile
-from os import close as os_close, utime
-from time import time
+from os import close as os_close
 from os.path import join as path_join
-from os.path import basename, splitext
+from os.path import splitext
+from os.path import isfile
+from os.path import getmtime, getctime
+from os import access, W_OK
+from os import remove
+from collections import defaultdict
+
+from time import time
 from re import match as re_match
 from re import compile as re_compile
+from tempfile import mkstemp
+from shutil import copyfile
 
-from common import ProtocolError
+# third party
+from six.moves import map
+from six.moves import range
+import six
+
+# brat
 from filelock import file_lock
 from message import Messager
-
-
-### Constants
+from annotation.annotation_exceptions import (AnnotationFileNotFoundError,
+                                              AnnotationNotFoundError,
+                                              EventWithNonTriggerError,
+                                              EventWithoutTriggerError,
+                                              AnnotationsIsReadOnlyError,
+                                              DependingAnnotationDeleteError,
+                                              IdedAnnotationLineSyntaxError,
+                                              AnnotationLineSyntaxError,
+                                              DuplicateAnnotationIdError,
+                                              TriggerReferenceError,
+                                              InvalidIdError,
+                                              AnnotationTextFileNotFoundError,
+                                              deprecation)
+# Constants
 # The only suffix we allow to write to, which is the joined annotation file
 JOINED_ANN_FILE_SUFF = 'ann'
 # These file suffixes indicate partial annotations that can not be written to
@@ -57,199 +75,48 @@ BIONLP_ST_2013_COMPATIBILITY = True
 BIONLP_ST_2013_NORMALIZATION_RES = [
     (re_compile(r'^(Reference) Annotation:(\S+) Referent:(\S+)'), r'\1 \2 \3'),
     (re_compile(r'^(Reference) Referent:(\S+) Annotation:(\S+)'), r'\1 \3 \2'),
-    ]
-
-class AnnotationLineSyntaxError(Exception):
-    def __init__(self, line, line_num, filepath):
-        self.line = line
-        self.line_num = line_num
-        self.filepath = filepath
-
-    def __str__(self):
-        u'Syntax error on line %d: "%s"' % (self.line_num, self.line)
-
-
-class IdedAnnotationLineSyntaxError(AnnotationLineSyntaxError):
-    def __init__(self, id, line, line_num, filepath):
-        AnnotationLineSyntaxError.__init__(self, line, line_num, filepath)
-        self.id = id
-
-    def __str__(self):
-        u'Syntax error on line %d (id %s): "%s"' % (self.line_num, self.id, self.line)
-
-
-class AnnotationNotFoundError(Exception):
-    def __init__(self, id):
-        self.id = id
-
-    def __str__(self):
-        return u'Could not find an annotation with id: %s' % (self.id, )
-
-
-class AnnotationFileNotFoundError(ProtocolError):
-    def __init__(self, fn):
-        self.fn = fn
-
-    def __str__(self):
-        return u'Could not find any annotations for %s' % (self.fn, )
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'annotationFileNotFound'
-        return json_dic
-
-
-class AnnotationCollectionNotFoundError(ProtocolError):
-    def __init__(self, cn):
-        self.cn = cn
-
-    def __str__(self):
-        return u'Error accessing collection %s' % (self.cn, )
-
-    def json(self, json_dic):
-        # TODO: more specific error?
-        json_dic['exception'] = 'annotationCollectionNotFound'
-        return json_dic
-   
-
-class EventWithoutTriggerError(ProtocolError):
-    def __init__(self, event):
-        self.event = event
-
-    def __str__(self):
-        return u'Event "%s" lacks a trigger' % (self.event, )
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'eventWithoutTrigger'
-        return json_dic
-   
-
-class EventWithNonTriggerError(ProtocolError):
-    def __init__(self, event, non_trigger):
-        self.event = event
-        self.non_trigger = non_trigger
-
-    def __str__(self):
-        return u'Non-trigger "%s" used by "%s" as trigger' % (
-                self.non_trigger, self.event, )
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'eventWithNonTrigger'
-        return json_dic
-
-
-class TriggerReferenceError(ProtocolError):
-    def __init__(self, trigger, referencer):
-        self.trigger = trigger
-        self.referencer = referencer
-
-    def __str__(self):
-        return u'Trigger "%s" referenced by non-event "%s"' % (self.trigger,
-                self.referencer, )
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'triggerReference'
-        return json_dic
-
-
-class AnnotationTextFileNotFoundError(AnnotationFileNotFoundError):
-    def __str__(self):
-        return u'Could not read text file for %s' % (self.fn, )
-
-
-class AnnotationsIsReadOnlyError(ProtocolError):
-    def __init__(self, fn):
-        self.fn = fn
-
-    def __str__(self):
-        # No extra message; the client is doing a fine job of reporting this
-        #return u'Annotations read-only for %s' % (self.fn, )
-        return ''
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'annotationIsReadOnly'
-        return json_dic
-
-
-class DuplicateAnnotationIdError(AnnotationLineSyntaxError):
-    def __init__(self, id, line, line_num, filepath):
-        AnnotationLineSyntaxError.__init__(self, line, line_num, filepath)
-        self.id = id
-
-    def __str__(self):
-        return (u'Duplicate id: %s on line %d (id %s): "%s"'
-                ) % (self.id, self.line_num, self.id, self.line)
-
-
-class InvalidIdError(Exception):
-    def __init__(self, id):
-        self.id = id
-
-    def __str__(self):
-        return u'Invalid id: %s' % (self.id, )
-
-
-class DependingAnnotationDeleteError(Exception):
-    def __init__(self, target, dependants):
-        self.target = target
-        self.dependants = dependants
-
-    def __str__(self):
-        return u'%s can not be deleted due to depending annotations %s' % (
-                six.text_type(self.target).rstrip(), ",".join([six.text_type(d).rstrip() for d in self.dependants]))
-
-    def html_error_str(self, response=None):
-        return u'''Annotation:
-        %s
-        Has depending annotations attached to it:
-        %s''' % (six.text_type(self.target).rstrip(), ",".join([six.text_type(d).rstrip() for d in self.dependants]))
-
-
-class SpanOffsetOverlapError(ProtocolError):
-    def __init__(self, offsets):
-        self.offsets = offsets
-
-    def __str__(self):
-        return u'The offsets [%s] overlap' % (', '.join(six.text_type(e)
-            for e in [self.offsets] ))
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'spanOffsetOverlapError'
-        return json_dic
+]
 
 
 # Open function that enforces strict, utf-8, and universal newlines for reading
 # TODO: Could have another wrapping layer raising an appropriate ProtocolError
 def open_textfile(filename, mode='rU'):
     # enforce universal newline support ('U') in read modes
-    if len(mode) != 0 and mode[0] == 'r' and 'U' not in mode:
+    if mode and mode[0] == 'r' and 'U' not in mode:
         mode = mode + 'U'
     return codecs_open(filename, mode, encoding='utf8', errors='strict')
 
-def __split_annotation_id(id):
-    m = re_match(r'^([A-Za-z]+|#[A-Za-z]*)([0-9]+)(.*?)$', id)
-    if m is None:
-        raise InvalidIdError(id)
-    pre, num_str, suf = m.groups()
+
+def __split_annotation_id(id_):
+    match_obj = re_match(r'^([A-Za-z]+|#[A-Za-z]*)([0-9]+)(.*?)$', id_)
+    if match_obj is None:
+        raise InvalidIdError(id_)
+    pre, num_str, suf = match_obj.groups()
     return pre, num_str, suf
 
+
 def annotation_id_prefix(id):
-    pre = ''.join(c for c in takewhile(lambda x : not x.isdigit(), id))
+    id_ = id
+    pre = ''.join(c for c in takewhile(lambda x: not x.isdigit(), id_))
     if not pre:
-        raise InvalidIdError(id)
+        raise InvalidIdError(id_)
     return pre
+
 
 def annotation_id_number(id):
     return __split_annotation_id(id)[1]
 
+
 def is_valid_id(id):
+    id_ = id
     # special case: '*' is acceptable as an "ID"
-    if id == '*':
+    if id_ == '*':
         return True
 
     try:
         # currently accepting any ID that can be split.
-        # TODO: consider further constraints 
-        __split_annotation_id(id)[1]
+        # TODO: consider further constraints
+        __split_annotation_id(id_)
         return True
     except InvalidIdError:
         return False
@@ -264,7 +131,7 @@ class Annotations(object):
 
     def get_document(self):
         return self._document
-    
+
     def _select_input_files(self, document):
         """
         Given a document name (path), returns a list of the names of
@@ -274,18 +141,16 @@ class Annotations(object):
         True.
         """
 
-        from os.path import isfile
-        from os import access, W_OK
-
         try:
-            # Do we have a valid suffix? If so, it is probably best to the file
+            # Do we have a valid suffix?
+            # If so, it is probably best to the file
             suff = document[document.rindex('.') + 1:]
             if suff == JOINED_ANN_FILE_SUFF:
                 # It is a joined file, let's load it
                 input_files = [document]
                 # Do we lack write permissions?
                 if not access(document, W_OK):
-                    #TODO: Should raise an exception or warning
+                    # TODO: Should raise an exception or warning
                     self._read_only = True
             elif suff in PARTIAL_ANN_FILE_SUFF:
                 # It is only a partial annotation, we will most likely fail
@@ -307,19 +172,19 @@ class Annotations(object):
                 input_files = [sugg_path]
                 # Do we lack write permissions?
                 if not access(sugg_path, W_OK):
-                    #TODO: Should raise an exception or warning
+                    # TODO: Should raise an exception or warning
                     self._read_only = True
             else:
                 # Our last shot, we go for as many partial files as possible
-                input_files = [sugg_path for sugg_path in 
-                        (document + '.' + suff
-                            for suff in PARTIAL_ANN_FILE_SUFF)
-                        if isfile(sugg_path)]
+                input_files = [sugg_path_last for sugg_path_last in
+                               (document + '.' + suff
+                                for suff in PARTIAL_ANN_FILE_SUFF)
+                               if isfile(sugg_path)]
                 self._read_only = True
 
         return input_files
-            
-    #TODO: DOC!
+
+    # TODO: DOC!
     def __init__(self, document, read_only=False):
         # this decides which parsing function is invoked by annotation
         # ID prefix (first letter)
@@ -332,12 +197,11 @@ class Annotations(object):
             '*': self._parse_equiv_annotation,
             'E': self._parse_event_annotation,
             '#': self._parse_comment_annotation,
-            }
+        }
 
-        #TODO: DOC!
-        #TODO: Incorparate file locking! Is the destructor called upon inter crash?
-        from collections import defaultdict
-        from os.path import basename, getmtime, getctime
+        # TODO: DOC!
+        # TODO: Incorparate file locking!
+        # Is the destructor called upon inter crash?
         #from fileinput import FileInput, hook_encoded
 
         # we should remember this
@@ -346,20 +210,21 @@ class Annotations(object):
         self.failed_lines = []
         self.externally_referenced_triggers = set()
 
-        ### Here be dragons, these objects need constant updating and syncing
+        # Here be dragons, these objects need constant updating and syncing
         # Annotation for each line of the file
         self._lines = []
         # Mapping between annotation objects and which line they occur on
         # Range: [0, inf.) unlike [1, inf.) which is common for files
         self._line_by_ann = {}
-        # Maximum id number used for each id prefix, to speed up id generation
-        #XXX: This is effectively broken by the introduction of id suffixes
-        self._max_id_num_by_prefix = defaultdict(lambda : 1)
-        # Annotation by id, not includid non-ided annotations 
+        # Maximum id number used for each id prefix,
+        # to speed up id generation
+        # XXX: This is effectively broken by the introduction of id suffixes
+        self._maxid_num_by_prefix = defaultdict(lambda: 1)
+        # Annotation by id, not includid non-ided annotations
         self._ann_by_id = {}
         ###
 
-        ## We use some heuristics to find the appropriate annotation files
+        # We use some heuristics to find the appropriate annotation files
         self._read_only = read_only
         input_files = self._select_input_files(document)
 
@@ -378,16 +243,16 @@ class Annotations(object):
         # Finally, parse the given annotation file
         try:
             self._parse_ann_file()
-        
+
             # Sanity checking that can only be done post-parse
             self._sanity()
         except UnicodeDecodeError:
             Messager.error('Encoding error reading annotation file: '
-                    'nonstandard encoding or binary?', -1)
+                           'nonstandard encoding or binary?', -1)
             # TODO: more specific exception
             raise AnnotationFileNotFoundError(document)
 
-        #XXX: Hack to get the timestamps after parsing
+        # XXX: Hack to get the timestamps after parsing
         if (len(self._input_files) == 1 and
                 self._input_files[0].endswith(JOINED_ANN_FILE_SUFF)):
             self.ann_mtime = getmtime(self._input_files[0])
@@ -407,7 +272,8 @@ class Annotations(object):
                     self.get_ann_by_id(rid)
                 except AnnotationNotFoundError:
                     # TODO: do more than just send a message for this error?
-                    Messager.error('ID '+rid+' not defined, referenced from annotation '+str(ann))
+                    Messager.error(
+                        'ID '+rid+' not defined, referenced from annotation '+str(ann))
 
         # Check that each event has a trigger
         for e_ann in self.get_events():
@@ -426,18 +292,18 @@ class Annotations(object):
         # Create a map for non-event references
         referenced_to_referencer = {}
         for non_e_ann in (a for a in self
-                if not isinstance(a, EventAnnotation)
-                and isinstance(a, IdedAnnotation)):
+                          if not isinstance(a, EventAnnotation)
+                          and isinstance(a, IdedAnnotation)):
             for ref in chain(*non_e_ann.get_deps()):
                 try:
-                    referenced_to_referencer[ref].add(non_e_ann.id)
+                    referenced_to_referencer[ref].add(non_e_ann.id_)
                 except KeyError:
-                    referenced_to_referencer[ref] = set((non_e_ann.id, ))
+                    referenced_to_referencer[ref] = set((non_e_ann.id_, ))
 
         # Ensure that no non-event references a trigger
         for tr_ann in self.get_triggers():
-            if tr_ann.id in referenced_to_referencer:
-                conflict_ann_ids = referenced_to_referencer[tr_ann.id]
+            if tr_ann.id_ in referenced_to_referencer:
+                conflict_ann_ids = referenced_to_referencer[tr_ann.id_]
                 if BIONLP_ST_2013_COMPATIBILITY:
                     # Special-case processing for BioNLP ST 2013: allow
                     # Relations to reference event triggers (#926).
@@ -447,16 +313,16 @@ class Annotations(object):
                         if not isinstance(referencer, BinaryRelationAnnotation):
                             remaining_confict_ann_ids.add(rid)
                         else:
-                            self.externally_referenced_triggers.add(tr_ann.id)
+                            self.externally_referenced_triggers.add(tr_ann.id_)
                     conflict_ann_ids = remaining_confict_ann_ids
                 # Note: Only reporting one of the conflicts (TODO)
                 if conflict_ann_ids:
                     referencer = self.get_ann_by_id(list(conflict_ann_ids)[0])
                     raise TriggerReferenceError(tr_ann, referencer)
-        
+
     def get_events(self):
         return (a for a in self if isinstance(a, EventAnnotation))
-    
+
     def get_attributes(self):
         return (a for a in self if isinstance(a, AttributeAnnotation))
 
@@ -477,9 +343,9 @@ class Annotations(object):
         triggers = [t for t in self.get_triggers()]
         return (a for a in self if (isinstance(a, TextBoundAnnotation) and
                                     not a in triggers))
-    
+
     def get_oneline_comments(self):
-        #XXX: The status exception is for the document status protocol
+        # XXX: The status exception is for the document status protocol
         #       which is yet to be formalised
         return (a for a in self if isinstance(a, OnelineCommentAnnotation)
                 and a.type != 'STATUS')
@@ -495,31 +361,29 @@ class Annotations(object):
         return (self.get_ann_by_id(e.trigger) for e in self.get_events())
 
     # TODO: getters for other categories of annotations
-    #TODO: Remove read and use an internal and external version instead
+    # TODO: Remove read and use an internal and external version instead
     def add_annotation(self, ann, read=False):
-        #log_info(u'Will add: ' + unicode(ann).rstrip('\n') + ' ' + unicode(type(ann)))
-        #TODO: DOC!
-        #TODO: Check read only
+        # TODO: DOC!
+        # TODO: Check read only
         if not read and self._read_only:
             raise AnnotationsIsReadOnlyError(self.get_document())
 
         # Equivs have to be merged with other equivs
         try:
             # Bail as soon as possible for non-equivs
-            ann.entities # TODO: what is this?
             merge_cand = ann
             for eq_ann in self.get_equivs():
                 try:
                     # Make sure that this Equiv duck quacks
                     eq_ann.entities
-                except AttributeError as e:
+                except AttributeError:
                     assert False, 'got a non-entity from an entity call'
 
                 # Do we have an entitiy in common with this equiv?
                 for ent in merge_cand.entities:
                     if ent in eq_ann.entities:
                         for m_ent in merge_cand.entities:
-                            if m_ent not in eq_ann.entities: 
+                            if m_ent not in eq_ann.entities:
                                 eq_ann.entities.append(m_ent)
                         # Don't try to delete ann since it never was added
                         if merge_cand != ann:
@@ -527,7 +391,7 @@ class Annotations(object):
                                 self.del_annotation(merge_cand)
                             except DependingAnnotationDeleteError:
                                 assert False, ('Equivs lack ids and should '
-                                        'never have dependent annotations')
+                                               'never have dependent annotations')
                         merge_cand = eq_ann
                         # We already merged it all, break to the next ann
                         break
@@ -535,20 +399,22 @@ class Annotations(object):
             if merge_cand != ann:
                 # The proposed annotation was simply merged, no need to add it
                 # Update the modification time
-                from time import time
                 self.ann_mtime = time()
                 return
 
         except AttributeError:
-            #XXX: This can catch a ton more than we want to! Ugly!
+            # XXX: This can catch a ton more than we want to! Ugly!
             # It was not an Equiv, skip along
             pass
 
         # Register the object id
         try:
-            self._ann_by_id[ann.id] = ann
-            pre, num = annotation_id_prefix(ann.id), annotation_id_number(ann.id)
-            self._max_id_num_by_prefix[pre] = max(num, self._max_id_num_by_prefix[pre])
+            self._ann_by_id[ann.id_] = ann
+            pre = annotation_id_prefix(ann.id_)
+            num = annotation_id_number(ann.id_)
+
+            self._max_id_num_by_prefix[pre] = max(
+                num, self._max_id_num_by_prefix[pre])
         except AttributeError:
             # The annotation simply lacked an id which is fine
             pass
@@ -557,28 +423,26 @@ class Annotations(object):
         self._lines.append(ann)
         self._line_by_ann[ann] = len(self) - 1
         # Update the modification time
-        from time import time
         self.ann_mtime = time()
 
     def del_annotation(self, ann, tracker=None):
-        #TODO: Check read only
-        #TODO: Flag to allow recursion
-        #TODO: Sampo wants to allow delet of direct deps but not indirect, one step
-        #TODO: needed to pass tracker to track recursive mods, but use is too
+        # TODO: Check read only
+        # TODO: Flag to allow recursion
+        # TODO: Sampo wants to allow delet of direct deps but not indirect, one step
+        # TODO: needed to pass tracker to track recursive mods, but use is too
         #      invasive (direct modification of ModificationTracker.deleted)
-        #TODO: DOC!
+        # TODO: DOC!
         if self._read_only:
             raise AnnotationsIsReadOnlyError(self.get_document())
 
         try:
-            ann.id
+            ann.id_
         except AttributeError:
             # If it doesn't have an id, nothing can depend on it
             if tracker is not None:
                 tracker.deletion(ann)
             self._atomic_del_annotation(ann)
             # Update the modification time
-            from time import time
             self.ann_mtime = time()
             return
 
@@ -587,56 +451,57 @@ class Annotations(object):
 
         for other_ann in self:
             soft_deps, hard_deps = other_ann.get_deps()
-            if six.text_type(ann.id) in soft_deps | hard_deps:
+            if six.text_type(ann.id_) in soft_deps | hard_deps:
                 ann_deps.append(other_ann)
-              
+
         # If all depending are AttributeAnnotations or EquivAnnotations,
         # delete all modifiers recursively (without confirmation) and remove
         # the annotation id from the equivs (and remove the equiv if there is
         # only one id left in the equiv)
         # Note: this assumes AttributeAnnotations cannot have
         # other dependencies depending on them, nor can EquivAnnotations
-        if all((False for d in ann_deps if (
-            not isinstance(d, AttributeAnnotation)
-            and not isinstance(d, EquivAnnotation)
-            and not isinstance(d, OnelineCommentAnnotation)
-            and not isinstance(d, NormalizationAnnotation)
-            ))):
+        def helper_(dep):
+            return (not isinstance(dep, AttributeAnnotation)
+                    and not isinstance(dep, EquivAnnotation)
+                    and not isinstance(dep, OnelineCommentAnnotation)
+                    and not isinstance(dep, NormalizationAnnotation))
 
-            for d in ann_deps:
-                if isinstance(d, AttributeAnnotation):
+        if all((False for d in ann_deps if helper_(d))):
+
+            for dep in ann_deps:
+                if isinstance(dep, AttributeAnnotation):
                     if tracker is not None:
-                        tracker.deletion(d)
-                    self._atomic_del_annotation(d)
-                elif isinstance(d, EquivAnnotation):
-                    if len(d.entities) <= 2:
+                        tracker.deletion(dep)
+                    self._atomic_del_annotation(dep)
+                elif isinstance(dep, EquivAnnotation):
+                    if len(dep.entities) <= 2:
                         # An equiv has to have more than one member
-                        self._atomic_del_annotation(d)
+                        self._atomic_del_annotation(dep)
                         if tracker is not None:
-                            tracker.deletion(d)
+                            tracker.deletion(dep)
                     else:
                         if tracker is not None:
-                            before = six.text_type(d)
-                        d.entities.remove(six.text_type(ann.id))
+                            before = six.text_type(dep)
+                        dep.entities.remove(six.text_type(ann.id_))
                         if tracker is not None:
-                            tracker.change(before, d)
-                elif isinstance(d, OnelineCommentAnnotation):
-                    #TODO: Can't anything refer to comments?
-                    self._atomic_del_annotation(d)
+                            tracker.change(before, dep)
+                elif isinstance(dep, OnelineCommentAnnotation):
+                    # TODO: Can't anything refer to comments?
+                    self._atomic_del_annotation(dep)
                     if tracker is not None:
-                        tracker.deletion(d)
-                elif isinstance(d, NormalizationAnnotation):
+                        tracker.deletion(dep)
+                elif isinstance(dep, NormalizationAnnotation):
                     # Nothing should be able to reference normalizations
-                    self._atomic_del_annotation(d)
+                    self._atomic_del_annotation(dep)
                     if tracker is not None:
-                        tracker.deletion(d)
+                        tracker.deletion(dep)
                 else:
                     # all types we allow to be deleted along with
                     # annotations they depend on should have been
                     # covered above.
                     assert False, "INTERNAL ERROR"
             ann_deps = []
-            
+
         if ann_deps:
             raise DependingAnnotationDeleteError(ann, ann_deps)
 
@@ -648,7 +513,7 @@ class Annotations(object):
         #TODO: DOC
         # Erase the ann by id shorthand
         try:
-            del self._ann_by_id[ann.id]
+            del self._ann_by_id[ann.id_]
         except AttributeError:
             # So, we did not have id to erase in the first place
             pass
@@ -663,15 +528,15 @@ class Annotations(object):
         for l_num in range(ann_line, len(self)):
             self._line_by_ann[self[l_num]] = l_num
         # Update the modification time
-        from time import time
         self.ann_mtime = time()
-    
+
     def get_ann_by_id(self, id):
+        id_ = id
         #TODO: DOC
         try:
-            return self._ann_by_id[id]
+            return self._ann_by_id[id_]
         except KeyError:
-            raise AnnotationNotFoundError(id)
+            raise AnnotationNotFoundError(id_)
 
     def get_new_id(self, prefix, suffix=None):
         '''
@@ -694,88 +559,102 @@ class Annotations(object):
         An id that is guaranteed to be unique for the lifetime of the
         annotation.
         '''
-        #XXX: We have changed this one radically!
+        # XXX: We have changed this one radically!
         #XXX: Stupid and linear
         if suffix is None:
             suffix = ''
-        #XXX: Arbitrary constant!
+        # XXX: Arbitrary constant!
         for suggestion in (prefix + six.text_type(i) + suffix for i in range(1, 2**15)):
             # This is getting more complicated by the minute, two checks since
             # the developers no longer know when it is an id or string.
             if suggestion not in self._ann_by_id:
                 return suggestion
+        return None
 
     # XXX: This syntax is subject to change
-    def _parse_attribute_annotation(self, id, data, data_tail, input_file_path):
+    def _parse_attribute_annotation(self, id_, data, data_tail, input_file_path):
+        
         match = re_match(r'(.+?) (.+?) (.+?)$', data)
         if match is None:
             # Is it an old format without value?
             match = re_match(r'(.+?) (.+?)$', data)
 
             if match is None:
-                raise IdedAnnotationLineSyntaxError(id, self.ann_line,
-                        self.ann_line_num + 1, input_file_path)
-                
-            _type, target = match.groups()
+                raise IdedAnnotationLineSyntaxError(id_,
+                                                    self.ann_line,
+                                                    self.ann_line_num + 1,
+                                                    input_file_path)
+
+            type_, target = match.groups()
             value = True
         else:
-            _type, target, value = match.groups()
+            type_, target, value = match.groups()
 
         # Verify that the ID is indeed valid
         try:
             annotation_id_number(target)
         except InvalidIdError:
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line,
-                    self.ann_line_num + 1, input_file_path)
+            raise IdedAnnotationLineSyntaxError(id_,
+                                                self.ann_line,
+                                                self.ann_line_num + 1,
+                                                input_file_path)
 
-        return AttributeAnnotation(target, id, _type, '', value, source_id=input_file_path)
+        return AttributeAnnotation(target, id_, type_, '', value, source_id=input_file_path)
 
-    def _parse_event_annotation(self, id, data, data_tail, input_file_path):
-        #XXX: A bit nasty, we require a single space
+    def _parse_event_annotation(self, id_, data, data_tail, input_file_path):
+
+        # XXX: A bit nasty, we require a single space
         try:
             type_delim = data.index(' ')
-            type_trigger, type_trigger_tail = (data[:type_delim], data[type_delim:])
+            type_trigger, type_trigger_tail = (
+                data[:type_delim], data[type_delim:])
         except ValueError:
             type_trigger = data.rstrip('\r\n')
             type_trigger_tail = None
 
         try:
-            type, trigger = type_trigger.split(':')
+            type_, trigger = type_trigger.split(':')
         except ValueError:
             # TODO: consider accepting events without triggers, e.g.
             # BioNLP ST 2011 Bacteria task
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
         if type_trigger_tail is not None:
             args = [tuple(arg.split(':')) for arg in type_trigger_tail.split()]
         else:
             args = []
 
-        return EventAnnotation(trigger, args, id, type, data_tail, source_id=input_file_path)
+        return EventAnnotation(trigger, args, id_, type_, data_tail, source_id=input_file_path)
 
-
-    def _parse_relation_annotation(self, id, data, data_tail, input_file_path):
+    def _parse_relation_annotation(self, id_, data, data_tail, input_file_path):
         try:
             type_delim = data.index(' ')
-            type, type_tail = (data[:type_delim], data[type_delim:])
+            type_, type_tail = (data[:type_delim], data[type_delim:])
         except ValueError:
             # cannot have a relation with just a type (contra event)
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
-            
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
+
         try:
             args = [tuple(arg.split(':')) for arg in type_tail.split()]
         except ValueError:
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
         if len(args) != 2:
-            Messager.error('Error parsing relation: must have exactly two arguments')
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            Messager.error(
+                'Error parsing relation: must have exactly two arguments')
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
         if args[0][0] == args[1][0]:
-            Messager.error('Error parsing relation: arguments must not be identical')
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            Messager.error(
+                'Error parsing relation: arguments must not be identical')
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
-        return BinaryRelationAnnotation(id, type,
+        return BinaryRelationAnnotation(id_, type_,
                                         args[0][0], args[0][1],
                                         args[1][0], args[1][1],
                                         data_tail, source_id=input_file_path)
@@ -785,22 +664,23 @@ class Annotations(object):
         # parse_* functions
         # TODO: this will split on any space, which is likely not correct
         try:
-            type, type_tail = data.split(None, 1)
+            type_, type_tail = data.split(None, 1)
         except ValueError:
             # no space: Equiv without arguments?
-            raise AnnotationLineSyntaxError(self.ann_line, self.ann_line_num+1, input_file_path)
+            raise AnnotationLineSyntaxError(
+                self.ann_line, self.ann_line_num+1, input_file_path)
         equivs = type_tail.split(None)
-        return EquivAnnotation(type, equivs, data_tail, source_id=input_file_path)
+        return EquivAnnotation(type_, equivs, data_tail, source_id=input_file_path)
 
     # Parse an old modifier annotation for backwards compatibility
-    def _parse_modifier_annotation(self, id, data, data_tail, input_file_path):
-        type, target = data.split()
-        return AttributeAnnotation(target, id, type, data_tail, True, source_id=input_file_path)
+    def _parse_modifier_annotation(self, id_, data, data_tail, input_file_path):
+        type_, target = data.split()
+        return AttributeAnnotation(target, id_, type_, data_tail, True, source_id=input_file_path)
 
-    def _split_textbound_data(self, id, data, input_file_path):
+    def _split_textbound_data(self, id_, data, input_file_path):
         try:
             # first space-separated string is type
-            type, rest = data.split(' ', 1)
+            type_, rest = data.split(' ', 1)
 
             # rest should be semicolon-separated list of "START END"
             # pairs, where START and END are integers
@@ -812,77 +692,86 @@ class Annotations(object):
                 end_str = end_str.rstrip()
 
                 if any((c.isspace() for c in end_str)):
-                    Messager.error('Error parsing textbound "%s\t%s". (Using space instead of tab?)' % (id, data))
-                    raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                    Messager.error(
+                        'Error parsing textbound "%s\t%s". (Using space instead of tab?)' % (id, data))
+                    raise IdedAnnotationLineSyntaxError(
+                        id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
                 start, end = (int(start_str), int(end_str))
                 spans.append((start, end))
 
         except:
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
-        return type, spans
+        return type_, spans
 
-    def _parse_textbound_annotation(self, _id, data, data_tail, input_file_path):
-        _type, spans = self._split_textbound_data(_id, data, input_file_path)
-        return TextBoundAnnotation(spans, _id, _type, data_tail, source_id=input_file_path)
+    def _parse_textbound_annotation(self, id_, data, data_tail, input_file_path):
+        type_, spans = self._split_textbound_data(id_, data, input_file_path)
+        return TextBoundAnnotation(spans, id_, type_, data_tail, source_id=input_file_path)
 
-    def _parse_normalization_annotation(self, _id, data, data_tail, input_file_path):
+    def _parse_normalization_annotation(self, id_, data, data_tail, input_file_path):
         # special-case processing for BioNLP ST 2013 variant of
         # normalization format
+
         if BIONLP_ST_2013_COMPATIBILITY:
-            for r, s in BIONLP_ST_2013_NORMALIZATION_RES:
-                d = r.sub(s, data, count=1)
-                if d != data:
-                    data = d
+            for regexp, substring in BIONLP_ST_2013_NORMALIZATION_RES:
+                thisdata = regexp.sub(substring, data, count=1)
+                if thisdata != data:
+                    data = thisdata
                     break
-            
+
         match = re_match(r'(\S+) (\S+) (\S+?):(\S+)', data)
         if match is None:
-            raise IdedAnnotationLineSyntaxError(_id, self.ann_line, self.ann_line_num + 1, input_file_path)
-        _type, target, refdb, refid = match.groups()
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num + 1, input_file_path)
+        type_, target, refdb, refid = match.groups()
 
-        return NormalizationAnnotation(_id, _type, target, refdb, refid, data_tail, source_id=input_file_path)
+        return NormalizationAnnotation(id_, type_, target, refdb, refid, data_tail, source_id=input_file_path)
 
-    def _parse_comment_annotation(self, _id, data, data_tail, input_file_path):
+    def _parse_comment_annotation(self, id_, data, data_tail, input_file_path):
         try:
-            _type, target = data.split()
+            type_, target = data.split()
         except ValueError:
-            raise IdedAnnotationLineSyntaxError(_id, self.ann_line, self.ann_line_num+1, input_file_path)
-        return OnelineCommentAnnotation(target, _id, _type, data_tail, source_id=input_file_path)
-    
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
+        return OnelineCommentAnnotation(target, id_, type_, data_tail, source_id=input_file_path)
+
     def _parse_ann_file(self):
         self.ann_line_num = -1
         for input_file_path in self._input_files:
             with open_textfile(input_file_path) as input_file:
-                #for self.ann_line_num, self.ann_line in enumerate(self._file_input):
+                # for self.ann_line_num, self.ann_line in enumerate(self._file_input):
                 for self.ann_line in input_file:
                     self.ann_line_num += 1
                     try:
                         # ID processing
                         try:
-                            id, id_tail = self.ann_line.split('\t', 1)
+                            id_, id_tail = self.ann_line.split('\t', 1)
                         except ValueError:
-                            raise AnnotationLineSyntaxError(self.ann_line, self.ann_line_num+1, input_file_path)
+                            raise AnnotationLineSyntaxError(
+                                self.ann_line, self.ann_line_num+1, input_file_path)
 
                         pre = annotation_id_prefix(id)
 
-                        if id in self._ann_by_id and pre != '*':
-                            raise DuplicateAnnotationIdError(id,
-                                    self.ann_line, self.ann_line_num+1,
-                                    input_file_path)
+                        if id_ in self._ann_by_id and pre != '*':
+                            raise DuplicateAnnotationIdError(id_,
+                                                             self.ann_line,
+                                                             self.ann_line_num+1,
+                                                             input_file_path)
 
                         # if the ID is not valid, need to fail with
                         # AnnotationLineSyntaxError (not
                         # IdedAnnotationLineSyntaxError).
-                        if not is_valid_id(id):
-                            raise AnnotationLineSyntaxError(self.ann_line, self.ann_line_num+1, input_file_path)
+                        if not is_valid_id(id_):
+                            raise AnnotationLineSyntaxError(
+                                self.ann_line, self.ann_line_num+1, input_file_path)
 
                         # Cases for lines
                         try:
                             data_delim = id_tail.index('\t')
                             data, data_tail = (id_tail[:data_delim],
-                                    id_tail[data_delim:])
+                                               id_tail[data_delim:])
                         except ValueError:
                             data = id_tail
                             # No tail at all, although it should have a \t
@@ -897,31 +786,41 @@ class Annotations(object):
 
                         try:
                             parse_func = self._parse_function_by_id_prefix[pre_first]
-                            new_ann = parse_func(id, data, data_tail, input_file_path)
+                            new_ann = parse_func(
+                                id_,
+                                data,
+                                data_tail,
+                                input_file_path)
                         except KeyError:
-                            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                            raise IdedAnnotationLineSyntaxError(
+                                id_,
+                                self.ann_line,
+                                self.ann_line_num+1,
+                                input_file_path)
 
                         assert new_ann is not None, "INTERNAL ERROR"
                         self.add_annotation(new_ann, read=True)
-                    except IdedAnnotationLineSyntaxError as e:
-                        # Could parse an ID but not the whole line; add UnparsedIdedAnnotation
-                        self.add_annotation(UnparsedIdedAnnotation(e.id,
-                            e.line, source_id=e.filepath), read=True)
-                        self.failed_lines.append(e.line_num - 1)
+                    except IdedAnnotationLineSyntaxError as exception:
+                        # Could parse an ID but not the whole line;
+                        # add UnparsedIdedAnnotation
+                        self.add_annotation(UnparsedIdedAnnotation(exception.id_,
+                                                                   exception.line,
+                                                                   source_id=exception.filepath), read=True)
+                        self.failed_lines.append(exception.line_num - 1)
 
-                    except AnnotationLineSyntaxError as e:
-                        # We could not parse even an ID on the line, just add it as an unknown annotation
-                        self.add_annotation(UnknownAnnotation(e.line,
-                            source_id=e.filepath), read=True)
+                    except AnnotationLineSyntaxError as exception:
+                        # We could not parse even an id on the line, just add it as an unknown annotation
+                        anno = UnknownAnnotation(exception.line,
+                                                 source_id=exception.filepath)
+                        self.add_annotation(anno, read=True)
                         # NOTE: For access we start at line 0, not 1 as in here
-                        self.failed_lines.append(e.line_num - 1)
+                        self.failed_lines.append(exception.line_num - 1)
 
     def __str__(self):
-        s = u'\n'.join(six.text_type(ann).rstrip(u'\r\n') for ann in self)
-        if not s:
+        res = u'\n'.join(six.text_type(ann).rstrip(u'\r\n') for ann in self)
+        if not res:
             return u''
-        else:
-            return s if s[-1] == u'\n' else s + u'\n'
+        return res if res[-1] == u'\n' else res + u'\n'
 
     def __it__(self):
         for ann in self._lines:
@@ -941,16 +840,16 @@ class Annotations(object):
     def __enter__(self):
         # No need to do any handling here, the constructor handles that
         return self
-    
-    def __exit__(self, type, value, traceback):
-        #self._file_input.close()
+
+    def __exit__(self, _, value, traceback):
+        # self._file_input.close()
         if not self._read_only:
             assert len(self._input_files) == 1, 'more than one valid outfile'
 
             # We are hitting the disk a lot more than we should here, what we
             # should have is a modification flag in the object but we can't
             # due to how we change the annotations.
-            
+
             out_str = six.text_type(self)
             with open_textfile(self._input_files[0], 'r') as old_ann_file:
                 old_str = old_ann_file.read()
@@ -961,25 +860,23 @@ class Annotations(object):
                 return
 
             from config import WORK_DIR
-            
+
             # Protect the write so we don't corrupt the file
             with file_lock(path_join(WORK_DIR,
-                    str(hash(self._input_files[0].replace('/', '_')))
-                        + '.lock')
-                    ) as lock_file:
+                                     str(hash(
+                                         self._input_files[0].replace('/', '_')))
+                                     + '.lock')):
                 #from tempfile import NamedTemporaryFile
-                from tempfile import mkstemp
                 # TODO: XXX: Is copyfile really atomic?
-                from shutil import copyfile
                 # XXX: NamedTemporaryFile only supports encoding for Python 3
                 #       so we hack around it.
-                #with NamedTemporaryFile('w', suffix='.ann') as tmp_file:
+                # with NamedTemporaryFile('w', suffix='.ann') as tmp_file:
                 # Grab the filename, but discard the handle
                 tmp_fh, tmp_fname = mkstemp(suffix='.ann')
                 os_close(tmp_fh)
                 try:
                     with open_textfile(tmp_fname, 'w') as tmp_file:
-                        #XXX: Temporary hack to make sure we don't write corrupted
+                        # XXX: Temporary hack to make sure we don't write corrupted
                         #       files, but the client will already have the version
                         #       at this stage leading to potential problems upon
                         #       the next change to the file.
@@ -987,28 +884,34 @@ class Annotations(object):
                         tmp_file.flush()
 
                         try:
-                            with Annotations(tmp_file.name) as ann:
+                            with Annotations(tmp_file.name):
                                 # Move the temporary file onto the old file
                                 copyfile(tmp_file.name, self._input_files[0])
                                 # As a matter of convention we adjust the modified
                                 # time of the data dir when we write to it. This
                                 # helps us to make back-ups
-                                now = time()
-                                #XXX: Disabled for now!
+                                #now = time()
+                                # XXX: Disabled for now!
                                 #utime(DATA_DIR, (now, now))
-                        except Exception as e:
-                            Messager.error('ERROR writing changes: generated annotations cannot be read back in!\n(This is almost certainly a system error, please contact the developers.)\n%s' % e, -1)
+                        except Exception as exception:
+                            msg = []
+                            msg.append(
+                                'ERROR writing changes: generated annotations cannot be read back in!')
+                            msg.append(
+                                '(This is almost certainly a system error, please contact the developers.)')
+                            msg.append(str(exception))
+                            Messager.error("\n".join(msg), -1)
                             raise
                 finally:
                     try:
-                        from os import remove
                         remove(tmp_fname)
-                    except Exception as e:
-                        Messager.error("Error removing temporary file '%s'" % tmp_fname)
+                    except Exception as exception:
+                        Messager.error(
+                            "Error removing temporary file '%s'" % tmp_fname)
             return
 
     def __in__(self, other):
-        #XXX: You should do this one!
+        # XXX: You should do this one!
         pass
 
 
@@ -1018,6 +921,7 @@ class TextAnnotations(Annotations):
     access to text text to which the annotations apply and verifying
     the correctness of text-bound annotations against the text.
     """
+
     def __init__(self, document, read_only=False):
         # First read the text or the Annotations can't verify the annotations
         if document.endswith('.txt'):
@@ -1025,61 +929,80 @@ class TextAnnotations(Annotations):
         else:
             # Do we have a known extension?
             _, file_ext = splitext(document)
-            if not file_ext or not file_ext in KNOWN_FILE_SUFF:
+            if file_ext not in KNOWN_FILE_SUFF:
                 textfile_path = document
             else:
                 textfile_path = document[:len(document) - len(file_ext)]
 
         self._document_text = self._read_document_text(textfile_path)
-        
+
         Annotations.__init__(self, document, read_only)
 
-    def _parse_textbound_annotation(self, id, data, data_tail, input_file_path):
-        type, spans = self._split_textbound_data(id, data, input_file_path)
+    def _parse_textbound_annotation(self, id_, data, data_tail, input_file_path):
+        type_, spans = self._split_textbound_data(id_, data, input_file_path)
 
         # Verify spans
         seen_spans = []
         for start, end in spans:
             if start > end:
                 Messager.error('Text-bound annotation start > end.')
-                raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                raise IdedAnnotationLineSyntaxError(
+                    id_, self.ann_line, self.ann_line_num+1, input_file_path)
             if start < 0:
                 Messager.error('Text-bound annotation start < 0.')
-                raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                raise IdedAnnotationLineSyntaxError(
+                    id_, self.ann_line, self.ann_line_num+1, input_file_path)
             if end > len(self._document_text):
-                Messager.error('Text-bound annotation offset exceeds text length.')
-                raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                Messager.error(
+                    'Text-bound annotation offset exceeds text length.')
+                raise IdedAnnotationLineSyntaxError(
+                    id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
             for ostart, oend in seen_spans:
                 if end >= ostart and start < oend:
                     Messager.error('Text-bound annotation spans overlap')
-                    raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                    raise IdedAnnotationLineSyntaxError(
+                        id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
-            seen_spans.append((start,end))
+            seen_spans.append((start, end))
 
         # first part is text, second connecting separators
-        spanlen = sum([end-start for start, end in spans]) + (len(spans)-1)*len(DISCONT_SEP)
+        spanlen = sum([end-start for start, end in spans]) + \
+            (len(spans)-1)*len(DISCONT_SEP)
 
         # Require tail to be either empty or to begin with the text
-        # corresponding to the catenation of the start:end spans. 
+        # corresponding to the catenation of the start:end spans.
         # If the tail is empty, force a fill with the corresponding text.
         if data_tail.strip() == '' and spanlen > 0:
-            Messager.error(u"Text-bound annotation missing text (expected format 'ID\\tTYPE START END\\tTEXT'). Filling from reference text. NOTE: This changes annotations on disk unless read-only.")
-            text = "".join([self._document_text[start:end] for start, end in spans])
+            Messager.error(u"Text-bound annotation missing text "
+                           u"(expected format 'ID\\tTYPE START END\\tTEXT'). "
+                           u"Filling from reference text. "
+                           u"NOTE: This changes annotations "
+                           u"on disk unless read-only.")
+            text = "".join([self._document_text[start:end]
+                            for start, end in spans])
 
         elif data_tail[0] != '\t':
-            Messager.error('Text-bound annotation missing tab before text (expected format "ID\\tTYPE START END\\tTEXT").')
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+            Messager.error(
+                'Text-bound annotation missing tab before text '
+                u'(expected format "ID\\tTYPE START END\\tTEXT").')
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
-        elif spanlen > len(data_tail)-1: # -1 for tab
-            Messager.error('Text-bound annotation text "%s" shorter than marked span(s) %s' % (data_tail[1:], str(spans)))
-            raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+        elif spanlen > len(data_tail)-1:  # -1 for tab
+            Messager.error(
+                'Text-bound annotation text '
+                '"%s" shorter than marked span(s) %s' % (data_tail[1:],
+                                                         str(spans)))
+            raise IdedAnnotationLineSyntaxError(
+                id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
         else:
-            text = data_tail[1:spanlen+1] # shift 1 for tab
+            text = data_tail[1:spanlen+1]  # shift 1 for tab
             data_tail = data_tail[spanlen+1:]
 
-            spantexts = [self._document_text[start:end] for start, end in spans]
+            spantexts = [self._document_text[start:end]
+                         for start, end in spans]
             reftext = DISCONT_SEP.join(spantexts)
 
             if text != reftext:
@@ -1087,21 +1010,35 @@ class TextAnnotations(Annotations):
                 # discont that catenated spans without DISCONT_SEP
                 oldstylereftext = ''.join(spantexts)
                 if text[:len(oldstylereftext)] == oldstylereftext:
-                    Messager.warning(u'NOTE: replacing old-style (pre-1.3) discontinuous annotation text span with new-style one, i.e. adding space to "%s" in .ann' % text[:len(oldstylereftext)], -1)
+                    Messager.warning(
+                        u'NOTE: replacing old-style (pre-1.3) '
+                        u'discontinuous annotation text span '
+                        u'with new-style one, i.e. adding space to '
+                        u'"%s" in .ann' % text[:len(oldstylereftext)], -1)
                     text = reftext
                     data_tail = ''
                 else:
                     # unanticipated mismatch
                     Messager.error((u'Text-bound annotation text "%s" does not '
                                     u'match marked span(s) %s text "%s" in document') % (
-                            text, str(spans), reftext.replace('\n','\\n')))
-                    raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                        text, str(spans), reftext.replace('\n', '\\n')))
+                    raise IdedAnnotationLineSyntaxError(
+                        id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
             if data_tail != '' and not data_tail[0].isspace():
-                Messager.error(u'Text-bound annotation text "%s" not separated from rest of line ("%s") by space!' % (text, data_tail))
-                raise IdedAnnotationLineSyntaxError(id, self.ann_line, self.ann_line_num+1, input_file_path)
+                Messager.error(
+                    (u'Text-bound annotation text "%s"'
+                     u'not separated from rest of line '
+                     u'("%s") by space!') % (text, data_tail))
+                raise IdedAnnotationLineSyntaxError(
+                    id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
-        return TextBoundAnnotationWithText(spans, id, type, text, data_tail, source_id=input_file_path)
+        return TextBoundAnnotationWithText(spans,
+                                           id_,
+                                           type_,
+                                           text,
+                                           data_tail,
+                                           source_id=input_file_path)
 
     def get_document_text(self):
         return self._document_text
@@ -1112,16 +1049,18 @@ class TextAnnotations(Annotations):
         # "PMID.txt", not "PMID.a1.txt"
         textfn = document + '.' + TEXT_FILE_SUFFIX
         try:
-            with open_textfile(textfn, 'r') as f:
-                return f.read()
+            with open_textfile(textfn, 'r') as fd:
+                return fd.read()
         except IOError:
             Messager.error('Error reading document text from %s' % textfn)
         raise AnnotationTextFileNotFoundError(document)
+
 
 class Annotation(object):
     """
     Base class for all annotations.
     """
+
     def __init__(self, tail, source_id=None):
         self.tail = tail
         self.source_id = source_id
@@ -1131,20 +1070,24 @@ class Annotation(object):
 
     def __repr__(self):
         return u'%s("%s")' % (six.text_type(self.__class__), six.text_type(self))
-    
-    def get_deps(self):
+
+    @classmethod
+    def get_deps(cls):
         return (set(), set())
+
 
 class UnknownAnnotation(Annotation):
     """
     Represents a line of annotation that could not be parsed.
     These are not discarded, but rather passed through unmodified.
     """
+
     def __init__(self, line, source_id=None):
         Annotation.__init__(self, line, source_id=source_id)
 
     def __str__(self):
         return self.tail
+
 
 class UnparsedIdedAnnotation(Annotation):
     """
@@ -1155,55 +1098,83 @@ class UnparsedIdedAnnotation(Annotation):
     """
     # duck-type instead of inheriting from IdedAnnotation as
     # that inherits from TypedAnnotation and we have no type
+
     def __init__(self, id, line, source_id=None):
         # (this actually is the whole line, not just the id tail,
         # although Annotation will assign it to self.tail)
         Annotation.__init__(self, line, source_id=source_id)
-        self.id = id
+        self.id_ = id
+
+    @property
+    def id(self):
+        deprecation("id property is deprecated, use id_ instead")
+        return self.id_
 
     def __str__(self):
         return six.text_type(self.tail)
+
 
 class TypedAnnotation(Annotation):
     """
     Base class for all annotations with a type.
     """
+
     def __init__(self, type, tail, source_id=None):
         Annotation.__init__(self, tail, source_id=source_id)
-        self.type = type
+        self.type_ = type
+
+    @property
+    def type(self):
+        deprecation("type property is deprecated, use type_ instead")
+        return self.type_
 
     def __str__(self):
         raise NotImplementedError
+
 
 class IdedAnnotation(TypedAnnotation):
     """
     Base class for all annotations with an ID.
     """
+
     def __init__(self, id, type, tail, source_id=None):
         TypedAnnotation.__init__(self, type, tail, source_id=source_id)
-        self.id = id
+        self.id_ = id
+
+    @property
+    def id(self):
+        deprecation("id property is deprecated, use id_ instead")
+        return self.id_
 
     def reference_id(self):
-        """Returns a list that uniquely identifies this annotation within its document."""
-        return [self.id]
+        """
+        Returns a list that uniquely identifies
+        this annotation within its document.
+        """
+        return [self.id_]
 
     def reference_text(self):
-        """Returns a human-readable string that identifies this annotation within its document."""
+        """
+        Returns a human-readable string that identifies
+        this annotation within its document.
+        """
         return str(self.reference_id()[0])
 
     def __str__(self):
         raise NotImplementedError
 
-def split_role(r):
+
+def split_role(role):
     """
     Given a string R that may be suffixed with a number, returns a
     tuple (ROLE, NUM) where ROLE+NUM == R and NUM is the maximal
     suffix of R consisting only of digits.
     """
-    i=len(r)
-    while i>1 and r[i-1].isdigit():
+    i = len(role)
+    while i > 1 and role[i-1].isdigit():
         i -= 1
-    return r[:i],r[i:]
+    return role[:i], role[i:]
+
 
 class EventAnnotation(IdedAnnotation):
     """
@@ -1219,6 +1190,7 @@ class EventAnnotation(IdedAnnotation):
 
     ID\tTYPE:TRIGGER [ROLE1:PART1 ROLE2:PART2 ...]
     """
+
     def __init__(self, trigger, args, id, type, tail, source_id=None):
         IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
         self.trigger = trigger
@@ -1238,11 +1210,11 @@ class EventAnnotation(IdedAnnotation):
             # for each argument role in existing roles, determine the
             # role numbers already used
             rnums = {}
-            for r, aid in self.args:
-                rb, rn = split_role(r)
-                if rb not in rnums:
-                    rnums[rb] = {}
-                rnums[rb][rn] = True
+            for roleref, _ in self.args:
+                roleb, rolen = split_role(roleref)
+                if roleb not in rnums:
+                    rnums[roleb] = {}
+                rnums[roleb][rolen] = True
 
             # find the first available free number for the current role,
             # using the convention that the empty number suffix stands for 1
@@ -1258,13 +1230,13 @@ class EventAnnotation(IdedAnnotation):
 
     def __str__(self):
         return u'%s\t%s:%s %s%s' % (
-                self.id,
-                self.type,
-                self.trigger,
-                ' '.join([':'.join(map(str, arg_tup))
-                    for arg_tup in self.args]),
-                self.tail
-                )
+            self.id_,
+            self.type_,
+            self.trigger,
+            ' '.join([':'.join(map(str, arg_tup))
+                      for arg_tup in self.args]),
+            self.tail
+        )
 
     def get_deps(self):
         soft_deps, hard_deps = IdedAnnotation.get_deps(self)
@@ -1286,11 +1258,12 @@ class EquivAnnotation(TypedAnnotation):
     other annotations (normally TextBoundAnnotation) to be equivalent.
 
     Represented in standoff as
-    
+
     *\tTYPE ID1 ID2 [...]
 
     Where "*" is the literal asterisk character.
     """
+
     def __init__(self, type, entities, tail, source_id=None):
         TypedAnnotation.__init__(self, type, tail, source_id=source_id)
         self.entities = entities
@@ -1300,10 +1273,10 @@ class EquivAnnotation(TypedAnnotation):
 
     def __str__(self):
         return u'*\t%s %s%s' % (
-                self.type,
-                ' '.join([six.text_type(e) for e in self.entities]),
-                self.tail
-                )
+            self.type_,
+            ' '.join([six.text_type(e) for e in self.entities]),
+            self.tail
+        )
 
     def get_deps(self):
         soft_deps, hard_deps = TypedAnnotation.get_deps(self)
@@ -1317,28 +1290,29 @@ class EquivAnnotation(TypedAnnotation):
 
     def reference_id(self):
         if self.entities:
-            return ['equiv', self.type, self.entities[0]]
-        else:
-            return ['equiv', self.type, self.entities]
+            return ['equiv', self.type_, self.entities[0]]
+
+        return ['equiv', self.type_, self.entities]
 
     def reference_text(self):
         return '('+','.join([six.text_type(e) for e in self.entities])+')'
+
 
 class AttributeAnnotation(IdedAnnotation):
     def __init__(self, target, id, type, tail, value, source_id=None):
         IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
         self.target = target
         self.value = value
-        
+
     def __str__(self):
         return u'%s\t%s %s%s%s' % (
-                self.id,
-                self.type,
-                self.target,
-                # We hack in old modifiers with this trick using bools
-                ' ' + six.text_type(self.value) if self.value != True else '',
-                self.tail,
-                )
+            self.id_,
+            self.type_,
+            self.target,
+            # We hack in old modifiers with this trick using bools
+            ' ' + six.text_type(self.value) if self.value != True else '',
+            self.tail,
+        )
 
     def get_deps(self):
         soft_deps, hard_deps = IdedAnnotation.get_deps(self)
@@ -1350,9 +1324,10 @@ class AttributeAnnotation(IdedAnnotation):
         # reference to modified instead
         return [self.target]
 
+
 class NormalizationAnnotation(IdedAnnotation):
-    def __init__(self, _id, _type, target, refdb, refid, tail, source_id=None):
-        IdedAnnotation.__init__(self, _id, _type, tail, source_id=source_id)
+    def __init__(self, id, _type, target, refdb, refid, tail, source_id=None):
+        IdedAnnotation.__init__(self, id, _type, tail, source_id=source_id)
         self.target = target
         self.refdb = refdb
         self.refid = refid
@@ -1361,13 +1336,13 @@ class NormalizationAnnotation(IdedAnnotation):
 
     def __str__(self):
         return u'%s\t%s %s %s:%s%s' % (
-                self.id,
-                self.type,
-                self.target,
-                self.refdb,
-                self.refid,
-                self.tail,
-                )
+            self.id_,
+            self.type_,
+            self.target,
+            self.refdb,
+            self.refid,
+            self.tail,
+        )
 
     def get_deps(self):
         soft_deps, hard_deps = IdedAnnotation.get_deps(self)
@@ -1379,18 +1354,19 @@ class NormalizationAnnotation(IdedAnnotation):
         # reference to target instead
         return [self.target]
 
+
 class OnelineCommentAnnotation(IdedAnnotation):
     def __init__(self, target, id, type, tail, source_id=None):
         IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
         self.target = target
-        
+
     def __str__(self):
         return u'%s\t%s %s%s' % (
-                self.id,
-                self.type,
-                self.target,
-                self.tail
-                )
+            self.id_,
+            self.type_,
+            self.target,
+            self.tail
+        )
 
     def get_text(self):
         # TODO: will this always hold? Wouldn't it be better to parse
@@ -1411,7 +1387,7 @@ class TextBoundAnnotation(IdedAnnotation):
     TextBoundAnnotationWithText for that.
 
     Represented in standoff as
-    
+
     ID\tTYPE START END
 
     Where START and END are positive integer offsets identifying the
@@ -1430,27 +1406,29 @@ class TextBoundAnnotation(IdedAnnotation):
 
     # TODO: temp hack while building support for discontinuous
     # annotations; remove once done
+    @property
     def get_start(self):
         Messager.warning('TextBoundAnnotation.start access')
         return self.spans[0][0]
+
+    @property
     def get_end(self):
         Messager.warning('TextBoundAnnotation.end access')
         return self.spans[-1][1]
-    start = property(get_start)
-    end = property(get_end)
+
     # end hack
 
     def first_start(self):
         """
         Return the first (min) start offset in the annotation spans.
         """
-        return min([start for start, end in self.spans])
+        return min([start for start, _ in self.spans])
 
     def last_end(self):
         """
         Return the last (max) end offset in the annotation spans.
         """
-        return max([end for start, end in self.spans])
+        return max([end for _, end in self.spans])
 
     def get_text(self):
         # If you're seeing this exception, you probably need a
@@ -1487,11 +1465,12 @@ class TextBoundAnnotation(IdedAnnotation):
 
     def __str__(self):
         return u'%s\t%s %s%s' % (
-                self.id,
-                self.type,
-                ';'.join(['%d %d' % (start, end) for start, end in self.spans]),
-                self.tail
-                )
+            self.id_,
+            self.type_,
+            ';'.join(['%d %d' % (start, end) for start, end in self.spans]),
+            self.tail
+        )
+
 
 class TextBoundAnnotationWithText(TextBoundAnnotation):
     """
@@ -1511,22 +1490,26 @@ class TextBoundAnnotationWithText(TextBoundAnnotation):
 
     with multiple START END pairs separated by semicolons.
     """
+
     def __init__(self, spans, id, type, text, text_tail="", source_id=None):
-        IdedAnnotation.__init__(self, id, type, '\t'+text+text_tail, source_id=source_id)
+        IdedAnnotation.__init__(self, id, type, '\t' +
+                                text+text_tail, source_id=source_id)
         self.spans = spans
         self.text = text
         self.text_tail = text_tail
 
     # TODO: temp hack while building support for discontinuous
     # annotations; remove once done
+    @property
     def get_start(self):
         Messager.warning('TextBoundAnnotationWithText.start access')
         return self.spans[0][0]
+
+    @property
     def get_end(self):
         Messager.warning('TextBoundAnnotationWithText.end access')
         return self.spans[-1][1]
-    start = property(get_start)
-    end = property(get_end)
+
     # end hack
 
     def get_text(self):
@@ -1535,12 +1518,13 @@ class TextBoundAnnotationWithText(TextBoundAnnotation):
     def __str__(self):
         #log_info('TextBoundAnnotationWithText: __str__: "%s"' % self.text)
         return u'%s\t%s %s\t%s%s' % (
-                self.id,
-                self.type,
-                ';'.join(['%d %d' % (start, end) for start, end in self.spans]),
-                self.text,
-                self.text_tail
-                )
+            self.id_,
+            self.type_,
+            ';'.join(['%d %d' % (start, end) for start, end in self.spans]),
+            self.text,
+            self.text_tail
+        )
+
 
 class BinaryRelationAnnotation(IdedAnnotation):
     """
@@ -1556,35 +1540,37 @@ class BinaryRelationAnnotation(IdedAnnotation):
 
     Where ARG1 and ARG2 are arbitrary (but not identical) labels.
     """
+
     def __init__(self, id, type, arg1l, arg1, arg2l, arg2, tail, source_id=None):
         IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
         self.arg1l = arg1l
-        self.arg1  = arg1
+        self.arg1 = arg1
         self.arg2l = arg2l
-        self.arg2  = arg2
+        self.arg2 = arg2
 
     def __str__(self):
         return u'%s\t%s %s:%s %s:%s%s' % (
-            self.id,
-            self.type,
+            self.id_,
+            self.type_,
             self.arg1l,
             self.arg1,
             self.arg2l,
             self.arg2,
             self.tail
-            )
-    
+        )
+
     def get_deps(self):
         soft_deps, hard_deps = IdedAnnotation.get_deps(self)
         hard_deps.add(self.arg1)
         hard_deps.add(self.arg2)
         return soft_deps, hard_deps
 
-if __name__ == '__main__':
+
+def _main():
     from sys import stderr, argv
     for ann_path_i, ann_path in enumerate(argv[1:]):
         print(("%s.) '%s' " % (ann_path_i, ann_path, )
-                ).ljust(80, '#'), file=stderr)
+               ).ljust(80, '#'), file=stderr)
         try:
             with Annotations(ann_path) as anns:
                 for ann in anns:
@@ -1592,3 +1578,7 @@ if __name__ == '__main__':
         except ImportError:
             # Will try to load the config, probably not available
             pass
+
+
+if __name__ == '__main__':
+    _main()
