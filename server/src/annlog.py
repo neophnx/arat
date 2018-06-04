@@ -10,21 +10,28 @@ Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
 Version:    2011-11-22
 '''
 
+# future
 from __future__ import absolute_import
+
+# standard
 import logging
-from session import get_session
-from message import Messager
-from inspect import getargspec
 from os.path import isabs
 from os.path import join as path_join
 
+# third party
+import six
+
+# brat
+from session import get_session
+from message import Messager
 from config import DATA_DIR
 from projectconfig import options_get_annlogfile
-import six
+
 
 def real_directory(directory, rel_to=DATA_DIR):
     assert isabs(directory), 'directory "%s" is not absolute' % directory
     return path_join(rel_to, directory[1:])
+
 
 def annotation_logging_active(directory):
     """
@@ -33,13 +40,14 @@ def annotation_logging_active(directory):
     """
     return ann_logger(directory) is not None
 
+
 def ann_logger(directory):
     """
     Lazy initializer for the annotation logger. Returns None if
     annotation logging is not configured for the given directory and a
     logger otherwise.
     """
-    if ann_logger.__logger == False:
+    if ann_logger.__logger is False:
         # not initialized
         annlogfile = options_get_annlogfile(directory)
         if annlogfile == '<NONE>':
@@ -48,28 +56,34 @@ def ann_logger(directory):
         else:
             # initialize
             try:
-                l = logging.getLogger('annotation')
-                l.setLevel(logging.INFO)
+                logger = logging.getLogger('annotation')
+                logger.setLevel(logging.INFO)
                 handler = logging.FileHandler(annlogfile)
                 handler.setLevel(logging.INFO)
                 formatter = logging.Formatter('%(asctime)s\t%(message)s')
                 handler.setFormatter(formatter)
-                l.addHandler(handler)
-                ann_logger.__logger = l
-            except IOError as e:
+                logger.addHandler(handler)
+                ann_logger.__logger = logger
+            except IOError as exception:
                 Messager.error("""Error: failed to initialize annotation log %s: %s.
 Edit action not logged.
-Please check the Annotation-log logfile setting in tools.conf""" % (annlogfile, e))
-                logging.error("Failed to initialize annotation log %s: %s" % 
-                              (annlogfile, e))
-                ann_logger.__logger = None                
-                
+Please check the Annotation-log logfile setting in tools.conf""" % (annlogfile, exception))
+                logging.error("Failed to initialize annotation log %s: %s",
+                              annlogfile,
+                              exception)
+                ann_logger.__logger = None
+
     return ann_logger.__logger
+
+
 ann_logger.__logger = False
 
 # local abbrev; can't have literal tabs in log fields
-def _detab(s):
-    return six.text_type(s).replace('\t', '\\t')
+
+
+def _detab(text):
+    return six.text_type(text).replace('\t', '\\t')
+
 
 def log_annotation(collection, document, status, action, args):
     """
@@ -81,9 +95,9 @@ def log_annotation(collection, document, status, action, args):
 
     real_dir = real_directory(collection)
 
-    l = ann_logger(real_dir)
+    logger = ann_logger(real_dir)
 
-    if not l:
+    if not logger:
         return False
 
     try:
@@ -103,7 +117,12 @@ def log_annotation(collection, document, status, action, args):
         action = other_args[0]
         other_args = other_args[1:]
 
-    l.info('%s\t%s\t%s\t%s\t%s\t%s' % (_detab(user), _detab(collection), 
-                                       _detab(document), _detab(status), 
-                                       _detab(action),
-                                       '\t'.join([_detab(six.text_type(a)) for a in other_args])))
+    logger.info('%s\t%s\t%s\t%s\t%s\t%s',
+                _detab(user),
+                _detab(collection),
+                _detab(document),
+                _detab(status),
+                _detab(action),
+                '\t'.join([_detab(six.text_type(a)) for a in other_args]))
+
+    return None
