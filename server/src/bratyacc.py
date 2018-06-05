@@ -25,20 +25,22 @@ except ImportError:
 
     import ply.yacc as yacc
 
-from bratlex import tokens
 
 # TODO: Recurse all the way to a file
 # TODO: Comment annotation
 
-def p_annotation_line(p):
+
+def p_annotation_line(parser):
     '''
     annotation_line : annotation NEWLINE
     '''
-    p[0] = '%s\n' % (p[1], )
-    return p
+    parser[0] = '%s\n' % (parser[1], )
+    return parser
 
 # TODO: Ugly newline
-def p_annotation(p):
+
+
+def p_annotation(parser):
     '''
     annotation  : textbound
                 | event
@@ -47,145 +49,164 @@ def p_annotation(p):
                 | relation
                 | comment
     '''
-    p[0] = p[1]
-    return p
+    parser[0] = parser[1]
+    return parser
 
 # TODO: What do we really call these?
-def p_equiv(p):
+
+
+def p_equiv(parser):
     '''
     equiv : equiv_core SPACE equiv_members
     '''
-    p[0] = '%s %s' % (p[1], p[3], )
-    return p
+    parser[0] = '%s %s' % (parser[1], parser[3], )
+    return parser
 
-def p_equiv_core(p):
+
+def p_equiv_core(parser):
     '''
     equiv_core : WILDCARD TAB TYPE
     '''
-    p[0] = '*\t%s' % (p[3], )
-    return p
+    parser[0] = '*\t%s' % (parser[3], )
+    return parser
 
-def p_equiv_members(p):
+
+def p_equiv_members(parser):
     '''
     equiv_members   : equiv_member SPACE equiv_members
                     | equiv_member
     '''
-    p[0] = '%s' % (p[1], )
+    parser[0] = '%s' % (parser[1], )
     try:
-        p[0] += ' %s' % (p[3], )
+        parser[0] += ' %s' % (parser[3], )
     except IndexError:
         # We did not have any more members
         pass
-    return p
+    return parser
 
-def p_equiv_member(p):
+
+def p_equiv_member(parser):
     '''
     equiv_member : id
     '''
-    p[0] = '%s' % (p[1], )
-    return p
+    parser[0] = '%s' % (parser[1], )
+    return parser
 
-def p_textbound(p):
+
+def p_textbound(parser):
     '''
     textbound   :  textbound_freetext
                 |  textbound_core
     '''
-    p[0] = p[1]
-    return p
+    parser[0] = parser[1]
+    return parser
 
-def p_textbound_core(p):
+
+def p_textbound_core(parser):
     '''
     textbound_core : TEXT_BOUND_ID TAB TYPE SPACE INTEGER SPACE INTEGER
     '''
-    p[0] = '%s\t%s %d %d' % (p[1], p[3], p[5], p[7], )
-    return p
+    parser[0] = '%s\t%s %d %d' % (parser[1], parser[3], parser[5], parser[7], )
+    return parser
 
-def p_textbound_freetext(p):
+
+def p_textbound_freetext(parser):
     '''
     textbound_freetext : textbound_core TAB FREETEXT
     '''
-    p[0] = '%s\t%s' % (p[1], p[3], )
-    return p
+    parser[0] = '%s\t%s' % (parser[1], parser[3], )
+    return parser
 
-def p_comment(p):
+
+def p_comment(parser):
     '''
     comment : COMMENT_ID TAB TYPE SPACE id
     '''
-    p[0] = '%s\t%s %s' % (p[1], p[3], p[5])
-    return p
+    parser[0] = '%s\t%s %s' % (parser[1], parser[3], parser[5])
+    return parser
 
-def p_event(p):
+
+def p_event(parser):
     '''
     event   : event_core SPACE event_arguments
             | event_core SPACE
             | event_core
     '''
-    p[0] = p[1]
+    parser[0] = parser[1]
     try:
-        p[0] += p[2]
+        parser[0] += parser[2]
     except IndexError:
         pass
     try:
-        p[0] += p[3]
+        parser[0] += parser[3]
     except IndexError:
         pass
-    return p
+    return parser
 
-def p_event_core(p):
+
+def p_event_core(parser):
     '''
     event_core : EVENT_ID TAB TYPE COLON id
     '''
-    p[0] = '%s\t%s:%s' % (p[1], p[3], p[5], )
-    return p
+    parser[0] = '%s\t%s:%s' % (parser[1], parser[3], parser[5], )
+    return parser
 
-def p_event_arguments(p):
+
+def p_event_arguments(parser):
     '''
     event_arguments : event_argument SPACE event_arguments
                     | event_argument
     '''
-    p[0] = '%s' % (p[1], )
+    parser[0] = '%s' % (parser[1], )
     try:
-        p[0] += ' ' + p[3]
+        parser[0] += ' ' + parser[3]
     except IndexError:
         pass
-    return p
+    return parser
 
-def p_event_argument(p):
+
+def p_event_argument(parser):
     '''
     event_argument : argument COLON id
     '''
-    p[0] = '%s:%s' % (p[1], p[3], )
-    return p
+    parser[0] = '%s:%s' % (parser[1], parser[3], )
+    return parser
 
-def p_modifier(p):
+
+def p_modifier(parser):
     '''
     modifier : MODIFIER_ID TAB TYPE SPACE id
     '''
-    p[0] = '%s\t%s %s' % (p[1], p[3], p[5], )
-    return p
+    parser[0] = '%s\t%s %s' % (parser[1], parser[3], parser[5], )
+    return parser
 
-def p_relation(p):
+
+def p_relation(parser):
     '''
     relation : RELATION_ID TAB TYPE SPACE argument COLON id SPACE argument COLON id
     '''
     # TODO: Should probably require only one of each argument type
-    p[0] = '%s\t%s %s:%s %s:%s' % (p[1], p[3], p[5], p[7], p[9], p[11], )
-    return p
+    parser[0] = '%s\t%s %s:%s %s:%s' % (
+        parser[1], parser[3], parser[5], parser[7], parser[9], parser[11], )
+    return parser
 
-def p_argument(p):
+
+def p_argument(parser):
     '''
     argument    : TYPE
                 | TYPE INTEGER
     '''
-    p[0] = p[1]
+    parser[0] = parser[1]
     try:
-        p[0] += str(p[2])
+        parser[0] += str(parser[2])
     except IndexError:
         pass
-    return p
+    return parser
 
 # Generic id
-def p_id(p):
+
+
+def p_id(parser):
     '''
     id  : TEXT_BOUND_ID
         | EVENT_ID
@@ -193,20 +214,28 @@ def p_id(p):
         | MODIFIER_ID
         | COMMENT_ID
     '''
-    p[0] = p[1]
-    return p
+    parser[0] = parser[1]
+    return parser
 
-def p_error(p):
-    print('Syntax error in input! "%s"'  % (str(p), ))
+
+def p_error(parser):
+    print('Syntax error in input! "%s"' % (str(parser), ))
     raise Exception
 
-parser = yacc.yacc()
 
-if __name__ == '__main__':
+PARSER = yacc.yacc()
+
+
+def _main():
     from sys import stdin
     for line in stdin:
         print('Input: "%s"' % line.rstrip('\n'))
-        result = parser.parse(line)
-        assert result == line, ('"%s" != "%s"' % (result, line)
-                ).replace('\n', '\\n')
+        result = PARSER.parse(line)
+
+        result_ref = ('"%s" != "%s"' % (result, line)).replace('\n', '\\n')
+        assert result == line, result_ref
         print(result, end=' ')
+
+
+if __name__ == '__main__':
+    _main()
