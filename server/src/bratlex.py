@@ -25,120 +25,138 @@ except ImportError:
 
     import ply.lex as lex
 
-tokens = (
-        # Primitives
-        'COLON',
-        'NEWLINE',
-        'SPACE',
-        'TAB',
-        'WILDCARD',
+TOKENS = (
+    # Primitives
+    'COLON',
+    'NEWLINE',
+    'SPACE',
+    'TAB',
+    'WILDCARD',
 
-        # Identifiers
-        'COMMENT_ID',
-        'EVENT_ID',
-        'MODIFIER_ID',
-        'RELATION_ID',
-        'TEXT_BOUND_ID',
+    # Identifiers
+    'COMMENT_ID',
+    'EVENT_ID',
+    'MODIFIER_ID',
+    'RELATION_ID',
+    'TEXT_BOUND_ID',
 
-        # Values
-        'INTEGER',
-        'TYPE',
+    # Values
+    'INTEGER',
+    'TYPE',
 
-        # Special-case for freetext
-        'FREETEXT',
-        )
+    # Special-case for freetext
+    'FREETEXT',
+)
 
-states = (
-        ('freetext', 'exclusive'),
-        )
+STATES = (
+    ('freetext', 'exclusive'),
+)
 
-t_COLON     = r':'
-t_SPACE     = r'\ '
-t_WILDCARD  = r'\*'
+T_COLON = r':'
+T_SPACE = r'\ '
+T_WILDCARD = r'\*'
 
-def t_COMMENT_ID(t):
+
+def t_comment_id(text):
     r'\#[0-9]+'
-    return t
+    return text
 
-def t_EVENT_ID(t):
+
+def t_event_id(text):
     r'E[0-9]+'
-    return t
+    return text
 
-def t_MODIFIER_ID(t):
+
+def t_modifier_id(text):
     r'M[0-9]+'
-    return t
+    return text
 
-def t_RELATION_ID(t):
+
+def t_relation_id(text):
     r'R[0-9]+'
-    return t
+    return text
 
-def t_TEXT_BOUND_ID(t):
+
+def t_text_bound_id(text):
     r'T[0-9]+'
-    return t
+    return text
 
-def t_NEWLINE(t):
+
+def t_newline(text):
     r'\n'
     # Increment the lexers line-count
-    t.lexer.lineno += 1
+    text.lexer.lineno += 1
     # Reset the count of tabs on this line
-    t.lexer.line_tab_count = 0
-    return t
+    text.lexer.line_tab_count = 0
+    return text
 
-def t_TAB(t):
+
+def t_tab(text):
     r'\t'
     # Increment the number of tabs we have soon on this line
-    t.lexer.line_tab_count += 1
-    if t.lexer.line_tab_count == 2:
-        t.lexer.begin('freetext')
-    return t
+    text.lexer.line_tab_count += 1
+    if text.lexer.line_tab_count == 2:
+        text.lexer.begin('freetext')
+    return text
 
 
-def t_INTEGER(t):
+def t_integer(text):
     r'\d+'
-    t.value = int(t.value) 
-    return t
+    text.value = int(text.value)
+    return text
 
-def t_TYPE(t):
+
+def t_type(text):
     r'[A-Z][A-Za-z_-]*'
-    return t
+    return text
 
-def t_freetext_FREETEXT(t):
+
+def t_freetext_freetext(text):
     r'[^\n\t]+'
-    return t
+    return text
 
-def t_freetext_TAB(t):
+
+def t_freetext_tab(text):
     r'\t'
     # End freetext mode INITAL
-    t.lexer.begin('INITIAL')
-    return t
+    text.lexer.begin('INITIAL')
+    return text
 
-def t_freetext_NEWLINE(t):
+
+def t_freetext_newline(text):
     r'\n'
     # Increment the lexers line-count
-    t.lexer.lineno += 1
+    text.lexer.lineno += 1
     # Reset the count of tabs on this line
-    t.lexer.line_tab_count = 0
+    text.lexer.line_tab_count = 0
     # End freetext mode INITAL
-    t.lexer.begin('INITIAL')
-    return t
+    text.lexer.begin('INITIAL')
+    return text
 
 # Error handling rule
-def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+
+
+def t_error(text):
+    print("Illegal character '%s'" % text.value[0])
     raise Exception
-    t.lexer.skip(1)
 
-def t_freetext_error(t):
-    return t_error(t)
 
-lexer = lex.lex()
-lexer.line_tab_count = 0
+def t_freetext_error(text):
+    return t_error(text)
 
-if __name__ == '__main__':
+
+LEXER = lex.lex()
+LEXER.line_tab_count = 0
+
+
+def _main():
     from sys import stdin
     for line in stdin:
-        lexer.input(line)
+        LEXER.input(line)
 
-        for tok in lexer:
-            pass
+        for tok in LEXER:
             print(tok)
+
+
+if __name__ == '__main__':
+    _main()
