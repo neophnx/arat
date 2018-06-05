@@ -4,19 +4,24 @@
 
 '''
 Deletion functionality.
+
+TODO: implement deletion facilties
 '''
 
-from __future__ import with_statement
-
 from __future__ import absolute_import
-from os.path import join as path_join
-from message import Messager
+from common import BratNotImplementedError
 
 def delete_document(collection, document):
-    Messager.error("Document deletion not supported in this version.")
-    return {}
+    """
+    Document deletion, not implemented
+    """
+    assert collection is not None
+    assert document is not None
+    raise BratNotImplementedError()
 
 def delete_collection(collection):
-    Messager.error("Collection deletion not supported in this version.")
-    return {}
-     
+    """
+    Collection deletion, not implemented
+    """
+    assert collection is not None
+    raise BratNotImplementedError()
