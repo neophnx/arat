@@ -11,9 +11,22 @@ Version:    2011-04-21
 
 
 from __future__ import absolute_import
+import warnings
+import exceptions
+
+
+def deprecation(message):
+    """
+    Deprecation warning
+    """
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
+
+
 class ProtocolError(Exception):
-    def __init__(self):
-        pass
+    """
+    Base exception class. This class is abstract, __str__ and json methods
+    must be implemented.
+    """
 
     def __str__(self):
         # TODO: just adding __str__ to ProtocolError, not all
@@ -21,28 +34,69 @@ class ProtocolError(Exception):
         # about how to make a (nearly) human-readable string. Once
         # __str__ added to all ProtocolErrors, raise
         # NotImplementedError instead.
+        deprecation("Relying on ProtocolError.__str__ is deprecated, "
+                    "subclass must implement it")
         return 'ProtocolError: %s (TODO: __str__() method)' % self.__class__
 
-    def json(self, json_dic):
-        raise NotImplementedError('abstract method')
+    @classmethod
+    def json(cls, json_dic):
+        """
+        Overide json in order to provide a message to the client
+        """
+        assert isinstance(json_dic, dict)
+        raise exceptions.NotImplementedError('abstract method')
+
 
 class ProtocolArgumentError(ProtocolError):
-    def json(self, json_dic):
+    """
+    Wrong argument usage.
+    """
+    @classmethod
+    def json(cls, json_dic):
         json_dic['exception'] = 'protocolArgumentError'
 
 # If received by ajax.cgi, no JSON will be sent
 # XXX: This is an ugly hack to circumvent protocol flaws
+
+
 class NoPrintJSONError(Exception):
+    """
+    Critical situation, JSON can't be print
+    """
+
     def __init__(self, hdrs, data):
+        Exception.__init__(self)
         self.hdrs = hdrs
         self.data = data
 
-class NotImplementedError(ProtocolError):
-    def json(self, json_dic):
+
+class BratNotImplementedError(ProtocolError):
+    """
+    Indicates a missing implementation, this exception
+    should never be encountered during normal operations.
+    """
+    @classmethod
+    def json(cls, json_dic):
         json_dic['exception'] = 'notImplemented'
 
+
+class NotImplementedError(BratNotImplementedError):
+    """
+    Deprecated see BratNotImplementedError
+    """
+
+    def __init__(self):
+        deprecation("NotImplementedError is deprecated, "
+                    "use BratNotImplementedError instead")
+        BratNotImplementedError.__init__(self)
+
+
 class CollectionNotAccessibleError(ProtocolError):
-    def json(self, json_dic):
+    """
+    I/O exception while loading or storing a collection
+    """
+    @classmethod
+    def json(cls, json_dic):
         json_dic['exception'] = 'collectionNotAccessible'
 
     def __str__(self):
@@ -51,7 +105,12 @@ class CollectionNotAccessibleError(ProtocolError):
 # TODO: We have issues using this in relation to our inspection
 #       in dispatch, can we make it work?
 # Wrapper to send a deprecation warning to the client if debug is set
+
+
 def deprecated_action(func):
+    """
+    Encapsulate a deprecation warning to the client in DEBUG mode.
+    """
     try:
         from config import DEBUG
     except ImportError:
@@ -61,26 +120,18 @@ def deprecated_action(func):
 
     @wraps(func)
     def wrapper(*args, **kwds):
+        """
+        Add message sending to func
+        """
         if DEBUG:
             Messager.warning(('Client sent "%s" action '
                               'which is marked as deprecated') % func.__name__,)
         return func(*args, **kwds)
     return wrapper
 
-# relpath is not included in python 2.5; alternative implementation from
-# BareNecessities package, License: MIT, Author: James Gardner
-# TODO: remove need for relpath instead
-def relpath(path, start):
+
+def relpath(path, start='.'):
     """Return a relative version of a path"""
-    from os.path import abspath, sep, pardir, commonprefix
-    from os.path import join as path_join
-    if not path:
-        raise ValueError("no path specified")
-    start_list = abspath(start).split(sep)
-    path_list = abspath(path).split(sep)
-    # Work out how much of the filepath is shared by start and path.
-    i = len(commonprefix([start_list, path_list]))
-    rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
-    if not rel_list:
-        return path
-    return path_join(*rel_list)
+    deprecation("common.relpath is deprecated, use os.relpath instead")
+    from os import path
+    return path.relpath(path, start)
