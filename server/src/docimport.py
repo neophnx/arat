@@ -1,23 +1,28 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
-from __future__ import absolute_import
 
 '''
-Simple interface to for importing files into the data directory.
+Simple interface for importing files into the data directory.
 
 Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-02-21
 '''
 
-from annotation import open_textfile
-from common import ProtocolError
-from config import DATA_DIR
-from document import real_directory
-from annotation import JOINED_ANN_FILE_SUFF, TEXT_FILE_SUFFIX
+# future
+from __future__ import with_statement
+from __future__ import absolute_import
+
+# standard
 from os.path import join as join_path
 from os.path import isdir, isfile
 from os import access, W_OK
+
+# brat
+from annotation import open_textfile
+from annotation import JOINED_ANN_FILE_SUFF, TEXT_FILE_SUFFIX
+from common import ProtocolError
+from config import DATA_DIR
+from document import real_directory
 
 ### Constants
 DEFAULT_IMPORT_DIR = 'import'
@@ -26,10 +31,11 @@ DEFAULT_IMPORT_DIR = 'import'
 
 class InvalidDirError(ProtocolError):
     def __init__(self, path):
+        ProtocolError.__init__(self)
         self.path = path
 
     def __str__(self):
-        return 'Invalid directory'
+        return "Invalid directory: '%s`"%self.path
 
     def json(self, json_dic):
         json_dic['exception'] = 'invalidDirError'
@@ -38,6 +44,7 @@ class InvalidDirError(ProtocolError):
 
 class FileExistsError(ProtocolError):
     def __init__(self, path):
+        ProtocolError.__init__(self)
         self.path = path
 
     def __str__(self):
@@ -50,6 +57,7 @@ class FileExistsError(ProtocolError):
 
 class NoWritePermissionError(ProtocolError):
     def __init__(self, path):
+        ProtocolError.__init__(self)
         self.path = path
 
     def __str__(self):
@@ -106,38 +114,3 @@ def save_import(text, docid, collection=None):
 
     return { 'document': docid }
 
-if __name__ == '__main__':
-    # TODO: Update these to conform with the new API
-    '''
-    from unittest import TestCase
-    from tempfile import mkdtemp
-    from shutil import rmtree
-    from os import mkdir
-
-
-    class SaveImportTest(TestCase):
-        test_text = 'This is not a drill, this is a drill *BRRR!*'
-        test_dir = 'test'
-        test_filename = 'test'
-
-        def setUp(self):
-            self.tmpdir = mkdtemp()
-            mkdir(join_path(self.tmpdir, SaveImportTest.test_dir))
-            mkdir(join_path(self.tmpdir, DEFAULT_IMPORT_DIR))
-
-        def tearDown(self):
-            rmtree(self.tmpdir)
-
-        def test_import(self):
-            save_import(SaveImportTest.test_text, SaveImportTest.test_filename,
-                    relative_dir=SaveImportTest.test_dir,
-                    directory=self.tmpdir)
-        
-        def test_default_import_dir(self):
-            save_import(SaveImportTest.test_text, SaveImportTest.test_filename,
-                    directory=self.tmpdir)
-   
-
-    import unittest
-    unittest.main()
-    '''
