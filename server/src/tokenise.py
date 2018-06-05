@@ -16,6 +16,7 @@ from os.path import join as path_join
 from os.path import dirname
 from subprocess import Popen, PIPE
 from shlex import split as shlex_split
+from message import Messager
 
 def _token_boundaries_by_alignment(tokens, original_text):
     curr_pos = 0
@@ -49,6 +50,18 @@ def whitespace_token_boundary_gen(text):
     tokens = text.split()
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o
+
+REGISTERED_TOKENISER = {"mecab": jp_token_boundary_gen,
+                        'whitespace': whitespace_token_boundary_gen,
+                        'ptblike': gtb_token_boundary_gen}
+
+def tokeniser_by_name(name):
+    if name in REGISTERED_TOKENISER:
+        return REGISTERED_TOKENISER[name]
+
+    Messager.warning('Unrecognized tokenisation option '
+                     ', reverting to whitespace tokenisation.')
+    return whitespace_token_boundary_gen
 
 if __name__ == '__main__':
     from sys import argv
@@ -84,3 +97,4 @@ if __name__ == '__main__':
                 print('"%s"' % tok)
     except IOError:
         raise
+
