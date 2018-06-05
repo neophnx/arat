@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import print_function
 
 '''
 Provides a stylish pythonic file-lock:
@@ -20,9 +17,8 @@ lock-files. Also includes a few unittests.
 
 Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2009-12-26
-'''
 
-'''
+
 Copyright (c) 2009, 2011, Pontus Stenetorp <pontus stenetorp se>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -36,9 +32,7 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-'''
 
-'''
 Copyright (C) 2008 by Aaron Gallagher
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -60,15 +54,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
-from contextlib import contextmanager
-from errno import EEXIST
-from os import (remove, read, fsync, open, close, write, getpid,
-        O_CREAT, O_EXCL, O_RDWR, O_RDONLY)
-from subprocess import Popen, PIPE
-from time import time, sleep
-from sys import stderr
+# future
+from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
 
-### Constants
+# standard
+from contextlib import contextmanager
+import os
+import errno
+import sys
+from time import time, sleep
+
+# Constants
 # Disallow ignoring a lock-file although the PID is inactive
 PID_DISALLOW = 1
 # Ignore a lock-file if the noted PID is not running, but warn to stderr
@@ -82,30 +80,48 @@ class FileLockTimeoutError(Exception):
     '''
     Raised if a file-lock can not be acquired before the timeout is reached.
     '''
+
     def __init__(self, timeout):
+        Exception.__init__(self)
         self.timeout = timeout
 
     def __str__(self):
         return 'Timed out when trying to acquire lock, waited (%d)s' % (
-                self.timeout)
+            self.timeout)
 
 
 def _pid_exists(pid):
-    '''
-    Returns True if the given PID is a currently existing process id.
+    """Check whether pid exists in the current process table.
+    UNIX only.
+    """
+    if pid < 0:
+        return False
+    if pid == 0:
+        # According to "man 2 kill" PID 0 refers to every process
+        # in the process group of the calling process.
+        # On certain systems 0 is a valid PID but we have no way
+        # to know that in a portable fashion.
+        raise ValueError('invalid PID 0')
+    try:
+        os.kill(pid, 0)
+    except OSError as err:
+        if err.errno == errno.ESRCH:
+            # ESRCH == No such process
+            return False
+        elif err.errno == errno.EPERM:
+            # EPERM clearly means there's a process to deny access to
+            return True
+        else:
+            # According to "man 2 kill" possible error values are
+            # (EINVAL, EPERM, ESRCH)
+            raise
+    else:
+        return True
 
-    Arguments:
-    pid - Process id (PID) to check if it exists on the system
-    '''
-    # Not elegant, but it seems that it is the only way
-    ps = Popen("ps %d | awk '{{print $1}}'" % (pid, ),
-            shell=True, stdout=PIPE)
-    ps.wait()
-    return str(pid) in ps.stdout.read().split('\n')
 
 @contextmanager
 def file_lock(path, wait=0.1, timeout=1,
-        pid_policy=PID_DISALLOW, err_output=stderr):
+              pid_policy=PID_DISALLOW, err_output=sys.stderr):
     '''
     Use the given path for a lock-file containing the PID of the process.
     If another lock request for the same file is requested, different policies
@@ -113,7 +129,7 @@ def file_lock(path, wait=0.1, timeout=1,
 
     Arguments:
     path - Path where to place the lock-file or where it is in place
-    
+
     Keyword arguments:
     wait - Time to wait between attempts to lock the file
     timeout - Duration to attempt to lock the file until a timeout exception
@@ -127,23 +143,24 @@ def file_lock(path, wait=0.1, timeout=1,
         if time() - start_time > timeout:
             raise FileLockTimeoutError(timeout)
         try:
-            fd = open(path, O_CREAT | O_EXCL | O_RDWR)
-            write(fd, str(getpid()))
-            fsync(fd)
+            file_desc = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+            os.write(file_desc, str(os.getpid()))
+            os.fsync(file_desc)
             break
-        except OSError as e:
-            if e.errno == EEXIST:
+        except OSError as exception:
+            if exception.errno == errno.EEXIST:
                 if pid_policy == PID_DISALLOW:
-                    pass # Standard, just do nothing
+                    pass  # Standard, just do nothing
                 elif pid_policy == PID_WARN or pid_policy == PID_ALLOW:
-                    fd = open(path, O_RDONLY)
-                    pid = int(read(fd, 255))
-                    close(fd)
+                    file_desc = os.open(path, os.O_RDONLY)
+                    pid = int(os.read(file_desc, 255))
+                    os.close(file_desc)
                     if not _pid_exists(pid):
                         # Stale lock-file
                         if pid_policy == PID_WARN:
-                            print("Stale lock-file '%s', deleting" % path, file=err_output)
-                        remove(path)
+                            print("Stale lock-file '%s', deleting" %
+                                  path, file=err_output)
+                        os.remove(path)
                         continue
                 else:
                     assert False, 'Invalid pid_policy argument'
@@ -151,8 +168,7 @@ def file_lock(path, wait=0.1, timeout=1,
                 raise
         sleep(wait)
     try:
-        yield fd
+        yield file_desc
     finally:
-        close(fd)
-        remove(path)
-
+        os.close(file_desc)
+        os.remove(path)
