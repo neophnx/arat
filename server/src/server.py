@@ -28,7 +28,7 @@ import six
 ### Constants
 # This handling of version_info is strictly for backwards compatibility
 PY_VER_STR = '%d.%d.%d-%s-%d' % tuple(version_info)
-REQUIRED_PY_VERSION = (2, 5, 0, 'alpha', 1)
+REQUIRED_PY_VERSION = (2, 7, 0, 'alpha', 1)
 REQUIRED_PY_VERSION_STR = '%d.%d.%d-%s-%d' % tuple(REQUIRED_PY_VERSION)
 JSON_HDR = ('Content-Type', 'application/json')
 CONF_FNAME = 'config.py'
@@ -277,7 +277,7 @@ def serve(params, client_ip, client_hostname, cookie_data):
     cookie_hdrs = None
 
     # Do we have a Python version compatibly with our libs?
-    if (version_info[0] != REQUIRED_PY_VERSION[0] or
+    if (version_info[0] < REQUIRED_PY_VERSION[0] or
             version_info < REQUIRED_PY_VERSION):
         # Bail with hand-written JSON, this is very fragile to protocol changes
         return cookie_hdrs, ((JSON_HDR, ),

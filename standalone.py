@@ -164,9 +164,10 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         remote_addr = self.client_address[0]
         remote_host = self.address_string()
-        cookie_data = ', '.join(
-            [_f for _f in self.headers.get('cookie') if _f])
-
+        if self.headers.get('cookie'):
+            cookie_data = self.headers.get('cookie')
+        else:
+            cookie_data = ""
         query_string = ''
         i = self.path.find('?')
         if i != -1:
@@ -202,6 +203,8 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         for k, v in response_hdrs:
             self.send_header(k, v)
+        self.end_headers()
+        
 #        self.wfile.write(('\n'.join('%s: %s' % (k, v) for k, v in response_hdrs)).encode("utf-8"))
 #        self.wfile.write(b'\n')
 #        self.wfile.write(b'\n')
