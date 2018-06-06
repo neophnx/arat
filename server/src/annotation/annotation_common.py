@@ -97,6 +97,8 @@ def __split_annotation_id(id_):
 
 def annotation_id_prefix(id):
     id_ = id
+    import sys
+    print(id_, type(id_), file=sys.stderr)
     pre = ''.join(c for c in takewhile(lambda x: not x.isdigit(), id_))
     if not pre:
         raise InvalidIdError(id_)
@@ -752,7 +754,7 @@ class Annotations(object):
                             raise AnnotationLineSyntaxError(
                                 self.ann_line, self.ann_line_num+1, input_file_path)
 
-                        pre = annotation_id_prefix(id)
+                        pre = annotation_id_prefix(id_)
 
                         if id_ in self._ann_by_id and pre != '*':
                             raise DuplicateAnnotationIdError(id_,
@@ -1071,8 +1073,7 @@ class Annotation(object):
     def __repr__(self):
         return u'%s("%s")' % (six.text_type(self.__class__), six.text_type(self))
 
-    @classmethod
-    def get_deps(cls):
+    def get_deps(self):
         return (set(), set())
 
 
