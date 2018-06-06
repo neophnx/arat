@@ -22,7 +22,10 @@ import filelock
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    try:
+        from StringIO import StringIO
+    except:# python3
+        from io import StringIO
 
 
 class TestFileLock(unittest.TestCase):
@@ -97,7 +100,7 @@ class TestFileLock(unittest.TestCase):
         def process_task(path):
             fd = open(path, O_CREAT | O_RDWR)
             try:
-                write(fd, str(getpid()))
+                write(fd, str(getpid()).encode("utf-8"))
             finally:
                 close(fd)
             return 0

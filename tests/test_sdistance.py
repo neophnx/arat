@@ -12,10 +12,13 @@ import sdistance
 from six.moves import zip
 
 
-try:
+try:# python2
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    try:
+        from StringIO import StringIO
+    except:# python3
+        from io import StringIO
 
 
 class TestSDistance(unittest.TestCase):

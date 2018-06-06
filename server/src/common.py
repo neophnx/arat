@@ -12,8 +12,10 @@ Version:    2011-04-21
 
 from __future__ import absolute_import
 import warnings
-import exceptions
-
+try: # python2
+    from exceptions import NotImplementedError as NotImplementedErrorBultin
+except:
+    from builtins import NotImplementedError as NotImplementedErrorBultin
 
 def deprecation(message):
     """
@@ -44,7 +46,7 @@ class ProtocolError(Exception):
         Overide json in order to provide a message to the client
         """
         assert isinstance(json_dic, dict)
-        raise exceptions.NotImplementedError('abstract method')
+        raise NotImplementedErrorBultin('abstract method')
 
 
 class ProtocolArgumentError(ProtocolError):

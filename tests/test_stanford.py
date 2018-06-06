@@ -277,7 +277,7 @@ class TestStanford(unittest.TestCase):
         
         xml_string = TestStanford.STANFORD_XML
         
-        self.assertEquals(stanford.text(xml_string).encode('utf-8'), "Stanford University is located in California. It is a great university.                                                    ")
+        self.assertEquals(stanford.text(xml_string).encode('utf-8'), b"Stanford University is located in California. It is a great university.                                                    ")
 
 
     def test_pos(self):
