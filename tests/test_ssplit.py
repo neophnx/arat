@@ -5,8 +5,6 @@ Created on Fri Jun  1 23:01:02 2018
 
 @author: neophnx
 """
-from __future__ import absolute_import
-from __future__ import print_function
 import unittest
 
 import tests_common

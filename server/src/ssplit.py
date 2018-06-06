@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import print_function
 
 '''
 Primitive sentence splitting using Sampo Pyysalo's GeniaSS sentence split
@@ -13,50 +10,57 @@ Author:     Pontus Stenetorp <pontus stenetorp se>
 Version:    2011-05-09
 '''
 
+# future
+from __future__ import with_statement
+
+# standard
 from re import compile as re_compile
 from re import DOTALL, VERBOSE
 from os.path import join as path_join
 from os.path import dirname
 from subprocess import Popen, PIPE
 from shlex import split as shlex_split
+
+# third party
 import six
+
 ### Constants
 # Reasonably well-behaved sentence end regular expression
-SENTENCE_END_REGEX = re_compile(six.u(r'''
+SENTENCE_END_REGEX = re_compile(u'''
         # Require a leading non-whitespace character for the sentence
-        #[^\s　]
+        [^\\s　]
         # Then, anything goes, but don't be greedy
-        #.*?
+        .*?
         # Anchor the sentence at...
         (:?
             # One (or multiple) terminal character(s)
             #   followed by one (or multiple) whitespace
-            #(:?(\.|!|\?|。|！|？)+(?=[\s]+))
+            (:?(\\.|!|\\?|。|！|？)+(?=[\\s]+))
         | # Or for japanese
-        #(:?(。|！|？))
+        (:?(。|！|？))
         | # Or...
             # Newlines, to respect file formatting
-            #(:?(?=\n+))
+            (:?(?=\\n+))
         | # Or...
             # End-of-file, excluding whitespaces before it
-            #(:?(?=[\s　]*$))
+            (:?(?=[\\s　]*$))
         )
-    '''), flags=DOTALL | VERBOSE)
+    ''', DOTALL | VERBOSE)
 # Only newlines can end a sentence to preserve pre-processed formatting
-SENTENCE_END_NEWLINE_REGEX = (six.u(r'''
+SENTENCE_END_NEWLINE_REGEX = re_compile(u'''
         # Require a leading non-whitespace character for the sentence
-        \S
+        \\S
         # Then, anything goes, but don't be greedy
         .*?
         # Anchor the sentence at...
         (:?
             # One (or multiple) newlines
-            (:?(?=\n+))
+            (:?(?=\\n+))
         | # Or...
             # End-of-file, excluding whitespaces before it
-            (:?(?=\s*$))
+            (:?(?=\\s*$))
         )
-    '''), DOTALL | VERBOSE)
+    ''', DOTALL | VERBOSE)
 ###
 
 def _refine_split(offsets, original_text):
