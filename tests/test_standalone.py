@@ -5,14 +5,19 @@ Created on Fri Jun  1 23:01:02 2018
 
 @author: neophnx
 """
+
+from __future__ import print_function
+
 import unittest
 import socket
 from contextlib import closing
 from subprocess import Popen
 import sys
+import os
 import requests
 from time import sleep
 from six.moves.urllib.parse import urlencode
+import six
 
 import standalone
 
@@ -68,6 +73,7 @@ class TestStandalone(unittest.TestCase):
         
     @classmethod
     def setUpClass(cls):
+        # run server
         free_port = cls._find_free_port()
         cls.url = "http://localhost:%i/"%free_port
         cls.proc = Popen([sys.executable, "standalone.py", str(free_port)])
@@ -75,14 +81,26 @@ class TestStandalone(unittest.TestCase):
         if not wait_net_service("localhost", free_port, 5):
             cls.proc.kill()
             raise TimeoutError
-
-
+            
+        
+        # get a session id
         response = requests.post(cls.url+"ajax.cgi", json={"action": "getCollectionInformation",
                  "collection": "/",
                  "protocol": "1"})
-
-    
         cls.sid = response.cookies.get("sid", "")
+        
+        # populate a datadir with simple test file
+        try:
+            os.mkdir("data/test-data") 
+        except:
+            pass
+        
+        with open("data/test-data/test-01.txt", "wb") as fd:
+            fd.write(six.u("This is a very simple text.").encode("utf-8"))
+ 
+        with open("data/test-data/test-01.ann", "wb") as fd:
+            fd.write(six.u("").encode("utf-8"))
+            
     
     @classmethod
     def tearDownClass(cls):
@@ -143,3 +161,70 @@ class TestStandalone(unittest.TestCase):
         
         self.assertTrue(response.json()[u"user"], u"admin")
         
+    def test_10_getCollectionInformation(self):
+        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
+                                                                      "collection": "/test-data",
+                                                                      "protocol": "1"}),
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                                            cookies={"sid": self.sid})
+        self.assertEquals(response.status_code, 200)
+        
+        
+        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
+        
+        for i in [six.u('normalization_config'), six.u('ner_taggers'), six.u('entity_types'),
+                  six.u('protocol'), six.u('description'), six.u('parent'),
+                  six.u('event_attribute_types'), six.u('items'), six.u('unconfigured_types'),
+                  six.u('messages'), six.u('disambiguator_config'), six.u('ui_names'),
+                  six.u('header'), six.u('entity_attribute_types'), six.u('event_types'),
+                  six.u('relation_types'), six.u('action'), six.u('search_config'),
+                  six.u('annotation_logging'), six.u('relation_attribute_types'),
+                  six.u('visual_options')]:
+            self.assertTrue(i in response.json())
+            
+        
+        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()["items"][-1]
+        self.assertEquals(item_type, six.u('d')) # document
+        self.assertEquals(name, six.u('test-01'))
+        self.assertEquals(nb_entities, 0) # no annotations so far
+        self.assertEquals(nb_relations, 0)
+        self.assertEquals(nb_events, 0)
+        
+    def test_11_createSpan(self):
+        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "createSpan",
+                                                                      "collection": "/test-data",
+                                                                      "document": "test-01",
+                                                                      "attributes": "{}",
+                                                                      "normalizations": "[]",
+                                                                      "offsets": "[[15,21]]",
+                                                                      "type": "Protein",
+                                                                      "protocol": "1"}),
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                                            cookies={"sid": self.sid})
+        self.assertEquals(response.status_code, 200)
+        
+        
+        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
+        
+            
+        self.assertEquals(response.json()["edited"], [[six.u("T1")]])
+        
+        
+        # check numbers on the collection level
+        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
+                                                                      "collection": "/test-data",
+                                                                      "protocol": "1"}),
+                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                                            cookies={"sid": self.sid})
+        
+        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()["items"][-1]
+        self.assertEquals(item_type, six.u('d')) # document
+        self.assertEquals(name, six.u('test-01'))
+        self.assertEquals(nb_entities, 1) # this is the one
+        self.assertEquals(nb_relations, 0)
+        self.assertEquals(nb_events, 0)   
+        
+        # check annotation file content
+        with open("data/test-data/test-01.ann", "rb") as fd:
+            self.assertEquals(fd.read().decode("utf-8").strip(),
+                              six.u("T1	Protein 15 21	simple"))

@@ -695,15 +695,15 @@ def _enrich_json_with_text(j_dic, txt_file_path, raw_text=None):
 
     ssplitter = options_get_ssplitter(dirname(txt_file_path))
     if ssplitter == 'newline':
-        from ssplit import newline_sentence_boundary_gen
+        from server.ssplit import newline_sentence_boundary_gen
         ss_offset_gen = newline_sentence_boundary_gen
     elif ssplitter == 'regex':
-        from ssplit import regex_sentence_boundary_gen
+        from server.ssplit import regex_sentence_boundary_gen
         ss_offset_gen = regex_sentence_boundary_gen
     else:
         Messager.warning('Unrecognized sentence splitting option '
                          ', reverting to newline sentence splitting.')
-        from ssplit import newline_sentence_boundary_gen
+        from server.ssplit import newline_sentence_boundary_gen
         ss_offset_gen = newline_sentence_boundary_gen
     j_dic['sentence_offsets'] = [o for o in ss_offset_gen(text)]
 
