@@ -403,6 +403,22 @@ def __require_tab_separator(section):
     return section == "labels"    
 
 def __read_term_hierarchy(input, section=None):
+    """
+    
+    Output a list of TypeHierarchyNode
+    
+    >>> _input = ["# This a comment to be ignored"]
+    >>> _input.append("[spans]")
+    >>> _input.append("# POS tags")
+    >>> _input.append("adj")
+    >>> _input.append("adv")
+    >>> _input.append("art")
+    
+    >>> isinstance((__read_term_hierarchy("\\n".join(_input))[0]), TypeHierarchyNode)
+    True
+    
+    """
+    
     root_nodes    = []
     last_node_at_depth = {}
     last_args_at_depth = {}
@@ -507,12 +523,25 @@ def __read_term_hierarchy(input, section=None):
     return root_nodes
 
 def __read_or_default(filename, default):
+    """
+    >>> config = __read_or_default("data/example-data/corpora/CoNLL-ST_2006/tools.conf", six.u("missed"))
+    >>> six.u("Tokens") in config
+    True
+
+
+    >>> __read_or_default("does/not/exists/tools.conf", six.u("missed")) == six.u("missed")
+    True
+    
+    """
+
     try:
         f = open_textfile(filename, 'r')
         r = f.read()
         f.close()
         return r
-    except:
+    except IOError:
+        return default
+    except FileNotFoundError:
         # TODO: specific exception handling and reporting
         return default
 
