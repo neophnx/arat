@@ -32,8 +32,6 @@ except ImportError:
     sys_path.append(path_join(dirname(__file__), 'server/lib/', 'flup-1.0.2'))
     from flup.server.fcgi import WSGIServer
 
-# Local imports
-sys_path.append(path_join(dirname(__file__), 'server/src'))
 
 from server.brat_server import serve
 

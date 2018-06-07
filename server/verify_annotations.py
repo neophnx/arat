@@ -10,7 +10,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import annotation
 
-from projectconfig import ProjectConfiguration
+from server.projectconfig import ProjectConfiguration
 
 # Issue types. Values should match with annotation interface.
 AnnotationError = "AnnotationError"
