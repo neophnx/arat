@@ -14,7 +14,6 @@ import requests
 from time import sleep
 from six.moves.urllib.parse import urlencode
 
-import tests_common
 import standalone
 
 def wait_net_service(server, port, timeout=None):

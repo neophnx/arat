@@ -17,8 +17,7 @@ from os import environ, makedirs, errno
 from cgi import FieldStorage
 import re
 
-sys_path.append(path_join(dirname(__file__), 'server/src'))
-from session import init_session, get_session
+from server.session import init_session, get_session
 
 from config import DATA_DIR
 

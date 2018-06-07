@@ -8,8 +8,7 @@ Created on Sun Jun  3 10:16:24 2018
 from __future__ import absolute_import
 import unittest
 
-import tests_common
-import realmessage
+from server import realmessage
 
 class TestSDistance(unittest.TestCase):
     

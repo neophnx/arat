@@ -9,8 +9,7 @@ from __future__ import absolute_import
 import unittest
 from sys import stdout
 
-import tests_common
-from convert import stanford
+from server.convert import stanford
 
 
 

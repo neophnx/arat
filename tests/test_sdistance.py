@@ -7,10 +7,8 @@ Created on Sat Jun  2 06:55:31 2018
 """
 from __future__ import absolute_import
 import unittest
-import tests_common
-import sdistance
-from six.moves import zip
 
+from six.moves import zip
 
 try:# python2
     from cStringIO import StringIO
@@ -19,6 +17,8 @@ except ImportError:
         from StringIO import StringIO
     except:# python3
         from io import StringIO
+
+from server import sdistance
 
 
 class TestSDistance(unittest.TestCase):

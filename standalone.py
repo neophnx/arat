@@ -26,8 +26,7 @@ from six.moves.urllib.parse import unquote
 import six
 
 # brat imports
-sys.path.append(os.path.join(os.path.dirname(__file__), 'server/src'))
-from server import serve
+from server.brat_server import serve
 
 _VERBOSE_HANDLER = False
 _DEFAULT_SERVER_ADDR = ''

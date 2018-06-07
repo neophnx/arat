@@ -14,8 +14,7 @@ from os import listdir
 from os.path import join as join_path
 from datetime import timedelta
 
-import tests_common
-import backup
+from server import backup
 
 
 

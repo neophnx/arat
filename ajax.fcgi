@@ -35,7 +35,7 @@ except ImportError:
 # Local imports
 sys_path.append(path_join(dirname(__file__), 'server/src'))
 
-from server import serve
+from server.brat_server import serve
 
 def brat_app(environ, start_response):
     # Get the data required by the server

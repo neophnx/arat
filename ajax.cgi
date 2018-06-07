@@ -18,9 +18,8 @@ from os.path import join as path_join
 from sys import path as sys_path, stdout
 
 # Local imports
-sys_path.append(path_join(dirname(__file__), 'server/src'))
 
-from server import serve
+from server.brat_server import serve
 
 def main(args):
     # Get data required for server call

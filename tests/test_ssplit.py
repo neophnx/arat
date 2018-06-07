@@ -7,8 +7,7 @@ Created on Fri Jun  1 23:01:02 2018
 """
 import unittest
 
-import tests_common
-import ssplit
+from server import ssplit
 
 class TestSentenceSplit(unittest.TestCase):
     def testEnglish1(self):

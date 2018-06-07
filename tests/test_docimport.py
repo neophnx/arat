@@ -11,9 +11,8 @@ from shutil import rmtree
 from os import mkdir
 from os.path import join as join_path
 # brat
-import tests_common
 import config
-import docimport
+from server import docimport
 
 class SaveImportTest(unittest.TestCase):
     test_text = 'This is not a drill, this is a drill *BRRR!*'

@@ -15,8 +15,7 @@ from os import (remove, read, fsync, open, close, write, getpid,
         O_CREAT, O_EXCL, O_RDWR, O_RDONLY)
 from time import sleep
 
-import tests_common
-import filelock
+from server import filelock
 
 
 try:
