@@ -20,11 +20,13 @@ from os.path import dirname, join as path_join, isdir, relpath
 from hashlib import sha512
 
 # brat
-from server.common import ProtocolError
+from server.common import ProtocolError, deprecation
 from config import USER_PASSWORD, DATA_DIR
 from server.message import Messager
 from server.session import get_session
 from server.projectconfig import ProjectConfiguration
+
+SALT = b"brat"
 
 
 # To raise if the authority to carry out an operation is lacking
@@ -65,14 +67,60 @@ class InvalidAuthError(ProtocolError):
 
 
 def _is_authenticated(user, password):
+    """
+    Default authentication method is now sha512
+    
+    >>> _is_authenticated("admin", 'sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f')
+    True
+    
+    For backward compatibility plain-text password is accepted but deprecated
+    
+    >>> _is_authenticated("admin-plaintext", "admin")
+    True
+
+
+    Password types can be mixed until the removal of plain text support
+
+    >>> _is_authenticated("admin-plaintext", "sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f")
+    True
+
+    >>> _is_authenticated("admin", "admin")
+    True
+    
+    
+    Unknown users don't authenticate
+    >>> _is_authenticated("me", "my password")
+    False
+    """
     # TODO: Replace with a database back-end
-    return (user in USER_PASSWORD and
-            password == USER_PASSWORD[user])
-    # password == _password_hash(USER_PASSWORD[user]))
+    if user in USER_PASSWORD:
+        # client does not support password hash
+        if not password.startswith("sha512:"):
+            deprecation("Client send a password as plain text, this feature "
+                        "will be removed in the next major release, "
+                        "please use sha512 passwords.")
+            password = "sha512:"+_password_hash(password)
+            
+
+        ref_password = USER_PASSWORD[user]
+        # password stored in plain text
+        if not USER_PASSWORD[user].startswith("sha512:"):
+            deprecation("User password is stored as plain text, this feature "
+                        "will be removed in the next major release"
+                        "please use sha512 passwords.")
+            ref_password = "sha512:"+_password_hash(USER_PASSWORD[user])
+            
+        return password == ref_password
+    return False
 
 
 def _password_hash(password):
-    return sha512(password).hexdigest()
+    """
+    >>> _password_hash("admin")
+    '15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f'
+    """
+    password = password.encode("ascii")
+    return sha512(SALT+password).hexdigest()
 
 
 def login(user, password):

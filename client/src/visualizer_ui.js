@@ -1949,7 +1949,7 @@ var VisualizerUI = (function($, window, undefined) {
       var authFormSubmit = function(evt) {
         dispatcher.post('hideForm');
         var _user = $('#auth_user').val();
-        var password = $('#auth_pass').val();
+        var password = "sha512:"+SHA512("brat"+$('#auth_pass').val());
         dispatcher.post('ajax', [{
             action: 'login',
             user: _user,

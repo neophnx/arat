@@ -49,8 +49,11 @@ WORK_DIR = join(BASE_DIR, 'work')
 # For example, user `editor` and password `annotate`:
 #
 #     'editor': 'annotate',
+
+# the default password is admin
 USER_PASSWORD = {
-    'admin': 'admin',
+    'admin-plaintext': 'admin',
+    'admin': 'sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f',
     #     (add USERNAME:PASSWORD pairs below this line.)
 }
 ########## ADVANCED CONFIGURATION OPTIONS ##########
@@ -64,7 +67,7 @@ USER_PASSWORD = {
 MAX_SEARCH_RESULT_NUMBER = 1000
 # DEBUG
 # Set to True to enable additional debug output
-DEBUG = False
+DEBUG = True
 # TUTORIALS
 # Unauthorised users can create tutorials (but not edit without a login)
 TUTORIALS = False
