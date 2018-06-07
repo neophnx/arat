@@ -173,8 +173,6 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         if i != -1:
             query_string = self.path[i+1:]
 
-        saved = sys.stdin, sys.stdout, sys.stderr
-        sys.stdin, sys.stdout = self.rfile, self.wfile
 
         # set env to get FieldStorage to read params
         env = {}
@@ -191,8 +189,6 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         cookie_hdrs, response_data = serve(params, remote_addr, remote_host,
                                            cookie_data)
 
-        sys.stdin, sys.stdout, sys.stderr = saved
-
         # Package and send response
         if cookie_hdrs is not None:
             response_hdrs = [hdr for hdr in cookie_hdrs]
@@ -205,9 +201,6 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_header(k, v)
         self.end_headers()
         
-#        self.wfile.write(('\n'.join('%s: %s' % (k, v) for k, v in response_hdrs)).encode("utf-8"))
-#        self.wfile.write(b'\n')
-#        self.wfile.write(b'\n')
         # Hack to support binary data and general Unicode for SVGs and JSON
         if isinstance(response_data[1], six.text_type):
             self.wfile.write(response_data[1].encode('utf-8'))

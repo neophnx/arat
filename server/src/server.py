@@ -93,9 +93,7 @@ def _config_check():
     orig_path = deepcopy(path)
 
     try:
-        # Can't you empty in O(1) instead of O(N)?
-        while path:
-            path.pop()
+        del path[:]
         path.append(path_join(abspath(dirname(__file__)), '../..'))
         # Check if we have a config, otherwise whine
         try:
@@ -191,7 +189,7 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
             # Also take the opportunity to convert Strings into Unicode,
             #   according to HTTP they should be UTF-8
             try:
-                http_args[k] = six.text_type(params.getvalue(k), encoding='utf-8')
+                http_args[k] = params.getvalue(k)
             except TypeError:
                 Messager.error('protocol argument error: expected string argument %s, got %s' % (k, type(params.getvalue(k))))
                 raise ProtocolArgumentError

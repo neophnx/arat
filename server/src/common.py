@@ -56,6 +56,9 @@ class ProtocolArgumentError(ProtocolError):
     @classmethod
     def json(cls, json_dic):
         json_dic['exception'] = 'protocolArgumentError'
+    
+    def __str__(self):
+        return "Protocol error: wrong argument"
 
 # If received by ajax.cgi, no JSON will be sent
 # XXX: This is an ugly hack to circumvent protocol flaws
