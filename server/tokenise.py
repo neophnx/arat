@@ -41,12 +41,24 @@ def jp_token_boundary_gen(text):
             yield o
 
 def gtb_token_boundary_gen(text):
+    """
+    >>> text = u"Specialized tokenizer for this p65(RelA)/p50 and that E. coli"
+        
+    >>> list(whitespace_token_boundary_gen(text))
+    [(0, 11), (12, 21), (22, 25), (26, 30), (31, 44), (45, 48), (49, 53), (54, 56), (57, 61)]
+    """
     from gtbtokenize import tokenize
     tokens = tokenize(text).split()
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o
 
 def whitespace_token_boundary_gen(text):
+    """
+    >>> text = u"A simple text to tokenize ."
+        
+    >>> list(whitespace_token_boundary_gen(text))
+    [(0, 1), (2, 8), (9, 13), (14, 16), (17, 25), (26, 27)]
+    """
     tokens = text.split()
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o
