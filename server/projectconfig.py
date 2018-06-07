@@ -150,6 +150,16 @@ def normalize_to_storage_form(t):
     Given a label, returns a form of the term that can be used for
     disk storage. For example, space can be replaced with underscores
     to allow use with space-separated formats.
+    
+    >>> normalize_to_storage_form(u'identical') == six.u('identical')
+    True
+
+    >>> normalize_to_storage_form(u'with underscore') == six.u('with_underscore')
+    True
+
+    >>> normalize_to_storage_form(u'un été') == six.u('un___t__')
+    True
+
     """
     if t not in normalize_to_storage_form.__cache:
         # conservative implementation: replace any space with
@@ -158,16 +168,18 @@ def normalize_to_storage_form(t):
         # all characters not in [a-zA-Z0-9_-] with underscores.
 
         import re
-        import unicodedata
 
-        n = t.replace(" ", "_")
-        if isinstance(n, six.text_type):
-            ascii = unicodedata.normalize('NFKD', n).encode('ascii', 'ignore')
-        n  = re.sub(r'[^a-zA-Z0-9_-]', '_', n)
+        # Is there a way to iterate characters of a string in version 2 ?
+        # this hack assure consistency
+        if (sys.version_info > (3, 0)):
+            n = t.encode("utf-8")
+        else:
+            n = t
+        n  = re.sub(six.b('[^a-zA-Z0-9_\-]'), six.b('_'), n)
 
         normalize_to_storage_form.__cache[t] = n
 
-    return normalize_to_storage_form.__cache[t]
+    return normalize_to_storage_form.__cache[t].decode("ascii")
 normalize_to_storage_form.__cache = {}
 
 class TypeHierarchyNode:
