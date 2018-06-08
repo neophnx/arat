@@ -22,6 +22,6 @@ except ImportError:
     from json import loads as loads
 
     # Wrap the loads and dumps to expect utf-8
-    from functools import partial
-    dumps = partial(dumps, encoding='utf-8')  # , ensure_ascii=False)
-    loads = partial(loads, encoding='utf-8')  # , ensure_ascii=False)
+#    from functools import partial
+#    dumps = partial(dumps, encoding='utf-8')  # , ensure_ascii=False)
+#    loads = partial(loads, encoding='utf-8')  # , ensure_ascii=False)

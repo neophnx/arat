@@ -231,7 +231,10 @@ def _get_stack_trace():
     try:
         from cStringIO import StringIO
     except ImportError:
-        from StringIO import StringIO
+        try:
+            from StringIO import StringIO
+        except:
+            from io import StringIO
 
     # Getting the stack-trace requires a small trick
     buf = StringIO()
