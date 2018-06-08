@@ -33,3 +33,7 @@ test-platform:
 
 	tail tests-docker/ubuntu_18.04-CPython_3.6.txt
 	
+
+doc-html:
+	sphinx-apidoc -o doc/source/ -f --ext-todo --ext-coverage --ext-autodoc --ext-viewcode -e -M . server
+	$(MAKE) -C doc html
