@@ -7,6 +7,14 @@ tests3: clean
 lint2:
 	autopep8 -i $(DOC)
 	python2 -m pylint $(DOC)
+	
+lint-all:
+	autopep8 -j=-1 -ir standalone.py server tests
+	python3 -m pylint standalone.py server tests |tee >pylint.txt
+
+static-test:
+	python3 -m pylint -disable=R,C,W standalone.py server tests |tee >pylint.txt
+    
 
 clean:
 	find . -name "*.pyc" | xargs rm -f
