@@ -17,7 +17,7 @@ from server.message import Messager
 from server.normdb import string_norm_form
 from server.document import real_directory
 from server.projectconfig import ProjectConfiguration
-from six.moves import range# pylint disable: import-error
+from six.moves import range  # pylint disable: import-error
 from functools import reduce
 import sys
 
@@ -41,17 +41,21 @@ NORM_LOOKUP_DEBUG = True
 REPORT_LOOKUP_TIMINGS = False
 
 # debugging
+
+
 def _check_DB_version(database):
     # TODO; not implemented yet for new-style SQL DBs.
     pass
 
+
 def _report_timings(dbname, start, msg=None):
     delta = datetime.now() - start
-    strdelta = str(delta).replace('0:00:0','') # take out zero min & hour
+    strdelta = str(delta).replace('0:00:0', '')  # take out zero min & hour
     queries = normdb.get_query_count(dbname)
     normdb.reset_query_count(dbname)
     Messager.info("Processed " + str(queries) + " queries in " + strdelta +
                   (msg if msg is not None else ""))
+
 
 def _get_db_path(database, collection):
     if collection is None:
@@ -64,17 +68,18 @@ def _get_db_path(database, collection):
             norm_conf = projectconf.get_normalization_config()
             for entry in norm_conf:
                 dbname, dbpath = entry[0], entry[3]
-                if dbname == database:                    
+                if dbname == database:
                     return dbpath
             # not found in config.
-            Messager.warning('DB '+database+' not defined in config for '+
+            Messager.warning('DB '+database+' not defined in config for ' +
                              collection+', falling back on default.')
             return None
         except Exception:
             # whatever goes wrong, just warn and fall back on the default.
-            Messager.warning('Failed to get DB path from config for '+
+            Messager.warning('Failed to get DB path from config for ' +
                              collection+', falling back on default.')
             return None
+
 
 def norm_get_name(database, key, collection=None):
     if NORM_LOOKUP_DEBUG:
@@ -104,11 +109,12 @@ def norm_get_name(database, key, collection=None):
 
     # echo request for sync
     json_dic = {
-        'database' : database,
-        'key' : key,
-        'value' : value
-        }
+        'database': database,
+        'key': key,
+        'value': value
+    }
     return json_dic
+
 
 def norm_get_data(database, key, collection=None):
     if NORM_LOOKUP_DEBUG:
@@ -135,11 +141,11 @@ def norm_get_data(database, key, collection=None):
 
     # echo request for sync
     json_dic = {
-        'database' : database,
-        'key' : key,
-        'value' : data
-        }
-    return json_dic    
+        'database': database,
+        'key': key,
+        'value': data
+    }
+    return json_dic
 
 # TODO: deprecated, confirm unnecessary and remove.
 # def norm_get_ids(database, name, collection=None):
@@ -166,6 +172,7 @@ def norm_get_data(database, key, collection=None):
 #         }
 #     return json_dic
 
+
 def _format_datas(datas, scores=None, matched=None):
     # helper for norm_search(), formats data from DB into a table
     # for client, sort by scores if given.
@@ -177,7 +184,7 @@ def _format_datas(datas, scores=None, matched=None):
 
     # chop off all but the first two groups of label:value pairs for
     # each key; latter ones are assumed to be additional information
-    # not intended for display of search results. 
+    # not intended for display of search results.
     # TODO: avoid the unnecessary queries for this information.
     cropped = {}
     for key in datas:
@@ -201,7 +208,7 @@ def _format_datas(datas, scores=None, matched=None):
                 if label in seen_label_for_key:
                     # too noisy, and not really harmful now that matching
                     # values are preferred for repeated labels.
-#                     Messager.warning("Repeated label (%s) in normalization data not supported" % label)
+                    #                     Messager.warning("Repeated label (%s) in normalization data not supported" % label)
                     pass
                 seen_label_for_key[label] = True
 
@@ -210,7 +217,8 @@ def _format_datas(datas, scores=None, matched=None):
     if _PYTHON3:
         unique_labels.sort(lambda a: a[0])
     else:
-        unique_labels.sort(lambda a, b: cmp(a[0], b[0]))# pylint: disable=undefined-variable
+        unique_labels.sort(lambda a, b: cmp(
+            a[0], b[0]))  # pylint: disable=undefined-variable
     unique_labels = [a[1] for a in unique_labels]
 
     # ID is first field, and datatype is "string" for all labels
@@ -222,10 +230,10 @@ def _format_datas(datas, scores=None, matched=None):
     # construct items, sorted by score first, ID second (latter for stability)
     sorted_keys = list(datas.keys())
     if _PYTHON3:
-        sorted_keys.sort(lambda a,b: cmp((scores.get(b,0),b),# pylint: disable=undefined-variable
-                                         (scores.get(a,0),a)))
+        sorted_keys.sort(lambda a, b: cmp((scores.get(b, 0), b),  # pylint: disable=undefined-variable
+                                          (scores.get(a, 0), a)))
     else:
-        sorted_keys.sort(lambda a: (scores.get(a,0),a), reverse=True)
+        sorted_keys.sort(lambda a: (scores.get(a, 0), a), reverse=True)
     items = []
     for key in sorted_keys:
         # make dict for lookup. In case of duplicates (e.g. multiple
@@ -244,7 +252,7 @@ def _format_datas(datas, scores=None, matched=None):
                 item.append(data_dict[label])
             else:
                 item.append('')
-        
+
         if DISPLAY_SEARCH_SCORES:
             item += [str(scores.get(key))]
 
@@ -252,10 +260,13 @@ def _format_datas(datas, scores=None, matched=None):
 
     return header, items
 
+
 def _norm_filter_score(score, best_score=MAX_SCORE):
     return score < best_score - MAX_DIFF_TO_BEST_SCORE
 
 # TODO: get rid of arbitrary max_cost default constant
+
+
 def _norm_score(substring, name, max_cost=500):
     # returns an integer score representing the similarity of the given
     # substring to the given name (larger is better).
@@ -268,7 +279,10 @@ def _norm_score(substring, name, max_cost=500):
         cache[(substring, name)] = score
     # TODO: should we avoid exceeding max_cost? Cached values might.
     return cache[(substring, name)]
+
+
 _norm_score.__cache = {}
+
 
 def _norm_search_name_attr(database, name, attr,
                            matched, score_by_id, score_by_str,
@@ -298,7 +312,7 @@ def _norm_search_name_attr(database, name, attr,
     if exactmatch:
         # only candidate string is given name
         strs = [name]
-        ss_norm_score = { string_norm_form(name): 1.0 }
+        ss_norm_score = {string_norm_form(name): 1.0}
     else:
         # expand to substrings using simstring
         # simstring requires UTF-8
@@ -323,12 +337,13 @@ def _norm_search_name_attr(database, name, attr,
     # good hits.
     # TODO: this doesn't seem to be having a very significant effect.
     # consider removing as unnecessary complication (ss_norm_score also).
-    id_name_scores = [(i, n, ss_norm_score[string_norm_form(n)]) 
+    id_name_scores = [(i, n, ss_norm_score[string_norm_form(n)])
                       for i, n in id_names]
     if _PYTHON3:
         id_name_scores.sort(lambda a: a[2], reverse=True)
     else:
-        id_name_scores.sort(lambda a, b: cmp(b[2],a[2]))# pylint: disable=undefined-variable
+        id_name_scores.sort(lambda a, b: cmp(
+            b[2], a[2]))  # pylint: disable=undefined-variable
     id_names = [(i, n) for i, n, s in id_name_scores]
 
     # update matches and scores
@@ -342,7 +357,8 @@ def _norm_search_name_attr(database, name, attr,
             # TODO: decide whether to use normalized or unnormalized strings
             # for scoring here.
             #score_by_str[(name, n)] = _norm_score(name, n, max_cost)
-            score_by_str[(name, n)] = _norm_score(string_norm_form(name), string_norm_form(n), max_cost)
+            score_by_str[(name, n)] = _norm_score(
+                string_norm_form(name), string_norm_form(n), max_cost)
         score = score_by_str[(name, n)]
         best_score = max(score, best_score)
 
@@ -351,10 +367,12 @@ def _norm_search_name_attr(database, name, attr,
 
         # stop if max count reached
         if len(score_by_id) > MAX_SEARCH_RESULT_NUMBER:
-            Messager.info('Note: more than %d search results, only retrieving top matches' % MAX_SEARCH_RESULT_NUMBER)
+            Messager.info(
+                'Note: more than %d search results, only retrieving top matches' % MAX_SEARCH_RESULT_NUMBER)
             break
 
     return best_score
+
 
 def _norm_search_impl(database, name, collection=None, exactmatch=False):
     if NORM_LOOKUP_DEBUG:
@@ -389,7 +407,7 @@ def _norm_search_impl(database, name, collection=None, exactmatch=False):
     # as name and the rest as an attribute.
     # TODO: reconsider arbitrary cutoff
     if best_score < 900 and not exactmatch:
-        parts = name.split()        
+        parts = name.split()
 
         # prioritize having the attribute after the name
         for i in range(len(parts)-1, 0, -1):
@@ -400,15 +418,15 @@ def _norm_search_impl(database, name, collection=None, exactmatch=False):
                 break
 
             start = ' '.join(parts[:i])
-            end   = ' '.join(parts[i:])            
+            end = ' '.join(parts[i:])
 
             # query both ways (start is name, end is attr and vice versa)
             best_score = _norm_search_name_attr(dbpath, start, end,
-                                                matched, score_by_id, 
+                                                matched, score_by_id,
                                                 score_by_str,
                                                 best_score, exactmatch)
             best_score = _norm_search_name_attr(dbpath, end, start,
-                                                matched, score_by_id, 
+                                                matched, score_by_id,
                                                 score_by_str,
                                                 best_score, exactmatch)
 
@@ -417,83 +435,86 @@ def _norm_search_impl(database, name, collection=None, exactmatch=False):
 
     # filter ids that now (after all queries complete) fail
     # TODO: are we sure that this is a good idea?
-    ids = set([i for i in ids 
+    ids = set([i for i in ids
                if not _norm_filter_score(score_by_id[i], best_score)])
 
     # TODO: avoid unnecessary queries: datas_by_ids queries for names,
     # attributes and infos, but _format_datas only uses the first two.
     datas = normdb.datas_by_ids(dbpath, ids)
-    
+
     header, items = _format_datas(datas, score_by_id, matched)
 
     if REPORT_LOOKUP_TIMINGS:
-        _report_timings(database, lookup_start, 
+        _report_timings(database, lookup_start,
                         ", retrieved " + str(len(items)) + " items")
-                        
+
     # echo request for sync
     json_dic = {
-        'database' : database,
-        'query'    : name,
-        'header'   : header,
-        'items'    : items,
-        }
+        'database': database,
+        'query': name,
+        'header': header,
+        'items': items,
+    }
     return json_dic
+
 
 def norm_search(database, name, collection=None, exactmatch=False):
     try:
         return _norm_search_impl(database, name, collection, exactmatch)
     except simstringdb.ssdbNotFoundError as e:
         Messager.warning(str(e))
-        return { 
-            'database' : database,
-            'query' : name,
-            'header' : [],
-            'items' : []
-            }
+        return {
+            'database': database,
+            'query': name,
+            'header': [],
+            'items': []
+        }
+
 
 def _test():
     # test
     test_cases = {
-        'UniProt' : {
-            'Runx3' : 'Q64131',
-            'Runx3 mouse' : 'Q64131',
-            'Runx1' : 'Q03347',
-            'Runx1 mouse' : 'Q03347',
-            'Eomes' : 'O54839',
-            'Eomes mouse' : 'O54839',
-            'granzyme B' : 'P04187',
-            'granzyme B mouse' : 'P04187',
-            'INF-gamma' : 'P01580',
-            'INF-gamma mouse' : 'P01580',
-            'IL-2' : 'P04351',
-            'IL-2 mouse' : 'P04351',
-            'T-bet' : 'Q9JKD8',
-            'T-bet mouse' : 'Q9JKD8',
-            'GATA-1' : 'P15976',
-            'GATA-1 human' : 'P15976',
-            'Interleukin-10' : 'P22301',
-            'Interleukin-10 human' : 'P22301',
-            'Interleukin-12' : 'P29459',
-            'Interleukin-12 human' : 'P29459',
-            'interferon-gamma' : 'P01579',
-            'interferon-gamma human' : 'P01579',
-            'interferon gamma human' : 'P01579',
-            'Fas ligand' : 'P48023',
-            'Fas ligand human' : 'P48023',
-            'IkappaB-alpha' : 'P25963',
-            'IkappaB-alpha human' : 'P25963',
-            'transforming growth factor (TGF)-beta1' : 'P01137',
-            'transforming growth factor (TGF)-beta1 human' : 'P01137',
-            'transforming growth factor beta1 human' : 'P01137',
-            'tumor necrosis factor alpha' : 'P01375',
-            'tumor necrosis factor alpha human' : 'P01375',
-            'Epstein-Barr virus latent membrane protein LMP1' : 'Q1HVB3',
-            'TATA box binding protein' : 'P20226',
-            'TATA box binding protein human' : 'P20226',
-            'HIV protease' : '??????', # TODO
-            'human immunodeficiency virus type 1 (HIV) protease' : '??????', # TODO
-            }
+        'UniProt': {
+            'Runx3': 'Q64131',
+            'Runx3 mouse': 'Q64131',
+            'Runx1': 'Q03347',
+            'Runx1 mouse': 'Q03347',
+            'Eomes': 'O54839',
+            'Eomes mouse': 'O54839',
+            'granzyme B': 'P04187',
+            'granzyme B mouse': 'P04187',
+            'INF-gamma': 'P01580',
+            'INF-gamma mouse': 'P01580',
+            'IL-2': 'P04351',
+            'IL-2 mouse': 'P04351',
+            'T-bet': 'Q9JKD8',
+            'T-bet mouse': 'Q9JKD8',
+            'GATA-1': 'P15976',
+            'GATA-1 human': 'P15976',
+            'Interleukin-10': 'P22301',
+            'Interleukin-10 human': 'P22301',
+            'Interleukin-12': 'P29459',
+            'Interleukin-12 human': 'P29459',
+            'interferon-gamma': 'P01579',
+            'interferon-gamma human': 'P01579',
+            'interferon gamma human': 'P01579',
+            'Fas ligand': 'P48023',
+            'Fas ligand human': 'P48023',
+            'IkappaB-alpha': 'P25963',
+            'IkappaB-alpha human': 'P25963',
+            'transforming growth factor (TGF)-beta1': 'P01137',
+            'transforming growth factor (TGF)-beta1 human': 'P01137',
+            'transforming growth factor beta1 human': 'P01137',
+            'tumor necrosis factor alpha': 'P01375',
+            'tumor necrosis factor alpha human': 'P01375',
+            'Epstein-Barr virus latent membrane protein LMP1': 'Q1HVB3',
+            'TATA box binding protein': 'P20226',
+            'TATA box binding protein human': 'P20226',
+            'HIV protease': '??????',  # TODO
+            # TODO
+            'human immunodeficiency virus type 1 (HIV) protease': '??????',
         }
+    }
 
     overall_start = datetime.now()
     query_count, hit_count = 0, 0
@@ -512,10 +533,10 @@ def _test():
                     found = True
                     found_rank = rank+1
                     break
-            strdelta = str(delta).replace('0:00:0','').replace('0:00:','')
-            print("%s: '%s' <- '%s' rank %d/%d (%s sec)" % ('  ok' if found 
+            strdelta = str(delta).replace('0:00:0', '').replace('0:00:', '')
+            print("%s: '%s' <- '%s' rank %d/%d (%s sec)" % ('  ok' if found
                                                             else 'MISS',
-                                                            target, query, 
+                                                            target, query,
                                                             found_rank,
                                                             len(results['items']),
                                                             strdelta))
@@ -532,9 +553,10 @@ def _test():
             print("%s '%s'" % (target, query))
 
     delta = datetime.now() - overall_start
-    strdelta = str(delta).replace('0:00:0','').replace('0:00:','')
+    strdelta = str(delta).replace('0:00:0', '').replace('0:00:', '')
     print()
     print("Found %d / %d in %s" % (hit_count, query_count, strdelta))
+
 
 def _profile_test():
     # runs _test() with profiling, storing results in "norm.profile".
@@ -544,6 +566,7 @@ def _profile_test():
     import os.path
     cProfile.run('_test()', 'norm.profile')
 
+
 if __name__ == '__main__':
-    _test() # normal
-    #_profile_test() # profiled
+    _test()  # normal
+    # _profile_test() # profiled

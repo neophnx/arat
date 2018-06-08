@@ -24,7 +24,7 @@ from server.common import ProtocolError
 from config import DATA_DIR
 from server.document import real_directory
 
-### Constants
+# Constants
 DEFAULT_IMPORT_DIR = 'import'
 ###
 
@@ -35,7 +35,7 @@ class InvalidDirError(ProtocolError):
         self.path = path
 
     def __str__(self):
-        return "Invalid directory: '%s`"%self.path
+        return "Invalid directory: '%s`" % self.path
 
     def json(self, json_dic):
         json_dic['exception'] = 'invalidDirError'
@@ -68,7 +68,7 @@ class NoWritePermissionError(ProtocolError):
         return json_dic
 
 
-#TODO: Chop this function up
+# TODO: Chop this function up
 def save_import(text, docid, collection=None):
     '''
     TODO: DOC:
@@ -79,7 +79,7 @@ def save_import(text, docid, collection=None):
     if directory is None:
         dir_path = DATA_DIR
     else:
-        #XXX: These "security" measures can surely be fooled
+        # XXX: These "security" measures can surely be fooled
         if (directory.count('../') or directory == '..'):
             raise InvalidDirError(directory)
 
@@ -112,5 +112,4 @@ def save_import(text, docid, collection=None):
     with open(ann_path, 'w') as _:
         pass
 
-    return { 'document': docid }
-
+    return {'document': docid}

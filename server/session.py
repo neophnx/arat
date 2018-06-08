@@ -32,11 +32,11 @@ except ImportError:
 
 from config import WORK_DIR
 
-### Constants
+# Constants
 CURRENT_SESSION = None
 SESSION_COOKIE_KEY = 'sid'
 # Where we store our session data files
-SESSIONS_DIR=path_join(WORK_DIR, 'sessions')
+SESSIONS_DIR = path_join(WORK_DIR, 'sessions')
 EXPIRATION_DELTA = timedelta(days=30)
 ###
 
@@ -46,8 +46,11 @@ class NoSessionError(Exception):
     pass
 
 # Raised if a session could not be stored on close
+
+
 class SessionStoreError(Exception):
     pass
+
 
 class SessionCookie(SimpleCookie):
     def __init__(self, sid=None):
@@ -67,7 +70,7 @@ class SessionCookie(SimpleCookie):
         # TODO: can probably be done better
         hdrs = [('Cache-Control', 'no-store, no-cache, must-revalidate')]
         for cookie_line in self.output(header='Set-Cookie:',
-                sep='\n').split('\n'):
+                                       sep='\n').split('\n'):
             hdrs.append(tuple(cookie_line.split(': ', 1)))
         return tuple(hdrs)
 
@@ -93,8 +96,8 @@ class Session(dict):
         self.cookie[SESSION_COOKIE_KEY]['path'] = ''
         self.cookie[SESSION_COOKIE_KEY]['domain'] = ''
         self.cookie[SESSION_COOKIE_KEY]['expires'] = (
-                datetime.utcnow() + EXPIRATION_DELTA
-                ).strftime('%a, %d %b %Y %H:%M:%S')
+            datetime.utcnow() + EXPIRATION_DELTA
+        ).strftime('%a, %d %b %Y %H:%M:%S')
         # Protect against cookie-stealing JavaScript
         try:
             # Note: This will not work for Python 2.5 and older
@@ -113,20 +116,22 @@ class Session(dict):
 
     def __str__(self):
         return 'Session(sid="%s", cookie="%s",  dict="%s")' % (
-                self.get_sid(), self.cookie, dict.__str__(self), )
+            self.get_sid(), self.cookie, dict.__str__(self), )
 
 
 def get_session_pickle_path(sid):
     return path_join(SESSIONS_DIR, '%s.pickle' % (sid, ))
+
 
 def init_session(remote_address, cookie_data=None):
     if cookie_data is not None:
         cookie = SessionCookie.load(cookie_data)
     else:
         cookie = None
- 
+
     # Default sid for the session
-    sid = sha224(('%s-%s' % (remote_address, datetime.utcnow())).encode('ascii')).hexdigest()
+    sid = sha224(('%s-%s' % (remote_address, datetime.utcnow())
+                  ).encode('ascii')).hexdigest()
     if cookie is None:
         cookie = SessionCookie(sid)
     else:
@@ -147,15 +152,17 @@ def init_session(remote_address, cookie_data=None):
             CURRENT_SESSION.init_cookie(CURRENT_SESSION.get_sid())
         except Exception as e:
             # On any error, just create a new session
-            CURRENT_SESSION = Session(cookie)            
+            CURRENT_SESSION = Session(cookie)
     else:
         # Create a new session
         CURRENT_SESSION = Session(cookie)
+
 
 def get_session():
     if CURRENT_SESSION is None:
         raise NoSessionError
     return CURRENT_SESSION
+
 
 def invalidate_session():
     global CURRENT_SESSION
@@ -167,6 +174,7 @@ def invalidate_session():
     ppath = get_session_pickle_path(CURRENT_SESSION.get_sid())
     if isfile(ppath):
         remove(ppath)
+
 
 def close_session():
     # Do we have a session to save in the first place?
@@ -198,17 +206,16 @@ def close_session():
         if tmp_file_path is not None:
             remove(tmp_file_path)
 
+
 def save_conf(config):
     get_session()['conf'] = config
     return {}
-    
+
+
 def load_conf():
     try:
         return {
-                'config': get_session()['conf'],
-                }
+            'config': get_session()['conf'],
+        }
     except KeyError:
         return {}
-
-
-

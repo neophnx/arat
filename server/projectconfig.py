@@ -15,8 +15,8 @@ Version:    2011-08-15
 
 from __future__ import absolute_import
 import re
-import six.moves.urllib_robotparser # TODO reduce scope
-import six.moves.urllib.parse # TODO reduce scope
+import six.moves.urllib_robotparser  # TODO reduce scope
+import six.moves.urllib.parse  # TODO reduce scope
 import sys
 
 from server.annotation import open_textfile
@@ -27,46 +27,51 @@ from six.moves import range
 
 ENTITY_CATEGORY, EVENT_CATEGORY, RELATION_CATEGORY, UNKNOWN_CATEGORY = range(4)
 
+
 class InvalidProjectConfigException(Exception):
     pass
 
+
 # names of files in which various configs are found
-__access_control_filename     = 'acl.conf'
-__annotation_config_filename  = 'annotation.conf'
-__visual_config_filename      = 'visual.conf'
-__tools_config_filename       = 'tools.conf'
-__kb_shortcut_filename        = 'kb_shortcuts.conf'
+__access_control_filename = 'acl.conf'
+__annotation_config_filename = 'annotation.conf'
+__visual_config_filename = 'visual.conf'
+__tools_config_filename = 'tools.conf'
+__kb_shortcut_filename = 'kb_shortcuts.conf'
 
 # annotation config section name constants
-ENTITY_SECTION    = "entities"
-RELATION_SECTION  = "relations"
-EVENT_SECTION     = "events"
+ENTITY_SECTION = "entities"
+RELATION_SECTION = "relations"
+EVENT_SECTION = "events"
 ATTRIBUTE_SECTION = "attributes"
 
 # aliases for config section names
 SECTION_ALIAS = {
-    "spans" : ENTITY_SECTION,
+    "spans": ENTITY_SECTION,
 }
 
-__expected_annotation_sections = (ENTITY_SECTION, RELATION_SECTION, EVENT_SECTION, ATTRIBUTE_SECTION)
+__expected_annotation_sections = (
+    ENTITY_SECTION, RELATION_SECTION, EVENT_SECTION, ATTRIBUTE_SECTION)
 __optional_annotation_sections = []
 
 # visual config section name constants
-OPTIONS_SECTION    = "options"
-LABEL_SECTION     = "labels"
-DRAWING_SECTION   = "drawing"
+OPTIONS_SECTION = "options"
+LABEL_SECTION = "labels"
+DRAWING_SECTION = "drawing"
 
 __expected_visual_sections = (OPTIONS_SECTION, LABEL_SECTION, DRAWING_SECTION)
 __optional_visual_sections = [OPTIONS_SECTION]
 
 # tools config section name constants
-SEARCH_SECTION     = "search"
+SEARCH_SECTION = "search"
 ANNOTATORS_SECTION = "annotators"
 DISAMBIGUATORS_SECTION = "disambiguators"
 NORMALIZATION_SECTION = "normalization"
 
-__expected_tools_sections = (OPTIONS_SECTION, SEARCH_SECTION, ANNOTATORS_SECTION, DISAMBIGUATORS_SECTION, NORMALIZATION_SECTION)
-__optional_tools_sections = (OPTIONS_SECTION, SEARCH_SECTION, ANNOTATORS_SECTION, DISAMBIGUATORS_SECTION, NORMALIZATION_SECTION)
+__expected_tools_sections = (OPTIONS_SECTION, SEARCH_SECTION,
+                             ANNOTATORS_SECTION, DISAMBIGUATORS_SECTION, NORMALIZATION_SECTION)
+__optional_tools_sections = (OPTIONS_SECTION, SEARCH_SECTION,
+                             ANNOTATORS_SECTION, DISAMBIGUATORS_SECTION, NORMALIZATION_SECTION)
 
 # special relation types for marking which spans can overlap
 # ENTITY_NESTING_TYPE used up to version 1.3, now deprecated
@@ -79,13 +84,14 @@ OVERLAP_TYPE_ARG = '<OVL-TYPE>'
 
 # visual config default value names
 VISUAL_SPAN_DEFAULT = "SPAN_DEFAULT"
-VISUAL_ARC_DEFAULT  = "ARC_DEFAULT"
+VISUAL_ARC_DEFAULT = "ARC_DEFAULT"
 VISUAL_ATTR_DEFAULT = "ATTRIBUTE_DEFAULT"
 
 # visual config attribute name lists
 SPAN_DRAWING_ATTRIBUTES = ['fgColor', 'bgColor', 'borderColor']
-ARC_DRAWING_ATTRIBUTES  = ['color', 'dashArray', 'arrowHead', 'labelArrow']
-ATTR_DRAWING_ATTRIBUTES  = ['glyphColor', 'box', 'dashArray', 'glyph', 'position']
+ARC_DRAWING_ATTRIBUTES = ['color', 'dashArray', 'arrowHead', 'labelArrow']
+ATTR_DRAWING_ATTRIBUTES = ['glyphColor',
+                           'box', 'dashArray', 'glyph', 'position']
 
 # fallback defaults if config files not found
 __default_configuration = """
@@ -137,7 +143,8 @@ Disallow: /confidential/
 """
 
 # Reserved strings with special meanings in configuration.
-reserved_config_name   = ["ANY", "ENTITY", "RELATION", "EVENT", "NONE", "EMPTY", "REL-TYPE", "URL", "URLBASE", "GLYPH-POS", "DEFAULT", "NORM", "OVERLAP", "OVL-TYPE", "INHERIT"]
+reserved_config_name = ["ANY", "ENTITY", "RELATION", "EVENT", "NONE", "EMPTY", "REL-TYPE",
+                        "URL", "URLBASE", "GLYPH-POS", "DEFAULT", "NORM", "OVERLAP", "OVL-TYPE", "INHERIT"]
 # TODO: "GLYPH-POS" is no longer used, warn if encountered and
 # recommend to use "position" instead.
 reserved_config_string = ["<%s>" % n for n in reserved_config_name]
@@ -145,12 +152,13 @@ reserved_config_string = ["<%s>" % n for n in reserved_config_name]
 # Magic string to use to represent a separator in a config
 SEPARATOR_STR = "SEPARATOR"
 
+
 def normalize_to_storage_form(t):
     """
     Given a label, returns a form of the term that can be used for
     disk storage. For example, space can be replaced with underscores
     to allow use with space-separated formats.
-    
+
     >>> normalize_to_storage_form(u'identical') == six.u('identical')
     True
 
@@ -175,12 +183,15 @@ def normalize_to_storage_form(t):
             n = t.encode("utf-8")
         else:
             n = t
-        n  = re.sub(six.b('[^a-zA-Z0-9_\-]'), six.b('_'), n)
+        n = re.sub(six.b('[^a-zA-Z0-9_\-]'), six.b('_'), n)
 
         normalize_to_storage_form.__cache[t] = n
 
     return normalize_to_storage_form.__cache[t].decode("ascii")
+
+
 normalize_to_storage_form.__cache = {}
+
 
 class TypeHierarchyNode:
     """
@@ -198,6 +209,7 @@ class TypeHierarchyNode:
     node occupies: for example, for events the arguments correspond to
     event arguments.
     """
+
     def __init__(self, terms, args=[]):
         self.terms, self.args = terms, args
 
@@ -209,7 +221,7 @@ class TypeHierarchyNode:
         self.unused = False
         for i in range(len(self.terms)):
             if self.terms[i][0] == "!":
-                self.terms[i]= self.terms[i][1:]
+                self.terms[i] = self.terms[i][1:]
                 self.unused = True
         self.children = []
 
@@ -223,7 +235,8 @@ class TypeHierarchyNode:
             self.__primary_term = self.terms[0]
         # TODO: this might not be the ideal place to put this warning
         if self.__primary_term != self.terms[0]:
-            Messager.warning("Note: in configuration, term '%s' is not appropriate for storage (should match '^[a-zA-Z0-9_-]*$'), using '%s' instead. (Revise configuration file to get rid of this message. Terms other than the first are not subject to this restriction.)" % (self.terms[0], self.__primary_term), -1)
+            Messager.warning("Note: in configuration, term '%s' is not appropriate for storage (should match '^[a-zA-Z0-9_-]*$'), using '%s' instead. (Revise configuration file to get rid of this message. Terms other than the first are not subject to this restriction.)" % (
+                self.terms[0], self.__primary_term), -1)
             self.terms[0] = self.__primary_term
 
         # TODO: cleaner and more localized parsing
@@ -237,7 +250,8 @@ class TypeHierarchyNode:
             a = a.strip()
             m = re.match(r'^(\S*?):(\S*)$', a)
             if not m:
-                Messager.warning("Project configuration: Failed to parse argument '%s' (args: %s)" % (a, args), 5)
+                Messager.warning(
+                    "Project configuration: Failed to parse argument '%s' (args: %s)" % (a, args), 5)
                 raise InvalidProjectConfigException
             key, atypes = m.groups()
 
@@ -246,7 +260,8 @@ class TypeHierarchyNode:
             # and store separately
             if key in reserved_config_string:
                 if key is self.special_arguments:
-                    Messager.warning("Project configuration: error parsing: %s argument '%s' appears multiple times." % key, 5)
+                    Messager.warning(
+                        "Project configuration: error parsing: %s argument '%s' appears multiple times." % key, 5)
                     raise InvalidProjectConfigException
                 # special case in special case: relation type specifications
                 # are split by hyphens, nothing else is.
@@ -268,7 +283,8 @@ class TypeHierarchyNode:
 
             m = re.match(r'^(\S+?)(\{\S+\}|\?|\*|\+|)$', key)
             if not m:
-                Messager.warning("Project configuration: error parsing argument '%s'." % key, 5)
+                Messager.warning(
+                    "Project configuration: error parsing argument '%s'." % key, 5)
                 raise InvalidProjectConfigException
             key, rep = m.groups()
 
@@ -293,14 +309,16 @@ class TypeHierarchyNode:
                 assert '{' in rep and '}' in rep, "INTERNAL ERROR"
                 m = re.match(r'\{(\d+)(?:-(\d+))?\}$', rep)
                 if not m:
-                    Messager.warning("Project configuration: error parsing range '%s' in argument '%s' (syntax is '{MIN-MAX}')." % (rep, key+rep), 5)
+                    Messager.warning(
+                        "Project configuration: error parsing range '%s' in argument '%s' (syntax is '{MIN-MAX}')." % (rep, key+rep), 5)
                     raise InvalidProjectConfigException
                 n1, n2 = m.groups()
                 n1 = int(n1)
                 if n2 is None:
                     # exact number
                     if n1 == 0:
-                        Messager.warning("Project configuration: cannot have exactly 0 repetitions of argument '%s'." % (key+rep), 5)
+                        Messager.warning(
+                            "Project configuration: cannot have exactly 0 repetitions of argument '%s'." % (key+rep), 5)
                         raise InvalidProjectConfigException
                     minimum_count = n1
                     maximum_count = n1
@@ -308,7 +326,8 @@ class TypeHierarchyNode:
                     # range
                     n2 = int(n2)
                     if n1 > n2:
-                        Messager.warning("Project configuration: invalid range %d-%d for argument '%s'." % (n1, n2, key+rep), 5)
+                        Messager.warning(
+                            "Project configuration: invalid range %d-%d for argument '%s'." % (n1, n2, key+rep), 5)
                         raise InvalidProjectConfigException
                     minimum_count = n1
                     maximum_count = n2
@@ -319,26 +338,29 @@ class TypeHierarchyNode:
             # second "Theme" is "Theme2", and the second "Arg1" would
             # be "Arg12".)
             if maximum_count > 1 and key[-1].isdigit():
-                Messager.warning("Project configuration: error parsing: arguments ending with a digit cannot be repeated: '%s'" % (key+rep), 5)
+                Messager.warning(
+                    "Project configuration: error parsing: arguments ending with a digit cannot be repeated: '%s'" % (key+rep), 5)
                 raise InvalidProjectConfigException
 
             if key in self.arguments:
-                Messager.warning("Project configuration: error parsing: %s argument '%s' appears multiple times." % key, 5)
+                Messager.warning(
+                    "Project configuration: error parsing: %s argument '%s' appears multiple times." % key, 5)
                 raise InvalidProjectConfigException
 
-            assert (key not in self.arg_min_count and 
+            assert (key not in self.arg_min_count and
                     key not in self.arg_max_count), "INTERNAL ERROR"
             self.arg_min_count[key] = minimum_count
             self.arg_max_count[key] = maximum_count
 
             self.arg_list.append(key)
-            
+
             for atype in atypes.split("|"):
                 if atype.strip() == "":
-                    Messager.warning("Project configuration: error parsing: empty type for argument '%s'." % a, 5)
+                    Messager.warning(
+                        "Project configuration: error parsing: empty type for argument '%s'." % a, 5)
                     raise InvalidProjectConfigException
 
-                # Check disabled; need to support arbitrary UTF values 
+                # Check disabled; need to support arbitrary UTF values
                 # for visual.conf. TODO: add this check for other configs.
                 # TODO: consider checking for similar for appropriate confs.
 #                 if atype not in reserved_config_string and normalize_to_storage_form(atype) != atype:
@@ -380,7 +402,7 @@ class TypeHierarchyNode:
         type.
         """
         return [a for a in self.arg_list if self.arg_max_count[a] > 1]
-        
+
     def storage_form(self):
         """
         Returns the form of the term used for storage serverside.
@@ -393,6 +415,7 @@ class TypeHierarchyNode:
         """
         return self.special_arguments.get('<NORM>', [])
 
+
 def __require_tab_separator(section):
     """    
     Given a section name, returns True iff in that section of the
@@ -400,26 +423,27 @@ def __require_tab_separator(section):
     This exception initially introduced to allow slighlty different
     syntax for the [labels] section than others.
     """
-    return section == "labels"    
+    return section == "labels"
+
 
 def __read_term_hierarchy(input, section=None):
     """
-    
+
     Output a list of TypeHierarchyNode
-    
+
     >>> _input = ["# This a comment to be ignored"]
     >>> _input.append("[spans]")
     >>> _input.append("# POS tags")
     >>> _input.append("adj")
     >>> _input.append("adv")
     >>> _input.append("art")
-    
+
     >>> isinstance((__read_term_hierarchy("\\n".join(_input))[0]), TypeHierarchyNode)
     True
-    
+
     """
-    
-    root_nodes    = []
+
+    root_nodes = []
     last_node_at_depth = {}
     last_args_at_depth = {}
 
@@ -443,7 +467,8 @@ def __read_term_hierarchy(input, section=None):
         if m:
             name, value = m.groups()
             if name in reserved_config_name:
-                Messager.error("Cannot redefine <%s> in configuration, it is a reserved name." % name)
+                Messager.error(
+                    "Cannot redefine <%s> in configuration, it is a reserved name." % name)
                 # TODO: proper exception
                 assert False
             else:
@@ -488,7 +513,8 @@ def __read_term_hierarchy(input, section=None):
             else:
                 args = [a.strip() for a in args.split(",") if a.strip() != ""]
             # issue a warning
-            Messager.warning("Space in term name(s) (%s) on line \"%s\" in config. This feature is deprecated and support will be removed in future versions. Please revise your configuration." % (",".join(['"%s"' % x for x in terms if " " in x]), l), 20)
+            Messager.warning("Space in term name(s) (%s) on line \"%s\" in config. This feature is deprecated and support will be removed in future versions. Please revise your configuration." % (
+                ",".join(['"%s"' % x for x in terms if " " in x]), l), 20)
 
         # depth in the ontology corresponds to the number of
         # spaces in the initial indent.
@@ -522,6 +548,7 @@ def __read_term_hierarchy(input, section=None):
 
     return root_nodes
 
+
 def __read_or_default(filename, default):
     """
     >>> config = __read_or_default("data/example-data/corpora/CoNLL-ST_2006/tools.conf", six.u("missed"))
@@ -531,7 +558,7 @@ def __read_or_default(filename, default):
 
     >>> __read_or_default("does/not/exists/tools.conf", six.u("missed")) == six.u("missed")
     True
-    
+
     """
 
     try:
@@ -545,6 +572,7 @@ def __read_or_default(filename, default):
         # TODO: specific exception handling and reporting
         return default
 
+
 def __parse_kb_shortcuts(shortcutstr, default, source):
     try:
         shortcuts = {}
@@ -554,28 +582,33 @@ def __parse_kb_shortcuts(shortcutstr, default, source):
                 continue
             key, type = re.split(r'[ \t]+', l)
             if key in shortcuts:
-                Messager.warning("Project configuration: keyboard shortcut for '%s' defined multiple times. Ignoring all but first ('%s')" % (key, shortcuts[key]))
+                Messager.warning("Project configuration: keyboard shortcut for '%s' defined multiple times. Ignoring all but first ('%s')" % (
+                    key, shortcuts[key]))
             else:
                 shortcuts[key] = type
     except:
         # TODO: specific exception handling
-        Messager.warning("Project configuration: error parsing keyboard shortcuts from %s. Configuration may be wrong." % source, 5)
+        Messager.warning(
+            "Project configuration: error parsing keyboard shortcuts from %s. Configuration may be wrong." % source, 5)
         shortcuts = default
     return shortcuts
-    
+
+
 def __parse_access_control(acstr, source):
     try:
         parser = six.moves.urllib_robotparser.RobotFileParser()
         parser.parse(acstr.split("\n"))
     except:
         # TODO: specific exception handling
-        display_message("Project configuration: error parsing access control rules from %s. Configuration may be wrong." % source, "warning", 5)
+        display_message(
+            "Project configuration: error parsing access control rules from %s. Configuration may be wrong." % source, "warning", 5)
         parser = None
     return parser
-    
+
 
 def get_config_path(directory):
     return __read_first_in_directory_tree(directory, __annotation_config_filename)[1]
+
 
 def __read_first_in_directory_tree(directory, filename):
     # config will not be available command-line invocations;
@@ -600,6 +633,7 @@ def __read_first_in_directory_tree(directory, filename):
 
     return (result, source)
 
+
 def __parse_configs(configstr, source, expected_sections, optional_sections):
     # top-level config structure is a set of term hierarchies
     # separated by lines consisting of "[SECTION]" where SECTION is
@@ -609,7 +643,7 @@ def __parse_configs(configstr, source, expected_sections, optional_sections):
     # the label (default name or alias) used for each section.
 
     section = "general"
-    section_lines = { section: [] }
+    section_lines = {section: []}
     section_labels = {}
     for ln, l in enumerate(configstr.split("\n")):
         m = re.match(r'^\s*\[(.*)\]\s*$', l)
@@ -622,7 +656,8 @@ def __parse_configs(configstr, source, expected_sections, optional_sections):
             section = section_name
 
             if section not in expected_sections:
-                Messager.warning("Project configuration: unexpected section [%s] in %s. Ignoring contents." % (section, source), 5)
+                Messager.warning("Project configuration: unexpected section [%s] in %s. Ignoring contents." % (
+                    section, source), 5)
             if section not in section_lines:
                 section_lines[section] = []
         else:
@@ -634,38 +669,44 @@ def __parse_configs(configstr, source, expected_sections, optional_sections):
         try:
             configs[s] = __read_term_hierarchy(sl, s)
         except Exception as e:
-            Messager.warning("Project configuration: error parsing section [%s] in %s: %s" % (s, source, str(e)), 5)
+            Messager.warning("Project configuration: error parsing section [%s] in %s: %s" % (
+                s, source, str(e)), 5)
             raise
 
     # verify that expected sections are present; replace with empty if not.
     for s in expected_sections:
         if s not in configs:
             if s not in optional_sections:
-                Messager.warning("Project configuration: missing section [%s] in %s. Configuration may be wrong." % (s, source), 5)
+                Messager.warning(
+                    "Project configuration: missing section [%s] in %s. Configuration may be wrong." % (s, source), 5)
             configs[s] = []
 
     return (configs, section_labels)
-            
+
+
 def get_configs(directory, filename, defaultstr, minconf, sections, optional_sections):
     if (directory, filename) not in get_configs.__cache:
-        configstr, source =  __read_first_in_directory_tree(directory, filename)
+        configstr, source = __read_first_in_directory_tree(directory, filename)
 
         if configstr is None:
             # didn't get one; try default dir and fall back to the default
             configstr = __read_or_default(filename, defaultstr)
-            if configstr == defaultstr:                
-                Messager.info("Project configuration: no configuration file (%s) found, using default." % filename, 5)
+            if configstr == defaultstr:
+                Messager.info(
+                    "Project configuration: no configuration file (%s) found, using default." % filename, 5)
                 source = "[default]"
             else:
                 source = filename
 
         # try to parse what was found, fall back to minimal config
-        try: 
-            configs, section_labels = __parse_configs(configstr, source, sections, optional_sections)        
+        try:
+            configs, section_labels = __parse_configs(
+                configstr, source, sections, optional_sections)
         except:
-            Messager.warning("Project configuration: Falling back to minimal default. Configuration is likely wrong.", 5)
+            Messager.warning(
+                "Project configuration: Falling back to minimal default. Configuration is likely wrong.", 5)
             configs = minconf
-            section_labels = dict([(a,a) for a in sections])
+            section_labels = dict([(a, a) for a in sections])
 
         # very, very special case processing: if we have a type
         # "Equiv" defined in a "relations" section that doesn't
@@ -677,24 +718,28 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
             for r in configs['relations']:
                 if r == SEPARATOR_STR:
                     continue
-                if (r.storage_form() == "Equiv" and 
-                    "<REL-TYPE>" not in r.special_arguments):
+                if (r.storage_form() == "Equiv" and
+                        "<REL-TYPE>" not in r.special_arguments):
                     # this was way too much noise; will only add in after
                     # at least most configs are revised.
-#                     Messager.warning('Note: "Equiv" defined in config without "<REL-TYPE>"; assuming symmetric and transitive. Consider revising config to add "<REL-TYPE>:symmetric-transitive" to definition.')
-                    r.special_arguments["<REL-TYPE>"] = ["symmetric", "transitive"]
+                    #                     Messager.warning('Note: "Equiv" defined in config without "<REL-TYPE>"; assuming symmetric and transitive. Consider revising config to add "<REL-TYPE>:symmetric-transitive" to definition.')
+                    r.special_arguments["<REL-TYPE>"] = ["symmetric",
+                                                         "transitive"]
 
         get_configs.__cache[(directory, filename)] = (configs, section_labels)
 
     return get_configs.__cache[(directory, filename)]
+
+
 get_configs.__cache = {}
+
 
 def __get_access_control(directory, filename, default_rules):
 
     acstr, source = __read_first_in_directory_tree(directory, filename)
 
     if acstr is None:
-        acstr = default_rules # TODO read or default isntead of default
+        acstr = default_rules  # TODO read or default isntead of default
         if acstr == default_rules:
             source = "[default rules]"
         else:
@@ -717,31 +762,36 @@ def __get_kb_shortcuts(directory, filename, default_shortcuts, min_shortcuts):
     kb_shortcuts = __parse_kb_shortcuts(shortcutstr, min_shortcuts, source)
     return kb_shortcuts
 
+
 # final fallback for configuration; a minimal known-good config
 __minimal_configuration = {
-    ENTITY_SECTION    : [TypeHierarchyNode(["Protein"])],
-    RELATION_SECTION  : [TypeHierarchyNode(["Equiv"], ["Arg1:Protein", "Arg2:Protein", "<REL-TYPE>:symmetric-transitive"])],
-    EVENT_SECTION     : [TypeHierarchyNode(["Event"], ["Theme:Protein"])],
-    ATTRIBUTE_SECTION : [TypeHierarchyNode(["Negation"], ["Arg:<EVENT>"])],
-    }
+    ENTITY_SECTION: [TypeHierarchyNode(["Protein"])],
+    RELATION_SECTION: [TypeHierarchyNode(["Equiv"], ["Arg1:Protein", "Arg2:Protein", "<REL-TYPE>:symmetric-transitive"])],
+    EVENT_SECTION: [TypeHierarchyNode(["Event"], ["Theme:Protein"])],
+    ATTRIBUTE_SECTION: [TypeHierarchyNode(["Negation"], ["Arg:<EVENT>"])],
+}
+
 
 def get_annotation_configs(directory):
-    return get_configs(directory, 
-                       __annotation_config_filename, 
+    return get_configs(directory,
+                       __annotation_config_filename,
                        __default_configuration,
                        __minimal_configuration,
                        __expected_annotation_sections,
                        __optional_annotation_sections)
 
+
 # final fallback for visual configuration; minimal known-good config
 __minimal_visual = {
-    LABEL_SECTION     : [TypeHierarchyNode(["Protein", "Pro", "P"]),
-                         TypeHierarchyNode(["Equiv", "Eq"]),
-                         TypeHierarchyNode(["Event", "Ev"])],
-    DRAWING_SECTION   : [TypeHierarchyNode([VISUAL_SPAN_DEFAULT], ["fgColor:black", "bgColor:white"]),
-                         TypeHierarchyNode([VISUAL_ARC_DEFAULT], ["color:black"]),
-                         TypeHierarchyNode([VISUAL_ATTR_DEFAULT], ["glyph:*"])],
-    }
+    LABEL_SECTION: [TypeHierarchyNode(["Protein", "Pro", "P"]),
+                    TypeHierarchyNode(["Equiv", "Eq"]),
+                    TypeHierarchyNode(["Event", "Ev"])],
+    DRAWING_SECTION: [TypeHierarchyNode([VISUAL_SPAN_DEFAULT], ["fgColor:black", "bgColor:white"]),
+                      TypeHierarchyNode(
+        [VISUAL_ARC_DEFAULT], ["color:black"]),
+        TypeHierarchyNode([VISUAL_ATTR_DEFAULT], ["glyph:*"])],
+}
+
 
 def get_visual_configs(directory):
     return get_configs(directory,
@@ -751,14 +801,16 @@ def get_visual_configs(directory):
                        __expected_visual_sections,
                        __optional_visual_sections)
 
+
 # final fallback for tools configuration; minimal known-good config
 __minimal_tools = {
-    OPTIONS_SECTION    : [],
-    SEARCH_SECTION     : [TypeHierarchyNode(["google"], ["<URL>:http://www.google.com/search?q=%s"])],
-    ANNOTATORS_SECTION : [],
-    DISAMBIGUATORS_SECTION : [],
-    NORMALIZATION_SECTION : [],
-    }
+    OPTIONS_SECTION: [],
+    SEARCH_SECTION: [TypeHierarchyNode(["google"], ["<URL>:http://www.google.com/search?q=%s"])],
+    ANNOTATORS_SECTION: [],
+    DISAMBIGUATORS_SECTION: [],
+    NORMALIZATION_SECTION: [],
+}
+
 
 def get_tools_configs(directory):
     return get_configs(directory,
@@ -768,36 +820,48 @@ def get_tools_configs(directory):
                        __expected_tools_sections,
                        __optional_tools_sections)
 
-def get_entity_type_hierarchy(directory):    
+
+def get_entity_type_hierarchy(directory):
     return get_annotation_configs(directory)[0][ENTITY_SECTION]
 
-def get_relation_type_hierarchy(directory):    
+
+def get_relation_type_hierarchy(directory):
     return get_annotation_configs(directory)[0][RELATION_SECTION]
 
-def get_event_type_hierarchy(directory):    
+
+def get_event_type_hierarchy(directory):
     return get_annotation_configs(directory)[0][EVENT_SECTION]
 
-def get_attribute_type_hierarchy(directory):    
+
+def get_attribute_type_hierarchy(directory):
     return get_annotation_configs(directory)[0][ATTRIBUTE_SECTION]
+
 
 def get_annotation_config_section_labels(directory):
     return get_annotation_configs(directory)[1]
 
 # TODO: too much caching?
+
+
 def get_labels(directory):
     cache = get_labels.__cache
     if directory not in cache:
         l = {}
         for t in get_visual_configs(directory)[0][LABEL_SECTION]:
             if t.storage_form() in l:
-                Messager.warning("In configuration, labels for '%s' defined more than once. Only using the last set." % t.storage_form(), -1)
+                Messager.warning(
+                    "In configuration, labels for '%s' defined more than once. Only using the last set." % t.storage_form(), -1)
             # first is storage for, rest are labels.
             l[t.storage_form()] = t.terms[1:]
         cache[directory] = l
     return cache[directory]
+
+
 get_labels.__cache = {}
 
 # TODO: too much caching?
+
+
 def get_drawing_types(directory):
     cache = get_drawing_types.__cache
     if directory not in cache:
@@ -806,57 +870,75 @@ def get_drawing_types(directory):
             l.add(n.storage_form())
         cache[directory] = list(l)
     return cache[directory]
+
+
 get_drawing_types.__cache = {}
+
 
 def get_option_config(directory):
     return get_tools_configs(directory)[0][OPTIONS_SECTION]
 
+
 def get_drawing_config(directory):
     return get_visual_configs(directory)[0][DRAWING_SECTION]
+
 
 def get_visual_option_config(directory):
     return get_visual_configs(directory)[0][OPTIONS_SECTION]
 
+
 def get_visual_config_section_labels(directory):
     return get_visual_configs(directory)[1]
+
 
 def get_search_config(directory):
     return get_tools_configs(directory)[0][SEARCH_SECTION]
 
+
 def get_annotator_config(directory):
     return get_tools_configs(directory)[0][ANNOTATORS_SECTION]
+
 
 def get_disambiguator_config(directory):
     return get_tools_configs(directory)[0][DISAMBIGUATORS_SECTION]
 
+
 def get_normalization_config(directory):
     return get_tools_configs(directory)[0][NORMALIZATION_SECTION]
 
+
 def get_tools_config_section_labels(directory):
     return get_tools_configs(directory)[1]
+
 
 def get_access_control(directory):
     cache = get_access_control.__cache
     if directory not in cache:
         a = __get_access_control(directory,
-                         __access_control_filename,
-                         __default_access_control)
+                                 __access_control_filename,
+                                 __default_access_control)
         cache[directory] = a
 
     return cache[directory]
+
+
 get_access_control.__cache = {}
+
 
 def get_kb_shortcuts(directory):
     cache = get_kb_shortcuts.__cache
     if directory not in cache:
         a = __get_kb_shortcuts(directory,
-                                __kb_shortcut_filename,
-                                __default_kb_shortcuts,
-                               { "P" : "Positive_regulation" })
+                               __kb_shortcut_filename,
+                               __default_kb_shortcuts,
+                               {"P": "Positive_regulation"})
         cache[directory] = a
 
     return cache[directory]
+
+
 get_kb_shortcuts.__cache = {}
+
 
 def __collect_type_list(node, collected):
     if node == SEPARATOR_STR:
@@ -869,6 +951,7 @@ def __collect_type_list(node, collected):
 
     return collected
 
+
 def __type_hierarchy_to_list(hierarchy):
     root_nodes = hierarchy
     types = []
@@ -880,61 +963,94 @@ def __type_hierarchy_to_list(hierarchy):
 # their own caches; this seems a bit like a case of premature
 # optimization to me. Consider simplifying.
 
+
 def get_entity_type_list(directory):
     cache = get_entity_type_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_entity_type_hierarchy(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_entity_type_hierarchy(directory))
     return cache[directory]
+
+
 get_entity_type_list.__cache = {}
+
 
 def get_event_type_list(directory):
     cache = get_event_type_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_event_type_hierarchy(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_event_type_hierarchy(directory))
     return cache[directory]
+
+
 get_event_type_list.__cache = {}
+
 
 def get_relation_type_list(directory):
     cache = get_relation_type_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_relation_type_hierarchy(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_relation_type_hierarchy(directory))
     return cache[directory]
+
+
 get_relation_type_list.__cache = {}
+
 
 def get_attribute_type_list(directory):
     cache = get_attribute_type_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_attribute_type_hierarchy(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_attribute_type_hierarchy(directory))
     return cache[directory]
-get_attribute_type_list.__cache = {}    
+
+
+get_attribute_type_list.__cache = {}
+
 
 def get_search_config_list(directory):
     cache = get_search_config_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_search_config(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_search_config(directory))
     return cache[directory]
-get_search_config_list.__cache = {}    
+
+
+get_search_config_list.__cache = {}
+
 
 def get_annotator_config_list(directory):
     cache = get_annotator_config_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_annotator_config(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_annotator_config(directory))
     return cache[directory]
-get_annotator_config_list.__cache = {}    
+
+
+get_annotator_config_list.__cache = {}
+
 
 def get_disambiguator_config_list(directory):
     cache = get_disambiguator_config_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_disambiguator_config(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_disambiguator_config(directory))
     return cache[directory]
-get_disambiguator_config_list.__cache = {}    
+
+
+get_disambiguator_config_list.__cache = {}
+
 
 def get_normalization_config_list(directory):
     cache = get_normalization_config_list.__cache
     if directory not in cache:
-        cache[directory] = __type_hierarchy_to_list(get_normalization_config(directory))
+        cache[directory] = __type_hierarchy_to_list(
+            get_normalization_config(directory))
     return cache[directory]
-get_normalization_config_list.__cache = {}    
+
+
+get_normalization_config_list.__cache = {}
+
 
 def get_node_by_storage_form(directory, term):
     cache = get_node_by_storage_form.__cache
@@ -943,12 +1059,16 @@ def get_node_by_storage_form(directory, term):
         for e in get_entity_type_list(directory) + get_event_type_list(directory):
             t = e.storage_form()
             if t in d:
-                Messager.warning("Project configuration: term %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
+                Messager.warning(
+                    "Project configuration: term %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
             d[t] = e
         cache[directory] = d
 
     return cache[directory].get(term, None)
+
+
 get_node_by_storage_form.__cache = {}
+
 
 def _get_option_by_storage_form(directory, term, config, cache):
     if directory not in cache:
@@ -956,43 +1076,55 @@ def _get_option_by_storage_form(directory, term, config, cache):
         for n in config:
             t = n.storage_form()
             if t in d:
-                Messager.warning("Project configuration: %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
+                Messager.warning(
+                    "Project configuration: %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
             d[t] = {}
             for a in n.arguments:
                 if len(n.arguments[a]) != 1:
-                    Messager.warning("Project configuration: %s key %s has multiple values, only using first. Configuration may be wrong." % (t, a), 5)
+                    Messager.warning(
+                        "Project configuration: %s key %s has multiple values, only using first. Configuration may be wrong." % (t, a), 5)
                 d[t][a] = n.arguments[a][0]
 
         cache[directory] = d
 
     return cache[directory].get(term, None)
 
+
 def get_option_config_by_storage_form(directory, term):
     cache = get_option_config_by_storage_form.__cache
     config = get_option_config(directory)
     return _get_option_by_storage_form(directory, term, config, cache)
-get_option_config_by_storage_form.__cache = {}    
+
+
+get_option_config_by_storage_form.__cache = {}
+
 
 def get_visual_option_config_by_storage_form(directory, term):
     cache = get_visual_option_config_by_storage_form.__cache
     config = get_visual_option_config(directory)
     return _get_option_by_storage_form(directory, term, config, cache)
-get_visual_option_config_by_storage_form.__cache = {}    
+
+
+get_visual_option_config_by_storage_form.__cache = {}
 
 # access for settings for specific options in tools.conf
 # TODO: avoid fixed string values here, define vars earlier
 
+
 def options_get_validation(directory):
     v = get_option_config_by_storage_form(directory, 'Validation')
-    return 'none' if v is None else v.get('validate', 'none')        
+    return 'none' if v is None else v.get('validate', 'none')
+
 
 def options_get_tokenization(directory):
     v = get_option_config_by_storage_form(directory, 'Tokens')
     return 'whitespace' if v is None else v.get('tokenizer', 'whitespace')
 
+
 def options_get_ssplitter(directory):
     v = get_option_config_by_storage_form(directory, 'Sentences')
     return 'regex' if v is None else v.get('splitter', 'regex')
+
 
 def options_get_annlogfile(directory):
     v = get_option_config_by_storage_form(directory, 'Annotation-log')
@@ -1000,13 +1132,16 @@ def options_get_annlogfile(directory):
 
 # access for settings for specific options in visual.conf
 
+
 def visual_options_get_arc_bundle(directory):
     v = get_visual_option_config_by_storage_form(directory, 'Arcs')
     return 'none' if v is None else v.get('bundle', 'none')
 
+
 def visual_options_get_text_direction(directory):
     v = get_visual_option_config_by_storage_form(directory, 'Text')
     return 'ltr' if v is None else v.get('direction', 'ltr')
+
 
 def get_drawing_config_by_storage_form(directory, term):
     cache = get_drawing_config_by_storage_form.__cache
@@ -1015,7 +1150,8 @@ def get_drawing_config_by_storage_form(directory, term):
         for n in get_drawing_config(directory):
             t = n.storage_form()
             if t in d:
-                Messager.warning("Project configuration: term %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
+                Messager.warning(
+                    "Project configuration: term %s appears multiple times, only using last. Configuration may be wrong." % t, 5)
             d[t] = {}
             for a in n.arguments:
                 # attribute drawing can be specified with multiple
@@ -1027,7 +1163,8 @@ def get_drawing_config_by_storage_form(directory, term):
                         d[t][a] = n.arguments[a]
                     else:
                         # warn and pass
-                        Messager.warning("Project configuration: expected single value for %s argument %s, got '%s'. Configuration may be wrong." % (t, a, "|".join(n.arguments[a])))
+                        Messager.warning("Project configuration: expected single value for %s argument %s, got '%s'. Configuration may be wrong." % (
+                            t, a, "|".join(n.arguments[a])))
                 else:
                     d[t][a] = n.arguments[a][0]
 
@@ -1041,8 +1178,8 @@ def get_drawing_config_by_storage_form(directory, term):
                 else:
                     for i in range(len(d[t][k])):
                         d[t][k][i] = d[t][k][i].replace("-", ",")
-                
-        default_keys = [VISUAL_SPAN_DEFAULT, 
+
+        default_keys = [VISUAL_SPAN_DEFAULT,
                         VISUAL_ARC_DEFAULT,
                         VISUAL_ATTR_DEFAULT]
         for default_dict in [d.get(dk, {}) for dk in default_keys]:
@@ -1066,16 +1203,19 @@ def get_drawing_config_by_storage_form(directory, term):
         cache[directory] = d
 
     return cache[directory].get(term, None)
-get_drawing_config_by_storage_form.__cache = {}    
+
+
+get_drawing_config_by_storage_form.__cache = {}
+
 
 def __directory_relations_by_arg_num(directory, num, atype, include_special=False):
     assert num >= 0 and num < 2, "INTERNAL ERROR"
 
     rels = []
 
-    entity_types = set([t.storage_form() 
+    entity_types = set([t.storage_form()
                         for t in get_entity_type_list(directory)])
-    event_types = set([t.storage_form() 
+    event_types = set([t.storage_form()
                        for t in get_event_type_list(directory)])
 
     for r in get_relation_type_list(directory):
@@ -1087,7 +1227,8 @@ def __directory_relations_by_arg_num(directory, num, atype, include_special=Fals
         if len(r.arg_list) != 2:
             # Don't complain about argument constraints for unused relations
             if not r.unused:
-                Messager.warning("Relation type %s has %d arguments in configuration (%s; expected 2). Please fix configuration." % (r.storage_form(), len(r.arg_list), ",".join(r.arg_list)))
+                Messager.warning("Relation type %s has %d arguments in configuration (%s; expected 2). Please fix configuration." % (
+                    r.storage_form(), len(r.arg_list), ",".join(r.arg_list)))
         else:
             types = r.arguments[r.arg_list[num]]
             for type_ in types:
@@ -1098,27 +1239,36 @@ def __directory_relations_by_arg_num(directory, num, atype, include_special=Fals
                     (type_ in entity_types and atype == "<ENTITY>") or
                     (type_ in event_types and atype == "<EVENT>") or
                     (atype in entity_types and type_ == "<ENTITY>") or
-                    (atype in event_types and type_ == "<EVENT>")):
+                        (atype in event_types and type_ == "<EVENT>")):
                     rels.append(r)
                     # TODO: why not break here?
 
     return rels
 
+
 def get_relations_by_arg1(directory, atype, include_special=False):
     cache = get_relations_by_arg1.__cache
     cache[directory] = cache.get(directory, {})
     if (atype, include_special) not in cache[directory]:
-        cache[directory][(atype, include_special)] = __directory_relations_by_arg_num(directory, 0, atype, include_special)
+        cache[directory][(atype, include_special)] = __directory_relations_by_arg_num(
+            directory, 0, atype, include_special)
     return cache[directory][(atype, include_special)]
+
+
 get_relations_by_arg1.__cache = {}
+
 
 def get_relations_by_arg2(directory, atype, include_special=False):
     cache = get_relations_by_arg2.__cache
     cache[directory] = cache.get(directory, {})
     if (atype, include_special) not in cache[directory]:
-        cache[directory][(atype, include_special)] = __directory_relations_by_arg_num(directory, 1, atype, include_special)
+        cache[directory][(atype, include_special)] = __directory_relations_by_arg_num(
+            directory, 1, atype, include_special)
     return cache[directory][(atype, include_special)]
+
+
 get_relations_by_arg2.__cache = {}
+
 
 def get_relations_by_storage_form(directory, rtype, include_special=False):
     cache = get_relations_by_storage_form.__cache
@@ -1126,8 +1276,8 @@ def get_relations_by_storage_form(directory, rtype, include_special=False):
     if include_special not in cache[directory]:
         cache[directory][include_special] = {}
         for r in get_relation_type_list(directory):
-            if (r.storage_form() in SPECIAL_RELATION_TYPES and 
-                not include_special):
+            if (r.storage_form() in SPECIAL_RELATION_TYPES and
+                    not include_special):
                 continue
             if r.unused:
                 continue
@@ -1135,7 +1285,10 @@ def get_relations_by_storage_form(directory, rtype, include_special=False):
                 cache[directory][include_special][r.storage_form()] = []
             cache[directory][include_special][r.storage_form()].append(r)
     return cache[directory][include_special].get(rtype, [])
+
+
 get_relations_by_storage_form.__cache = {}
+
 
 def get_labels_by_storage_form(directory, term):
     cache = get_labels_by_storage_form.__cache
@@ -1147,6 +1300,8 @@ def get_labels_by_storage_form(directory, term):
             labels = [lab if lab != '<EMPTY>' else ' ' for lab in labels]
             cache[directory][l] = labels
     return cache[directory].get(term, None)
+
+
 get_labels_by_storage_form.__cache = {}
 
 # fallback for missing or partial config: these are highly likely to
@@ -1170,13 +1325,15 @@ very_likely_physical_entity_types = [
     'Drug_or_compound',
     'Gene_or_gene_product',
     'Tissue',
-    #'Not_sure',
-    #'Other',
+    # 'Not_sure',
+    # 'Other',
     'Other_pharmaceutical_agent',
-    ]
+]
 
 # helper; doesn't really belong here
-# TODO: shouldn't we have an utils.py or something for stuff like this? 
+# TODO: shouldn't we have an utils.py or something for stuff like this?
+
+
 def unique_preserve_order(iterable):
     seen = set()
     uniqued = []
@@ -1186,11 +1343,13 @@ def unique_preserve_order(iterable):
             uniqued.append(i)
     return uniqued
 
+
 class ProjectConfiguration(object):
     def __init__(self, directory):
         # debugging (note: latter test for windows paths)
         if directory[:1] != "/" and not re.search(r'^[a-zA-Z]:\\', directory):
-            Messager.debug("Project config received relative directory ('%s'), configuration may not be found." % directory, duration=-1)
+            Messager.debug(
+                "Project config received relative directory ('%s'), configuration may not be found." % directory, duration=-1)
         self.directory = directory
 
     def mandatory_arguments(self, atype):
@@ -1200,7 +1359,8 @@ class ProjectConfiguration(object):
         """
         node = get_node_by_storage_form(self.directory, atype)
         if node is None:
-            Messager.warning("Project configuration: unknown event type %s. Configuration may be wrong." % atype)
+            Messager.warning(
+                "Project configuration: unknown event type %s. Configuration may be wrong." % atype)
             return []
         return node.mandatory_arguments()
 
@@ -1211,7 +1371,8 @@ class ProjectConfiguration(object):
         """
         node = get_node_by_storage_form(self.directory, atype)
         if node is None:
-            Messager.warning("Project configuration: unknown event type %s. Configuration may be wrong." % atype)
+            Messager.warning(
+                "Project configuration: unknown event type %s. Configuration may be wrong." % atype)
             return []
         return node.multiple_allowed_arguments()
 
@@ -1222,7 +1383,8 @@ class ProjectConfiguration(object):
         """
         node = get_node_by_storage_form(self.directory, atype)
         if node is None:
-            Messager.warning("Project configuration: unknown event type %s. Configuration may be wrong." % atype)
+            Messager.warning(
+                "Project configuration: unknown event type %s. Configuration may be wrong." % atype)
             return 0
         return node.argument_maximum_count(arg)
 
@@ -1233,7 +1395,8 @@ class ProjectConfiguration(object):
         """
         node = get_node_by_storage_form(self.directory, atype)
         if node is None:
-            Messager.warning("Project configuration: unknown event type %s. Configuration may be wrong." % atype)
+            Messager.warning(
+                "Project configuration: unknown event type %s. Configuration may be wrong." % atype)
             return 0
         return node.argument_minimum_count(arg)
 
@@ -1295,14 +1458,14 @@ class ProjectConfiguration(object):
 
         if ovl:
             if nst:
-                Messager.warning('Warning: both '+TEXTBOUND_OVERLAP_TYPE+
-                                 ' and '+ENTITY_NESTING_TYPE+' defined for '+
-                                 '('+inner+','+outer+') in config. '+
+                Messager.warning('Warning: both '+TEXTBOUND_OVERLAP_TYPE +
+                                 ' and '+ENTITY_NESTING_TYPE+' defined for ' +
+                                 '('+inner+','+outer+') in config. ' +
                                  'Ignoring latter.')
             for r in ovl:
                 if OVERLAP_TYPE_ARG not in r.special_arguments:
-                    Messager.warning('Warning: missing '+OVERLAP_TYPE_ARG+
-                                     ' for '+TEXTBOUND_OVERLAP_TYPE+
+                    Messager.warning('Warning: missing '+OVERLAP_TYPE_ARG +
+                                     ' for '+TEXTBOUND_OVERLAP_TYPE +
                                      ', ignoring specification.')
                     continue
                 for val in r.special_arguments[OVERLAP_TYPE_ARG]:
@@ -1313,11 +1476,11 @@ class ProjectConfiguration(object):
         else:
             ovl_types = set()
 
-        undefined_types = [t for t in ovl_types if 
+        undefined_types = [t for t in ovl_types if
                            t not in ('contain', 'equal', 'cross', '<ANY>')]
         if undefined_types:
-            Messager.warning('Undefined '+OVERLAP_TYPE_ARG+' value(s) '+
-                             str(undefined_types)+' for '+
+            Messager.warning('Undefined '+OVERLAP_TYPE_ARG+' value(s) ' +
+                             str(undefined_types)+' for ' +
                              '('+inner+','+outer+') in config. ')
         return ovl_types
 
@@ -1376,7 +1539,7 @@ class ProjectConfiguration(object):
         # TODO: are these uniques really necessary?
         entity_types = unique_preserve_order(self.get_entity_types())
         event_types = unique_preserve_order(self.get_event_types())
-        all_types =  unique_preserve_order(entity_types + event_types)
+        all_types = unique_preserve_order(entity_types + event_types)
 
         connections = {}
 
@@ -1393,7 +1556,7 @@ class ProjectConfiguration(object):
             # relations
 
             rels = get_relations_by_arg1(self.directory, t1, include_special)
-            
+
             for r in rels:
                 a = r.storage_form()
 
@@ -1419,10 +1582,11 @@ class ProjectConfiguration(object):
             # event arguments
 
             n1 = get_node_by_storage_form(self.directory, t1)
-                        
+
             for a, args in n1.arguments.items():
                 if a in processed_as_relation:
-                    Messager.warning("Project configuration: %s appears both as role and relation. Configuration may be wrong." % a)
+                    Messager.warning(
+                        "Project configuration: %s appears both as role and relation. Configuration may be wrong." % a)
                     # won't try to resolve
                     continue
 
@@ -1454,11 +1618,13 @@ class ProjectConfiguration(object):
         from_node = get_node_by_storage_form(self.directory, from_ann)
 
         if from_node is None:
-            Messager.warning("Project configuration: unknown textbound/event type %s. Configuration may be wrong." % from_ann)
+            Messager.warning(
+                "Project configuration: unknown textbound/event type %s. Configuration may be wrong." % from_ann)
             return []
 
         if to_ann == "<ANY>":
-            relations_from = get_relations_by_arg1(self.directory, from_ann, include_special)
+            relations_from = get_relations_by_arg1(
+                self.directory, from_ann, include_special)
             # TODO: consider using from_node.arg_list instead of .arguments for order
             return unique_preserve_order([role for role in from_node.arguments] + [r.storage_form() for r in relations_from])
 
@@ -1488,9 +1654,10 @@ class ProjectConfiguration(object):
         for attr in get_attribute_type_list(self.directory):
             if attr == SEPARATOR_STR:
                 continue
-            
+
             if 'Arg' not in attr.arguments:
-                Messager.warning("Project configuration: config error: attribute '%s' lacks 'Arg:' specification." % attr.storage_form())
+                Messager.warning(
+                    "Project configuration: config error: attribute '%s' lacks 'Arg:' specification." % attr.storage_form())
                 continue
 
             types = attr.arguments['Arg']
@@ -1499,7 +1666,7 @@ class ProjectConfiguration(object):
                 (self.is_event_type(ann_type) and '<EVENT>' in types) or
                 (self.is_physical_entity_type(ann_type) and '<ENTITY>' in types)
                 or
-                (self.is_relation_type(ann_type) and '<RELATION>' in types)):
+                    (self.is_relation_type(ann_type) and '<RELATION>' in types)):
                 attrs.append(attr.storage_form())
 
         return attrs
@@ -1539,7 +1706,7 @@ class ProjectConfiguration(object):
 
     def get_drawing_types(self):
         return get_drawing_types(self.directory)
-    
+
     def get_drawing_config_by_type(self, _type):
         return get_drawing_config_by_storage_form(self.directory, _type)
 
@@ -1547,22 +1714,27 @@ class ProjectConfiguration(object):
         search_config = []
         for r in get_search_config_list(self.directory):
             if '<URL>' not in r.special_arguments:
-                Messager.warning('Project configuration: config error: missing <URL> specification for %s search.' % r.storage_form())
+                Messager.warning(
+                    'Project configuration: config error: missing <URL> specification for %s search.' % r.storage_form())
             else:
-                search_config.append((r.storage_form(), r.special_arguments['<URL>'][0]))
+                search_config.append(
+                    (r.storage_form(), r.special_arguments['<URL>'][0]))
         return search_config
 
     def _get_tool_config(self, tool_list):
         tool_config = []
         for r in tool_list:
             if '<URL>' not in r.special_arguments:
-                Messager.warning('Project configuration: config error: missing <URL> specification for %s.' % r.storage_form())
+                Messager.warning(
+                    'Project configuration: config error: missing <URL> specification for %s.' % r.storage_form())
                 continue
             if 'tool' not in r.arguments:
-                Messager.warning('Project configuration: config error: missing tool name ("tool") for %s.' % r.storage_form())
+                Messager.warning(
+                    'Project configuration: config error: missing tool name ("tool") for %s.' % r.storage_form())
                 continue
             if 'model' not in r.arguments:
-                Messager.warning('Project configuration: config error: missing model name ("model") for %s.' % r.storage_form())
+                Messager.warning(
+                    'Project configuration: config error: missing model name ("model") for %s.' % r.storage_form())
                 continue
             tool_config.append((r.storage_form(),
                                 r.arguments['tool'][0],
@@ -1589,7 +1761,8 @@ class ProjectConfiguration(object):
                 # optional, server looks in default location if None
                 n.arguments['DB'] = [None]
             if '<URL>' not in n.special_arguments:
-                Messager.warning('Project configuration: config error: missing <URL> specification for %s.' % n.storage_form())
+                Messager.warning(
+                    'Project configuration: config error: missing <URL> specification for %s.' % n.storage_form())
                 continue
             if '<URLBASE>' not in n.special_arguments:
                 # now optional, client skips link generation if None
@@ -1599,7 +1772,7 @@ class ProjectConfiguration(object):
                                 n.special_arguments['<URLBASE>'][0],
                                 n.arguments['DB'][0]))
         return norm_config
-        
+
     def get_entity_types(self):
         return [t.storage_form() for t in get_entity_type_list(self.directory)]
 
@@ -1652,7 +1825,7 @@ class ProjectConfiguration(object):
         """
         Returns the attribute type hierarchy filtered to include
         only attributes that apply to at least one relation.
-        """        
+        """
         attr_types = self.attributes_for_types(self.get_relation_types())
         return self._get_filtered_attribute_type_hierarchy(attr_types)
 

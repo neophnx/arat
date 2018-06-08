@@ -69,12 +69,12 @@ class InvalidAuthError(ProtocolError):
 def _is_authenticated(user, password):
     """
     Default authentication method is now sha512
-    
+
     >>> _is_authenticated("admin", 'sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f')
     True
-    
+
     For backward compatibility plain-text password is accepted but deprecated
-    
+
     >>> _is_authenticated("admin-plaintext", "admin")
     True
 
@@ -86,8 +86,8 @@ def _is_authenticated(user, password):
 
     >>> _is_authenticated("admin", "admin")
     True
-    
-    
+
+
     Unknown users don't authenticate
     >>> _is_authenticated("me", "my password")
     False
@@ -100,7 +100,6 @@ def _is_authenticated(user, password):
                         "will be removed in the next major release, "
                         "please use sha512 passwords.")
             password = "sha512:"+_password_hash(password)
-            
 
         ref_password = USER_PASSWORD[user]
         # password stored in plain text
@@ -109,7 +108,7 @@ def _is_authenticated(user, password):
                         "will be removed in the next major release"
                         "please use sha512 passwords.")
             ref_password = "sha512:"+_password_hash(USER_PASSWORD[user])
-            
+
         return password == ref_password
     return False
 
@@ -172,6 +171,4 @@ def allowed_to_read(real_path):
     if user is None:
         user = 'guest'
 
-
     return robotparser.can_fetch(user, data_path)
-

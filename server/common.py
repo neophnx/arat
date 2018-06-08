@@ -12,10 +12,11 @@ Version:    2011-04-21
 
 from __future__ import absolute_import
 import warnings
-try: # python2
+try:  # python2
     from exceptions import NotImplementedError as NotImplementedErrorBultin
 except:
     from builtins import NotImplementedError as NotImplementedErrorBultin
+
 
 def deprecation(message):
     """
@@ -56,7 +57,7 @@ class ProtocolArgumentError(ProtocolError):
     @classmethod
     def json(cls, json_dic):
         json_dic['exception'] = 'protocolArgumentError'
-    
+
     def __str__(self):
         return "Protocol error: wrong argument"
 

@@ -21,6 +21,7 @@ import six
 
 import standalone
 
+
 def wait_net_service(server, port, timeout=None):
     """ Wait for network service to appear 
         @param timeout: in seconds, if None or 0 wait forever
@@ -43,15 +44,15 @@ def wait_net_service(server, port, timeout=None):
                 if next_timeout < 0:
                     return False
                 else:
-            	    s.settimeout(next_timeout)
-            
+                    s.settimeout(next_timeout)
+
             s.connect((server, port))
-        
+
         except socket.timeout:
             # this exception occurs only if timeout is set
             if timeout:
                 return False
-      
+
         except socket.error as err:
             pass
             # catch timeout exception from underlying network library
@@ -64,132 +65,140 @@ def wait_net_service(server, port, timeout=None):
 
 
 class TestStandalone(unittest.TestCase):
-    
+
     @classmethod
     def _find_free_port(cls):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(('', 0))
             return s.getsockname()[1]
-        
+
     @classmethod
     def setUpClass(cls):
         # run server
         free_port = cls._find_free_port()
-        cls.url = "http://localhost:%i/"%free_port
+        cls.url = "http://localhost:%i/" % free_port
         cls.proc = Popen([sys.executable, "standalone.py", str(free_port)])
-        
+
         if not wait_net_service("localhost", free_port, 5):
             cls.proc.kill()
             raise TimeoutError
-            
-        
+
         # get a session id
         response = requests.post(cls.url+"ajax.cgi", json={"action": "getCollectionInformation",
-                 "collection": "/",
-                 "protocol": "1"})
+                                                           "collection": "/",
+                                                           "protocol": "1"})
         cls.sid = response.cookies.get("sid", "")
-        
+
         # populate a datadir with simple test file
         try:
-            os.mkdir("data/test-data") 
+            os.mkdir("data/test-data")
         except:
             pass
-        
+
         with open("data/test-data/test-01.txt", "wb") as fd:
             fd.write(six.u("This is a very simple text.").encode("utf-8"))
- 
+
         with open("data/test-data/test-01.ann", "wb") as fd:
             fd.write(six.u("").encode("utf-8"))
-            
-    
+
     @classmethod
     def tearDownClass(cls):
         cls.proc.kill()
-        
+
     def test_01_home(self):
         response = requests.get(self.url)
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.headers.get("Content-Type", ""), "text/html")
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "text/html")
         self.assertEquals(response.content, open("index.html", "rb").read())
 
     def test_02_cookie(self):
         self.assertNotEquals(self.sid, "")
-        
-        
+
     def test_03_whoami(self):
-#        response = requests.post(self.url+"ajax.cgi", json={"action": "whoami",
-#                                                 "protocol": "1"},
-#                                            cookies={"sid": self.sid},
-#                                            headers={'Connection': 'close'})
-#        from subprocess import Popen
-#        proc = Popen(["curl", self.url+"ajax.cgi", "-v",
-#                      "-H", 'Content-Type: application/json',
-#                      "-X", "POST",
-#                      "-d", 'action=whoami&protocol=1'])
-        
-#        print(proc.communicate())
+        #        response = requests.post(self.url+"ajax.cgi", json={"action": "whoami",
+        #                                                 "protocol": "1"},
+        #                                            cookies={"sid": self.sid},
+        #                                            headers={'Connection': 'close'})
+        #        from subprocess import Popen
+        #        proc = Popen(["curl", self.url+"ajax.cgi", "-v",
+        #                      "-H", 'Content-Type: application/json',
+        #                      "-X", "POST",
+        #                      "-d", 'action=whoami&protocol=1'])
+
+        #        print(proc.communicate())
         response = requests.post(self.url+"ajax.cgi", data="action=whoami&protocol=1",
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'})
-        
+                                 headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
 #        self.assertEquals(response.request.headers, 200)
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "application/json")
         self.assertTrue("user" in response.json())
 
     def test_04_login_known_user(self):
         response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "login",
-                                                 "user": "admin",
-                                                 "password": "admin",
-                                                 "protocol": "1"}),
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                            cookies={"sid": self.sid})
+                                                                      "user": "admin",
+                                                                      "password": "admin",
+                                                                      "protocol": "1"}),
+                                 headers={
+                                     'Content-Type': 'application/x-www-form-urlencoded'},
+                                 cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
-        
-        
-        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
-        
-        self.assertTrue(u"Hello!" in response.json()["messages"][0], response.json()["messages"])
-        
-        # whoami 
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "application/json")
+
+        self.assertTrue(u"Hello!" in response.json()[
+                        "messages"][0], response.json()["messages"])
+
+        # whoami
         response = requests.post(self.url+"ajax.cgi", data="action=whoami&protocol=1",
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                            cookies={"sid": self.sid})
+                                 headers={
+                                     'Content-Type': 'application/x-www-form-urlencoded'},
+                                 cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
-        
-        
-        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
-        
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "application/json")
+
         self.assertTrue(response.json()[u"user"], u"admin")
-        
+
     def test_10_getCollectionInformation(self):
         response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
                                                                       "collection": "/test-data",
                                                                       "protocol": "1"}),
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                            cookies={"sid": self.sid})
+                                 headers={
+                                     'Content-Type': 'application/x-www-form-urlencoded'},
+                                 cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
-        
-        
-        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
-        
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "application/json")
+
         for i in [six.u('normalization_config'), six.u('ner_taggers'), six.u('entity_types'),
                   six.u('protocol'), six.u('description'), six.u('parent'),
-                  six.u('event_attribute_types'), six.u('items'), six.u('unconfigured_types'),
-                  six.u('messages'), six.u('disambiguator_config'), six.u('ui_names'),
-                  six.u('header'), six.u('entity_attribute_types'), six.u('event_types'),
-                  six.u('relation_types'), six.u('action'), six.u('search_config'),
-                  six.u('annotation_logging'), six.u('relation_attribute_types'),
+                  six.u('event_attribute_types'), six.u(
+                      'items'), six.u('unconfigured_types'),
+                  six.u('messages'), six.u(
+                      'disambiguator_config'), six.u('ui_names'),
+                  six.u('header'), six.u(
+                      'entity_attribute_types'), six.u('event_types'),
+                  six.u('relation_types'), six.u(
+                      'action'), six.u('search_config'),
+                  six.u('annotation_logging'), six.u(
+                      'relation_attribute_types'),
                   six.u('visual_options')]:
             self.assertTrue(i in response.json())
-            
-        
-        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()["items"][-1]
-        self.assertEquals(item_type, six.u('d')) # document
+
+        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()[
+            "items"][-1]
+        self.assertEquals(item_type, six.u('d'))  # document
         self.assertEquals(name, six.u('test-01'))
-        self.assertEquals(nb_entities, 0) # no annotations so far
+        self.assertEquals(nb_entities, 0)  # no annotations so far
         self.assertEquals(nb_relations, 0)
         self.assertEquals(nb_events, 0)
-        
+
     def test_11_createSpan(self):
         response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "createSpan",
                                                                       "collection": "/test-data",
@@ -199,31 +208,32 @@ class TestStandalone(unittest.TestCase):
                                                                       "offsets": "[[15,21]]",
                                                                       "type": "Protein",
                                                                       "protocol": "1"}),
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                            cookies={"sid": self.sid})
+                                 headers={
+                                     'Content-Type': 'application/x-www-form-urlencoded'},
+                                 cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
-        
-        
-        self.assertEquals(response.headers.get("Content-Type", ""), "application/json")
-        
-            
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "application/json")
+
         self.assertEquals(response.json()["edited"], [[six.u("T1")]])
-        
-        
+
         # check numbers on the collection level
         response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
                                                                       "collection": "/test-data",
                                                                       "protocol": "1"}),
-                                            headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                            cookies={"sid": self.sid})
-        
-        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()["items"][-1]
-        self.assertEquals(item_type, six.u('d')) # document
+                                 headers={
+                                     'Content-Type': 'application/x-www-form-urlencoded'},
+                                 cookies={"sid": self.sid})
+
+        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()[
+            "items"][-1]
+        self.assertEquals(item_type, six.u('d'))  # document
         self.assertEquals(name, six.u('test-01'))
-        self.assertEquals(nb_entities, 1) # this is the one
+        self.assertEquals(nb_entities, 1)  # this is the one
         self.assertEquals(nb_relations, 0)
-        self.assertEquals(nb_events, 0)   
-        
+        self.assertEquals(nb_events, 0)
+
         # check annotation file content
         with open("data/test-data/test-01.ann", "rb") as fd:
             self.assertEquals(fd.read().decode("utf-8").strip(),

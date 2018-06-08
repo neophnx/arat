@@ -62,7 +62,7 @@ def undo(collection, document, token):
         # Undo a modification
         # TODO: We do not handle attributes and comments
         raise NotImplementedError
-        
+
         # FIX: create_span call does not fit with the current implementation
 #        return create_span(collection, document, token['start'], token['end'],
 #                token['type'], id=token['id'], attributes=token['attributes'],
@@ -70,6 +70,7 @@ def undo(collection, document, token):
     else:
         raise NonUndoableActionError
     assert False, 'should have returned prior to this point'
+
 
 if __name__ == '__main__':
     # XXX: Path to...

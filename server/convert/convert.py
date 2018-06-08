@@ -16,26 +16,26 @@ from server.annotation import open_textfile, Annotations
 from server.common import ProtocolError
 from server.document import _document_json_dict
 from server.convert.stanford import (
-        basic_dep as stanford_basic_dep,
-        collapsed_ccproc_dep as stanford_collapsed_ccproc_dep,
-        collapsed_dep as stanford_collapsed_dep,
-        coref as stanford_coref,
-        ner as stanford_ner,
-        pos as stanford_pos,
-        text as stanford_text,
-        token_offsets as stanford_token_offsets,
-        sentence_offsets as stanford_sentence_offsets
-        )
+    basic_dep as stanford_basic_dep,
+    collapsed_ccproc_dep as stanford_collapsed_ccproc_dep,
+    collapsed_dep as stanford_collapsed_dep,
+    coref as stanford_coref,
+    ner as stanford_ner,
+    pos as stanford_pos,
+    text as stanford_text,
+    token_offsets as stanford_token_offsets,
+    sentence_offsets as stanford_sentence_offsets
+)
 
-### Constants
+# Constants
 CONV_BY_SRC = {
-        'stanford-pos': (stanford_text, stanford_pos, ),
-        'stanford-ner': (stanford_text, stanford_ner, ),
-        'stanford-coref': (stanford_text, stanford_coref, ),
-        'stanford-basic_dep': (stanford_text, stanford_basic_dep, ),
-        'stanford-collapsed_dep': (stanford_text, stanford_collapsed_dep, ),
-        'stanford-collapsed_ccproc_dep': (stanford_text, stanford_collapsed_ccproc_dep, ),
-        }
+    'stanford-pos': (stanford_text, stanford_pos, ),
+    'stanford-ner': (stanford_text, stanford_ner, ),
+    'stanford-coref': (stanford_text, stanford_coref, ),
+    'stanford-basic_dep': (stanford_text, stanford_basic_dep, ),
+    'stanford-collapsed_dep': (stanford_text, stanford_collapsed_dep, ),
+    'stanford-collapsed_ccproc_dep': (stanford_text, stanford_collapsed_ccproc_dep, ),
+}
 ###
 
 

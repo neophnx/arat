@@ -41,18 +41,18 @@ import six
 from server.filelock import file_lock
 from server.message import Messager
 from server.annotation.annotation_exceptions import (AnnotationFileNotFoundError,
-                                              AnnotationNotFoundError,
-                                              EventWithNonTriggerError,
-                                              EventWithoutTriggerError,
-                                              AnnotationsIsReadOnlyError,
-                                              DependingAnnotationDeleteError,
-                                              IdedAnnotationLineSyntaxError,
-                                              AnnotationLineSyntaxError,
-                                              DuplicateAnnotationIdError,
-                                              TriggerReferenceError,
-                                              InvalidIdError,
-                                              AnnotationTextFileNotFoundError,
-                                              deprecation)
+                                                     AnnotationNotFoundError,
+                                                     EventWithNonTriggerError,
+                                                     EventWithoutTriggerError,
+                                                     AnnotationsIsReadOnlyError,
+                                                     DependingAnnotationDeleteError,
+                                                     IdedAnnotationLineSyntaxError,
+                                                     AnnotationLineSyntaxError,
+                                                     DuplicateAnnotationIdError,
+                                                     TriggerReferenceError,
+                                                     InvalidIdError,
+                                                     AnnotationTextFileNotFoundError,
+                                                     deprecation)
 # Constants
 # The only suffix we allow to write to, which is the joined annotation file
 JOINED_ANN_FILE_SUFF = 'ann'
@@ -575,7 +575,7 @@ class Annotations(object):
 
     # XXX: This syntax is subject to change
     def _parse_attribute_annotation(self, id_, data, data_tail, input_file_path):
-        
+
         match = re_match(r'(.+?) (.+?) (.+?)$', data)
         if match is None:
             # Is it an old format without value?

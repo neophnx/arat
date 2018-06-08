@@ -34,7 +34,7 @@ from config import DATA_DIR
 from server.convert.convert import convert
 from server.docimport import save_import
 from server.document import (get_directory_information, get_document,
-                      get_document_timestamp, get_configuration)
+                             get_document_timestamp, get_configuration)
 from server.download import download_file, download_collection
 
 from server.annlog import log_annotation

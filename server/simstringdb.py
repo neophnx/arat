@@ -40,6 +40,7 @@ This library is required for approximate string matching DB lookup.
 Please install simstring and its Python bindings from
 http://www.chokkan.org/software/simstring/'''
 
+
 class NoSimStringError(ProtocolError):
     def __str__(self):
         return (u'No SimString bindings found, please install them from: '
@@ -47,6 +48,7 @@ class NoSimStringError(ProtocolError):
 
     def json(self, json_dic):
         json_dic['exception'] = 'noSimStringError'
+
 
 class ssdbNotFoundError(Exception):
     def __init__(self, fn):
@@ -56,6 +58,8 @@ class ssdbNotFoundError(Exception):
         return u'Simstring database file "%s" not found' % self.fn
 
 # Note: The only reason we use a function call for this is to delay the import
+
+
 def __set_db_measure(db, measure):
     try:
         import simstring
@@ -64,10 +68,11 @@ def __set_db_measure(db, measure):
         raise NoSimStringError
 
     ss_measure_by_str = {
-            'cosine': simstring.cosine,
-            'overlap': simstring.overlap,
-            }
+        'cosine': simstring.cosine,
+        'overlap': simstring.overlap,
+    }
     db.measure = ss_measure_by_str[measure]
+
 
 def __ssdb_path(db):
     '''
@@ -75,7 +80,7 @@ def __ssdb_path(db):
     is expected to contain the simstring DB.
     '''
     # Assume we have a path relative to the brat root if the value
-    # contains a separator, name only otherwise. 
+    # contains a separator, name only otherwise.
     # TODO: better treatment of name / path ambiguity, this doesn't
     # allow e.g. DBs to be located in brat root
     if path_sep in db:
@@ -83,6 +88,7 @@ def __ssdb_path(db):
     else:
         base = WORK_DIR
     return path_join(base, db+'.'+SS_DB_FILENAME_EXTENSION)
+
 
 def ssdb_build(strs, dbname, ngram_length=DEFAULT_NGRAM_LENGTH,
                include_marks=DEFAULT_INCLUDE_MARKS):
@@ -111,6 +117,7 @@ def ssdb_build(strs, dbname, ngram_length=DEFAULT_NGRAM_LENGTH,
 
     return dbfn
 
+
 def ssdb_delete(dbname):
     '''
     Given a DB name, deletes all files associated with the simstring
@@ -121,6 +128,7 @@ def ssdb_delete(dbname):
     os.remove(dbfn)
     for fn in glob.glob(dbfn+'.*.cdb'):
         os.remove(fn)
+
 
 def ssdb_open(dbname):
     '''
@@ -139,7 +147,8 @@ def ssdb_open(dbname):
         Messager.error('Failed to open simstring DB %s' % dbname)
         raise ssdbNotFoundError(dbname)
 
-def ssdb_lookup(s, dbname, measure=DEFAULT_SIMILARITY_MEASURE, 
+
+def ssdb_lookup(s, dbname, measure=DEFAULT_SIMILARITY_MEASURE,
                 threshold=DEFAULT_THRESHOLD):
     '''
     Given a string and a DB name, returns the strings matching in the
@@ -157,6 +166,7 @@ def ssdb_lookup(s, dbname, measure=DEFAULT_SIMILARITY_MEASURE,
     result = [r.decode('UTF-8') for r in result]
 
     return result
+
 
 def ngrams(s, out=None, n=DEFAULT_NGRAM_LENGTH, be=DEFAULT_INCLUDE_MARKS):
     '''
@@ -203,6 +213,7 @@ def ngrams(s, out=None, n=DEFAULT_NGRAM_LENGTH, be=DEFAULT_INCLUDE_MARKS):
 
     return out
 
+
 def ssdb_supstring_lookup(s, dbname, threshold=DEFAULT_THRESHOLD,
                           with_score=False):
     '''
@@ -239,7 +250,7 @@ def ssdb_supstring_lookup(s, dbname, threshold=DEFAULT_THRESHOLD,
         if s in r:
             # avoid calculation: simple containment => score=1
             if with_score:
-                filtered.append((r,1.0))
+                filtered.append((r, 1.0))
             else:
                 filtered.append(r)
         else:
@@ -252,6 +263,7 @@ def ssdb_supstring_lookup(s, dbname, threshold=DEFAULT_THRESHOLD,
                     filtered.append(r)
 
     return filtered
+
 
 def ssdb_supstring_exists(s, dbname, threshold=DEFAULT_THRESHOLD):
     '''
@@ -286,6 +298,7 @@ def ssdb_supstring_exists(s, dbname, threshold=DEFAULT_THRESHOLD):
         # naive implementation for everything else
         return len(ssdb_supstring_lookup(s, dbname, threshold)) != 0
 
+
 if __name__ == "__main__":
     # test
     dbname = "TEMP-TEST-DB"
@@ -319,7 +332,7 @@ if __name__ == "__main__":
         "01234",
         "-12345",
         "012345",
-        ]
+    ]
     print('strings:', strings)
     ssdb_build(strings, dbname)
     for t in ['0', '012', '012345', '0123456', '0123456789']:
@@ -327,4 +340,3 @@ if __name__ == "__main__":
         for s in ssdb_supstring_lookup(t, dbname):
             print(s, 'contains', t, '(threshold %f)' % DEFAULT_THRESHOLD)
     ssdb_delete(dbname)
-    

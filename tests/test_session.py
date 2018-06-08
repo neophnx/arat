@@ -11,7 +11,6 @@ import unittest
 from server import session
 
 
-
 class TestSentenceSplit(unittest.TestCase):
     def test01_SessionNotInitialize(self):
 
@@ -22,17 +21,17 @@ class TestSentenceSplit(unittest.TestCase):
             assert False
         except session.NoSessionError:
             pass
-    
+
     def test02_SessionSimple(self):
         # New "fresh" cookie session check
         session.init_session('127.0.0.1')
-        
+
         try:
             this_session = session.get_session()
             this_session['foo'] = 'bar'
         except session.NoSessionError:
             assert False
-            
+
     def testSessionPickle(self):
         # Pickle check
         session.init_session('127.0.0.1')
@@ -45,7 +44,7 @@ class TestSentenceSplit(unittest.TestCase):
             with open(tmp_file_path, 'wb') as tmp_file:
                 session.pickle_dump(this_session, tmp_file)
             del this_session
-    
+
             with open(tmp_file_path, 'rb') as tmp_file:
                 this_session = session.pickle_load(tmp_file)
                 self.assertEquals(this_session['foo'], 'bar')

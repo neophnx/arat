@@ -17,6 +17,7 @@ AnnotationError = "AnnotationError"
 AnnotationWarning = "AnnotationWarning"
 AnnotationIncomplete = "AnnotationIncomplete"
 
+
 class AnnotationIssue:
     """
     Represents an issue noted in verification of annotations.
@@ -37,6 +38,7 @@ class AnnotationIssue:
     def __str__(self):
         return "%s\t%s %s\t%s" % (self.id, self.type, self.ann_id, self.description)
 
+
 def event_nonum_args(e):
     """
     Given an EventAnnotatation, returns its arguments without trailing
@@ -54,6 +56,7 @@ def event_nonum_args(e):
         nna[arg].append(aid)
     return nna
 
+
 def event_nonum_arg_count(e):
     """
     Given an EventAnnotation, returns a dictionary containing for each
@@ -70,6 +73,7 @@ def event_nonum_arg_count(e):
         nnc[arg] = nnc.get(arg, 0) + 1
     return nnc
 
+
 def check_textbound_overlap(anns):
     """
     Checks for overlap between the given TextBoundAnnotations.
@@ -82,10 +86,11 @@ def check_textbound_overlap(anns):
             if a1 is a2:
                 continue
             if (a2.first_start() < a1.last_end() and
-                a2.last_end() > a1.first_start()):
-                overlapping.append((a1,a2))
+                    a2.last_end() > a1.first_start()):
+                overlapping.append((a1, a2))
 
     return overlapping
+
 
 def verify_equivs(ann_obj, projectconf):
     issues = []
@@ -107,7 +112,7 @@ def verify_equivs(ann_obj, projectconf):
         type_pairs = []
         for t1 in eq_type:
             for t2 in eq_type:
-                type_pairs.append((t1,t2))
+                type_pairs.append((t1, t2))
 
         # do avoid marking both (a1,a2) and (a2,a1), remember what's
         # already included
@@ -122,14 +127,16 @@ def verify_equivs(ann_obj, projectconf):
                     equiv_type_found = True
             if not equiv_type_found:
                 # Avoid redundant output
-                if (t2,t1) in marked:
+                if (t2, t1) in marked:
                     continue
                 # TODO: mark this error on the Eq relation, not the entities
                 for e in equiv_anns:
-                    issues.append(AnnotationIssue(e.id, AnnotationError, "Equivalence relation %s not allowed between %s and %s" % (eq.type, disp(t1), disp(t2))))
-                marked[(t1,t2)] = True
+                    issues.append(AnnotationIssue(
+                        e.id, AnnotationError, "Equivalence relation %s not allowed between %s and %s" % (eq.type, disp(t1), disp(t2))))
+                marked[(t1, t2)] = True
 
     return issues
+
 
 def verify_entity_overlap(ann_obj, projectconf):
     issues = []
@@ -139,24 +146,30 @@ def verify_entity_overlap(ann_obj, projectconf):
         return projectconf.preferred_display_form(s)
 
     # check for overlap between physical entities
-    physical_entities = [a for a in ann_obj.get_textbounds() if projectconf.is_physical_entity_type(a.type)]
+    physical_entities = [a for a in ann_obj.get_textbounds(
+    ) if projectconf.is_physical_entity_type(a.type)]
     overlapping = check_textbound_overlap(physical_entities)
     for a1, a2 in overlapping:
         if a1.same_span(a2):
             if not projectconf.spans_can_be_equal(a1.type, a2.type):
-                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot have identical span with %s %s" % (disp(a1.type), disp(a2.type), a2.id)))            
+                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot have identical span with %s %s" % (
+                    disp(a1.type), disp(a2.type), a2.id)))
         elif a2.contains(a1):
             if not projectconf.span_can_contain(a1.type, a2.type):
-                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot be contained in %s (%s)" % (disp(a1.type), disp(a2.type), a2.id)))
+                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot be contained in %s (%s)" % (
+                    disp(a1.type), disp(a2.type), a2.id)))
         elif a1.contains(a2):
             if not projectconf.span_can_contain(a2.type, a1.type):
-                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot contain %s (%s)" % (disp(a1.type), disp(a2.type), a2.id)))
+                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: %s cannot contain %s (%s)" % (
+                    disp(a1.type), disp(a2.type), a2.id)))
         else:
             if not projectconf.spans_can_cross(a1.type, a2.type):
-                issues.append(AnnotationIssue(a1.id, AnnotationError, "Error: annotation cannot have crossing span with %s" % a2.id))
-    
+                issues.append(AnnotationIssue(
+                    a1.id, AnnotationError, "Error: annotation cannot have crossing span with %s" % a2.id))
+
     # TODO: generalize to other cases
     return issues
+
 
 def verify_annotation_types(ann_obj, projectconf):
     issues = []
@@ -171,17 +184,21 @@ def verify_annotation_types(ann_obj, projectconf):
 
     for e in ann_obj.get_events():
         if e.type not in event_types:
-            issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s is not a known event type (check configuration?)" % disp(e.type)))
+            issues.append(AnnotationIssue(e.id, AnnotationError,
+                                          "Error: %s is not a known event type (check configuration?)" % disp(e.type)))
 
     for t in ann_obj.get_textbounds():
         if t.type not in textbound_types:
-            issues.append(AnnotationIssue(t.id, AnnotationError, "Error: %s is not a known textbound type (check configuration?)" % disp(t.type)))
+            issues.append(AnnotationIssue(t.id, AnnotationError,
+                                          "Error: %s is not a known textbound type (check configuration?)" % disp(t.type)))
 
     for r in ann_obj.get_relations():
         if r.type not in relation_types:
-            issues.append(AnnotationIssue(r.id, AnnotationError, "Error: %s is not a known relation type (check configuration?)" % disp(r.type)))
+            issues.append(AnnotationIssue(r.id, AnnotationError,
+                                          "Error: %s is not a known relation type (check configuration?)" % disp(r.type)))
 
     return issues
+
 
 def verify_triggers(ann_obj, projectconf):
     issues = []
@@ -200,7 +217,8 @@ def verify_triggers(ann_obj, projectconf):
             continue
 
         if t.id not in events_by_trigger:
-            issues.append(AnnotationIssue(t.id, AnnotationIncomplete, "Warning: trigger %s is not referenced from any event" % t.id))
+            issues.append(AnnotationIssue(t.id, AnnotationIncomplete,
+                                          "Warning: trigger %s is not referenced from any event" % t.id))
 
         spt = tuple(set(t.spans))+(t.type,)
         if spt not in trigger_by_span_and_type:
@@ -216,11 +234,14 @@ def verify_triggers(ann_obj, projectconf):
             # any; issues attached to triggers referenced from events
             # don't get shown. TODO: revise once this is fixed.
             if t.id in events_by_trigger:
-                issues.append(AnnotationIssue(events_by_trigger[t.id][0].id, AnnotationWarning, "Warning: triggers %s have identical span and type (harmless but unnecessary duplication)" % ",".join([x.id for x in trigs])))
+                issues.append(AnnotationIssue(events_by_trigger[t.id][0].id, AnnotationWarning,
+                                              "Warning: triggers %s have identical span and type (harmless but unnecessary duplication)" % ",".join([x.id for x in trigs])))
             else:
-                issues.append(AnnotationIssue(t.id, AnnotationWarning, "Warning: triggers %s have identical span and type (harmless but unnecessary duplication)" % ",".join([x.id for x in trigs])))
+                issues.append(AnnotationIssue(
+                    t.id, AnnotationWarning, "Warning: triggers %s have identical span and type (harmless but unnecessary duplication)" % ",".join([x.id for x in trigs])))
 
     return issues
+
 
 def _relation_labels_match(rel, rel_conf):
     if len(rel_conf.arg_list) != 2:
@@ -228,6 +249,7 @@ def _relation_labels_match(rel, rel_conf):
         return False
     return (rel.arg1l == rel_conf.arg_list[0] and
             rel.arg2l == rel_conf.arg_list[1])
+
 
 def verify_relations(ann_obj, projectconf):
     issues = []
@@ -260,12 +282,14 @@ def verify_relations(ann_obj, projectconf):
                 match_found = True
         r.arg1, r.arg2, r.arg1l, r.arg2l = r.arg2, r.arg1, r.arg2l, r.arg1l
         if match_found:
-            continue            
+            continue
 
         # not found for either argument order
-        issues.append(AnnotationIssue(r.id, AnnotationError, "Error: %s relation %s:%s %s:%s not allowed" % (disp(r.type), r.arg1l, disp(a1.type), r.arg2l, disp(a2.type))))
+        issues.append(AnnotationIssue(r.id, AnnotationError, "Error: %s relation %s:%s %s:%s not allowed" % (
+            disp(r.type), r.arg1l, disp(a1.type), r.arg2l, disp(a2.type))))
 
     return issues
+
 
 def verify_missing_arguments(ann_obj, projectconf):
     """
@@ -276,7 +300,7 @@ def verify_missing_arguments(ann_obj, projectconf):
     # shortcut
     def disp(s):
         return projectconf.preferred_display_form(s)
-    
+
     for e in ann_obj.get_events():
         nonum_arg_counts = event_nonum_arg_count(e)
         for m in projectconf.mandatory_arguments(e.type):
@@ -293,10 +317,11 @@ def verify_missing_arguments(ann_obj, projectconf):
                     countstr = "exactly " + countstr
                 else:
                     countstr = "at least " + countstr
-                issues.append(AnnotationIssue(e.id, AnnotationIncomplete, 
+                issues.append(AnnotationIssue(e.id, AnnotationIncomplete,
                                               "Incomplete: " + countstr + "required for event"))
 
     return issues
+
 
 def verify_disallowed_arguments(ann_obj, projectconf):
     """
@@ -314,14 +339,17 @@ def verify_disallowed_arguments(ann_obj, projectconf):
         eargs = event_nonum_args(e)
         for a in eargs:
             if a not in allowed:
-                issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s cannot take a %s argument" % (disp(e.type), disp(a))))
+                issues.append(AnnotationIssue(
+                    e.id, AnnotationError, "Error: %s cannot take a %s argument" % (disp(e.type), disp(a))))
             else:
                 for rid in eargs[a]:
                     r = ann_obj.get_ann_by_id(rid)
                     if a not in projectconf.arc_types_from_to(e.type, r.type):
-                        issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s argument %s cannot be of type %s" % (disp(e.type), disp(a), disp(r.type))))
+                        issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s argument %s cannot be of type %s" % (
+                            disp(e.type), disp(a), disp(r.type))))
 
     return issues
+
 
 def verify_extra_arguments(ann_obj, projectconf):
     """
@@ -339,11 +367,14 @@ def verify_extra_arguments(ann_obj, projectconf):
         for a in [m for m in nonum_arg_counts if nonum_arg_counts[m] > 1]:
             amax = projectconf.argument_maximum_count(e.type, a)
             if a not in multiple_allowed:
-                issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s cannot take multiple %s arguments" % (disp(e.type), disp(a))))
+                issues.append(AnnotationIssue(
+                    e.id, AnnotationError, "Error: %s cannot take multiple %s arguments" % (disp(e.type), disp(a))))
             elif nonum_arg_counts[a] > amax:
-                issues.append(AnnotationIssue(e.id, AnnotationError, "Error: %s can take at most %d %s arguments" % (disp(e.type), amax, disp(a))))
-    
+                issues.append(AnnotationIssue(
+                    e.id, AnnotationError, "Error: %s can take at most %d %s arguments" % (disp(e.type), amax, disp(a))))
+
     return issues
+
 
 def verify_attributes(ann_obj, projectconf):
     """
@@ -360,11 +391,13 @@ def verify_attributes(ann_obj, projectconf):
         tid = a.target
         t = ann_obj.get_ann_by_id(tid)
         allowed = projectconf.attributes_for(t.type)
-        
+
         if a.type not in allowed:
-            issues.append(AnnotationIssue(t.id, AnnotationError, "Error: %s cannot take a %s attribute" % (disp(t.type), disp(a.type))))
+            issues.append(AnnotationIssue(t.id, AnnotationError,
+                                          "Error: %s cannot take a %s attribute" % (disp(t.type), disp(a.type))))
 
     return issues
+
 
 def verify_annotation(ann_obj, projectconf):
     """
@@ -390,16 +423,21 @@ def verify_annotation(ann_obj, projectconf):
     issues += verify_extra_arguments(ann_obj, projectconf)
 
     issues += verify_attributes(ann_obj, projectconf)
-    
+
     return issues
+
 
 def argparser():
     import argparse
 
-    ap=argparse.ArgumentParser(description="Verify BioNLP Shared Task annotations.")
-    ap.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose output.")
-    ap.add_argument("files", metavar="FILE", nargs="+", help="Files to verify.")
+    ap = argparse.ArgumentParser(
+        description="Verify BioNLP Shared Task annotations.")
+    ap.add_argument("-v", "--verbose", default=False,
+                    action="store_true", help="Verbose output.")
+    ap.add_argument("files", metavar="FILE",
+                    nargs="+", help="Files to verify.")
     return ap
+
 
 def main(argv=None):
     import sys
@@ -416,7 +454,8 @@ def main(argv=None):
             # parsing of .a1 also.
             # (TODO: temporarily removing .ann also to work around a
             # bug in TextAnnotations, but this should not be necessary.)
-            nosuff_fn = fn.replace(".a2","").replace(".rel","").replace(".ann","")
+            nosuff_fn = fn.replace(".a2", "").replace(
+                ".rel", "").replace(".ann", "")
             with annotation.TextAnnotations(nosuff_fn) as ann_obj:
                 issues = verify_annotation(ann_obj, projectconf)
                 for i in issues:
@@ -428,6 +467,7 @@ def main(argv=None):
 
     if arg.verbose:
         print("Check complete.", file=sys.stderr)
+
 
 if __name__ == "__main__":
     import sys

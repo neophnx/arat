@@ -153,7 +153,8 @@ def file_lock(path, wait=0.1, timeout=1,
                     pass  # Standard, just do nothing
                 elif pid_policy == PID_WARN or pid_policy == PID_ALLOW:
                     file_desc = os.open(path, os.O_RDONLY)
-                    pid = int(os.read(file_desc, 255).decode('ascii', "replace"))
+                    pid = int(os.read(file_desc, 255).decode(
+                        'ascii', "replace"))
                     os.close(file_desc)
                     if not _pid_exists(pid):
                         # Stale lock-file

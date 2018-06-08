@@ -7,21 +7,22 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2011-09-12
 '''
 
-### Constants
+# Constants
 # From: To
 from __future__ import absolute_import
 import six
 PTB_ESCAPES = {
-        u'(': u'-LRB-',
-        u')': u'-RRB-',
-        u'[': u'-LSB-',
-        u']': u'-RSB-',
-        u'{': u'-LCB-',
-        u'}': u'-RCB-',
-        u'/': u'\/',
-        u'*': u'\*',
-    }
+    u'(': u'-LRB-',
+    u')': u'-RRB-',
+    u'[': u'-LSB-',
+    u']': u'-RSB-',
+    u'{': u'-LCB-',
+    u'}': u'-RCB-',
+    u'/': u'\/',
+    u'*': u'\*',
+}
 ###
+
 
 def escape(s):
     r = s
@@ -29,11 +30,13 @@ def escape(s):
         r = r.replace(_from, to)
     return r
 
+
 def unescape(s):
     r = s
     for _from, to in six.iteritems(PTB_ESCAPES):
         r = r.replace(to, _from)
     return r
+
 
 def main(args):
     from argparse import ArgumentParser
@@ -52,7 +55,7 @@ def main(args):
         stdout.write(r)
         stdout.write('\n')
 
+
 if __name__ == '__main__':
     from sys import argv
     exit(main(argv))
-

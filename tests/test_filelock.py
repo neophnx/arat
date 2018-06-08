@@ -12,7 +12,7 @@ from os import rmdir
 from os.path import join, isfile
 from tempfile import mkdtemp
 from os import (remove, read, fsync, open, close, write, getpid,
-        O_CREAT, O_EXCL, O_RDWR, O_RDONLY)
+                O_CREAT, O_EXCL, O_RDWR, O_RDONLY)
 from time import sleep
 
 from server import filelock
@@ -23,7 +23,7 @@ try:
 except ImportError:
     try:
         from StringIO import StringIO
-    except:# python3
+    except:  # python3
         from io import StringIO
 
 
@@ -36,7 +36,7 @@ class TestFileLock(unittest.TestCase):
         try:
             remove(self._lock_file_path)
         except OSError:
-            pass # It just didn't exist
+            pass  # It just didn't exist
         rmdir(self._temp_dir)
 
     def test_with(self):
@@ -45,7 +45,7 @@ class TestFileLock(unittest.TestCase):
         '''
         with filelock.file_lock(self._lock_file_path):
             sleep(1)
-        sleep(0.1) # Make sure the remove is in effect
+        sleep(0.1)  # Make sure the remove is in effect
         self.assertFalse(isfile(self._lock_file_path))
 
     def test_exception(self):
@@ -82,9 +82,9 @@ class TestFileLock(unittest.TestCase):
             return 0
 
         process = Process(target=process_task,
-                args=[self._lock_file_path])
+                          args=[self._lock_file_path])
         process.start()
-        sleep(0.5) # Make sure it reaches the disk
+        sleep(0.5)  # Make sure it reaches the disk
         self.assertTrue(isfile(self._lock_file_path))
         sleep(1)
 
@@ -105,7 +105,7 @@ class TestFileLock(unittest.TestCase):
             return 0
 
         process = Process(target=process_task,
-                args=[self._lock_file_path])
+                          args=[self._lock_file_path])
         process.start()
         while process.is_alive():
             sleep(0.1)
@@ -118,7 +118,7 @@ class TestFileLock(unittest.TestCase):
         pid = self._fake_crash_other_process()
         self.assertTrue(isfile(self._lock_file_path))
         self.assertTrue(pid == int(
-            read(open(self._lock_file_path, O_RDONLY), 255)))#XXX: Close
+            read(open(self._lock_file_path, O_RDONLY), 255)))  # XXX: Close
 
     ###
     def test_pid_disallow(self):
@@ -141,7 +141,7 @@ class TestFileLock(unittest.TestCase):
         err_output = StringIO()
         try:
             with filelock.file_lock(self._lock_file_path, pid_policy=filelock.PID_WARN,
-                    err_output=err_output):
+                                    err_output=err_output):
                 pass
         except filelock.FileLockTimeoutError:
             self.assertTrue(False, 'Should not reach this point')
@@ -157,10 +157,9 @@ class TestFileLock(unittest.TestCase):
         err_output = StringIO()
         try:
             with filelock.file_lock(self._lock_file_path, pid_policy=filelock.PID_ALLOW,
-                    err_output=err_output):
+                                    err_output=err_output):
                 pass
         except filelock.FileLockTimeoutError:
             self.assertTrue(False, 'Should not reach this point')
         err_output.seek(0)
         self.assertFalse(err_output.read(), 'Output although allow set')
-

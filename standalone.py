@@ -19,11 +19,12 @@ from cgi import FieldStorage
 import socket
 
 # six
-from six.moves.BaseHTTPServer import HTTPServer# pylint disable: import-error
-from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler# pylint disable: import-error
-from six.moves.socketserver import ForkingMixIn# pylint disable: import-error
-from six.moves.urllib.parse import unquote# pylint disable: import-error
-import six# pylint disable: import-error
+from six.moves.BaseHTTPServer import HTTPServer  # pylint disable: import-error
+# pylint disable: import-error
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
+from six.moves.socketserver import ForkingMixIn  # pylint disable: import-error
+from six.moves.urllib.parse import unquote  # pylint disable: import-error
+import six  # pylint disable: import-error
 
 # brat imports
 from server.brat_server import serve
@@ -64,7 +65,7 @@ class PathPattern(object):
     def match(self, path):
         # Require prefix match
         res = path[:self.plen] == self.path
-        
+
         # and separator/end.
         res = res and (self.path[-1] == '/' or
                        path[self.plen:] == '' or
@@ -82,7 +83,7 @@ class ExtensionPattern(object):
 
 class PathPermissions(object):
     """Implements path permission checking with a robots.txt-like syntax.
-    
+
     TODO: issue #8 use robotparser instead of reimplementing the logic
     """
 
@@ -114,7 +115,8 @@ class PathPermissions(object):
 
             i = line.find(':')
             if i == -1:
-                raise PermissionParseError(lineno, lines[lineno], 'missing colon')
+                raise PermissionParseError(
+                    lineno, lines[lineno], 'missing colon')
 
             directive = line[:i].strip().lower()
             pattern = line[i+1:].strip()
@@ -174,7 +176,6 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         if i != -1:
             query_string = self.path[i+1:]
 
-
         # set env to get FieldStorage to read params
         env = {}
         env['REQUEST_METHOD'] = self.command
@@ -201,7 +202,7 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         for k, v in response_hdrs:
             self.send_header(k, v)
         self.end_headers()
-        
+
         # Hack to support binary data and general Unicode for SVGs and JSON
         if isinstance(response_data[1], six.text_type):
             self.wfile.write(response_data[1].encode('utf-8'))
@@ -301,7 +302,8 @@ server is experimental and should not be run as administrator.
         if _PYTHON3:
             print("Error binding to port", port, ":", why, file=sys.stderr)
         else:
-            print("Error binding to port", port, ":", why[1], file=sys.stderr)# pylint: disable=unsubscriptable-object
+            print("Error binding to port", port, ":",
+                  why[1], file=sys.stderr)  # pylint: disable=unsubscriptable-object
     except Exception as exception:
         print("Server error", exception, file=sys.stderr)
         raise

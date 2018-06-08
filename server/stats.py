@@ -25,28 +25,33 @@ from config import DATA_DIR, BASE_DIR
 from server.message import Messager
 from server.projectconfig import get_config_path, options_get_validation
 
-### Constants
+# Constants
 STATS_CACHE_FILE_NAME = '.stats_cache'
 ###
+
 
 def get_stat_cache_by_dir(directory):
     return path_join(directory, STATS_CACHE_FILE_NAME)
 
 # TODO: Move this to a util module
+
+
 def get_config_py_path():
     return path_join(BASE_DIR, 'config.py')
 
 # TODO: Quick hack, prettify and use some sort of csv format
+
+
 def get_statistics(directory, base_names, use_cache=True):
     # Check if we have a cache of the costly satistics generation
     # Also, only use it if no file is newer than the cache itself
     cache_file_path = get_stat_cache_by_dir(directory)
 
     try:
-        cache_mtime = getmtime(cache_file_path);
+        cache_mtime = getmtime(cache_file_path)
     except OSError as e:
         if e.errno == 2:
-            cache_mtime = -1;
+            cache_mtime = -1
         else:
             raise
 
@@ -56,9 +61,9 @@ def get_statistics(directory, base_names, use_cache=True):
                 or getmtime(get_config_py_path()) > cache_mtime
                 # Any file has changed in the dir since the cache was generated
                 or any(True for f in listdir(directory)
-                    if (getmtime(path_join(directory, f)) > cache_mtime
-                    # Ignore hidden files
-                    and not f.startswith('.')))
+                       if (getmtime(path_join(directory, f)) > cache_mtime
+                           # Ignore hidden files
+                           and not f.startswith('.')))
                 # The configuration is newer than the cache
                 or getmtime(get_config_path(directory)) > cache_mtime):
             generate = True
@@ -69,18 +74,21 @@ def get_statistics(directory, base_names, use_cache=True):
                 with open(cache_file_path, 'rb') as cache_file:
                     docstats = pickle_load(cache_file)
                 if len(docstats) != len(base_names):
-                    Messager.warning('Stats cache %s was incomplete; regenerating' % cache_file_path)
+                    Messager.warning(
+                        'Stats cache %s was incomplete; regenerating' % cache_file_path)
                     generate = True
                     docstats = []
             except UnpicklingError:
                 # Corrupt data, re-generate
-                Messager.warning('Stats cache %s was corrupted; regenerating' % cache_file_path, -1)
+                Messager.warning(
+                    'Stats cache %s was corrupted; regenerating' % cache_file_path, -1)
                 generate = True
             except EOFError:
                 # Corrupt data, re-generate
                 generate = True
     except OSError as e:
-        Messager.warning('Failed checking file modification times for stats cache check; regenerating')
+        Messager.warning(
+            'Failed checking file modification times for stats cache check; regenerating')
         generate = True
 
     if not use_cache:
@@ -91,7 +99,7 @@ def get_statistics(directory, base_names, use_cache=True):
 
     if options_get_validation(directory) != 'none':
         stat_types.append(("Issues", "int"))
-            
+
     if generate:
         # Generate the document statistics from scratch
         from server.annotation import JOINED_ANN_FILE_SUFF
@@ -99,13 +107,12 @@ def get_statistics(directory, base_names, use_cache=True):
         docstats = []
         for docname in base_names:
             try:
-                with Annotations(path_join(directory, docname), 
-                        read_only=True) as ann_obj:
+                with Annotations(path_join(directory, docname),
+                                 read_only=True) as ann_obj:
                     tb_count = len([a for a in ann_obj.get_entities()])
                     rel_count = (len([a for a in ann_obj.get_relations()]) +
                                  len([a for a in ann_obj.get_equivs()]))
                     event_count = len([a for a in ann_obj.get_events()])
-
 
                     if options_get_validation(directory) == 'none':
                         docstats.append([tb_count, rel_count, event_count])
@@ -120,7 +127,8 @@ def get_statistics(directory, base_names, use_cache=True):
                         except:
                             # TODO: error reporting
                             issue_count = -1
-                        docstats.append([tb_count, rel_count, event_count, issue_count])
+                        docstats.append(
+                            [tb_count, rel_count, event_count, issue_count])
             except Exception as e:
                 log_info('Received "%s" when trying to generate stats' % e)
                 # Pass exceptions silently, just marking stats missing
@@ -131,7 +139,8 @@ def get_statistics(directory, base_names, use_cache=True):
             with open(cache_file_path, 'wb') as cache_file:
                 pickle_dump(docstats, cache_file)
         except IOError as e:
-            Messager.warning("Could not write statistics cache file to directory %s: %s" % (directory, e))
+            Messager.warning(
+                "Could not write statistics cache file to directory %s: %s" % (directory, e))
 
     return stat_types, docstats
 

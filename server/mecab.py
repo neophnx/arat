@@ -18,7 +18,7 @@ from re import compile as re_compile
 from re import DOTALL
 import six
 
-### Constants
+# Constants
 # TODO: EXTERNAL_DIR_PATH really should be specified elsewhere
 EXTERNAL_DIR_PATH = path_join(dirname(__file__), '..', '..', 'external')
 MECAB_PYTHON_PATH = path_join(EXTERNAL_DIR_PATH, 'mecab-python-0.98')
@@ -34,10 +34,12 @@ except ImportError:
     sys_path.append(MECAB_PYTHON_PATH)
     try:
         import MeCab as mecab
-    except ImportError:   
+    except ImportError:
         pass
 
 # Boundaries are on the form: [start, end]
+
+
 def token_offsets_gen(text):
     # Parse in Wakati format
     tagger = mecab.Tagger('-O wakati')
@@ -59,6 +61,7 @@ def token_offsets_gen(text):
         end = start + len(tok)
         yield [start, end]
         last_end = end
+
 
 if __name__ == '__main__':
     # Minor test: Is it a duck? Maybe?

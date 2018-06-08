@@ -28,26 +28,26 @@ from logging import info as log_info
 
 
 # third party
-import six# pylint disable: import-error
-from six.moves import range# pylint disable: import-error
+import six  # pylint disable: import-error
+from six.moves import range  # pylint disable: import-error
 
 # brat
 from server.annotation import (TextAnnotations, TEXT_FILE_SUFFIX,
-                        AnnotationCollectionNotFoundError,
-                        JOINED_ANN_FILE_SUFF,
-                        open_textfile,
-                        BIONLP_ST_2013_COMPATIBILITY)
+                               AnnotationCollectionNotFoundError,
+                               JOINED_ANN_FILE_SUFF,
+                               open_textfile,
+                               BIONLP_ST_2013_COMPATIBILITY)
 from server.common import ProtocolError, CollectionNotAccessibleError
 from config import BASE_DIR, DATA_DIR
 from server.projectconfig import (ProjectConfiguration, SEPARATOR_STR,
-                           SPAN_DRAWING_ATTRIBUTES, ARC_DRAWING_ATTRIBUTES,
-                           VISUAL_SPAN_DEFAULT, VISUAL_ARC_DEFAULT,
-                           ATTR_DRAWING_ATTRIBUTES, VISUAL_ATTR_DEFAULT,
-                           SPECIAL_RELATION_TYPES,
-                           options_get_validation, options_get_tokenization,
-                           options_get_ssplitter, get_annotation_config_section_labels,
-                           visual_options_get_arc_bundle,
-                           visual_options_get_text_direction)
+                                  SPAN_DRAWING_ATTRIBUTES, ARC_DRAWING_ATTRIBUTES,
+                                  VISUAL_SPAN_DEFAULT, VISUAL_ARC_DEFAULT,
+                                  ATTR_DRAWING_ATTRIBUTES, VISUAL_ATTR_DEFAULT,
+                                  SPECIAL_RELATION_TYPES,
+                                  options_get_validation, options_get_tokenization,
+                                  options_get_ssplitter, get_annotation_config_section_labels,
+                                  visual_options_get_arc_bundle,
+                                  visual_options_get_text_direction)
 from server.stats import get_statistics
 from server.message import Messager
 from server.auth import allowed_to_read, AccessDeniedError

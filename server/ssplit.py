@@ -24,7 +24,7 @@ from shlex import split as shlex_split
 # third party
 import six
 
-### Constants
+# Constants
 # Reasonably well-behaved sentence end regular expression
 SENTENCE_END_REGEX = re_compile(u'''
         # Require a leading non-whitespace character for the sentence
@@ -63,11 +63,12 @@ SENTENCE_END_NEWLINE_REGEX = re_compile(u'''
     ''', DOTALL | VERBOSE)
 ###
 
+
 def _refine_split(offsets, original_text):
     # Postprocessor expects newlines, so add. Also, replace
     # sentence-internal newlines with spaces not to confuse it.
     new_text = '\n'.join((original_text[o[0]:o[1]].replace('\n', ' ')
-            for o in offsets))
+                          for o in offsets))
 
     from server.sspostproc import refine_split
     output = refine_split(new_text)
@@ -111,7 +112,7 @@ def _refine_split(offsets, original_text):
                 # We need to split the existing offsets in two
                 new_offsets.remove((o_start, o_end))
                 new_offsets.extend(((o_start, orig_newline, ),
-                        (orig_newline + 1, o_end), ))
+                                    (orig_newline + 1, o_end), ))
                 break
             elif o_end == orig_newline:
                 # We have already respected this newline
@@ -125,18 +126,22 @@ def _refine_split(offsets, original_text):
     new_offsets.sort()
     return new_offsets
 
+
 def _sentence_boundary_gen(text, regex):
     for match in regex.finditer(text):
         yield match.span()
 
+
 def regex_sentence_boundary_gen(text):
     for o in _refine_split([_o for _o in _sentence_boundary_gen(
-                text, SENTENCE_END_REGEX)], text):
+            text, SENTENCE_END_REGEX)], text):
         yield o
+
 
 def newline_sentence_boundary_gen(text):
     for o in _sentence_boundary_gen(text, SENTENCE_END_NEWLINE_REGEX):
         yield o
+
 
 en_sentence_boundary_gen = regex_sentence_boundary_gen
 jp_sentence_boundary_gen = regex_sentence_boundary_gen
@@ -167,11 +172,11 @@ if __name__ == '__main__':
                     # These should only be allowed when coming from original
                     #   explicit newlines.
                     #assert sentence, 'blank sentences disallowed'
-                    #assert not sentence[0].isspace(), (
+                    # assert not sentence[0].isspace(), (
                     #        'sentence may not start with white-space "%s"' % sentence)
                     print('"%s"' % sentence.replace('\n', '\\n'))
         except IOError:
-            pass # Most likely a broken pipe
+            pass  # Most likely a broken pipe
     else:
         print("usage %s <filename>")
         exit(1)

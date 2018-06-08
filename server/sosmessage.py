@@ -15,9 +15,12 @@ Use e.g. as
 '''
 
 from __future__ import print_function
+
+
 class SosMessager:
     def output_json(json_dict):
-        json_dict['messages'] = [['HELP: messager down! (internal error in message.py, please contact administrator)','error', -1]]
+        json_dict['messages'] = [
+            ['HELP: messager down! (internal error in message.py, please contact administrator)', 'error', -1]]
         return json_dict
     output_json = staticmethod(output_json)
 

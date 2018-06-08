@@ -14,6 +14,7 @@ from os.path import join as join_path
 import config
 from server import docimport
 
+
 class SaveImportTest(unittest.TestCase):
     test_text = 'This is not a drill, this is a drill *BRRR!*'
     test_dir = 'test'
@@ -29,6 +30,3 @@ class SaveImportTest(unittest.TestCase):
         docimport.save_import(SaveImportTest.test_text,
                               SaveImportTest.test_filename,
                               collection="/"+self.tmpdir.split("/")[-1])
-    
-   
-

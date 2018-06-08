@@ -24,13 +24,17 @@ from six import unichr
 import six
 from six.moves import range
 
-# for cleaning up control chars from a string, from 
+# for cleaning up control chars from a string, from
 # http://stackoverflow.com/questions/92438/stripping-non-printable-characters-from-a-string-in-python
 # allow tab (9) and [unix] newline (10)
-__control_chars = ''.join(map(unichr, list(range(0,9)) + list(range(11,32)) + list(range(127,160))))
+__control_chars = ''.join(
+    map(unichr, list(range(0, 9)) + list(range(11, 32)) + list(range(127, 160))))
 __control_char_re = re.compile('[%s]' % re.escape(__control_chars))
+
+
 def remove_control_chars(s):
     return __control_char_re.sub('', s)
+
 
 class Messager:
     __pending_messages = []
@@ -50,7 +54,7 @@ class Messager:
 
     def debug(msg, duration=3, escaped=False):
         Messager.__message(msg, 'debug', duration, escaped)
-    debug = staticmethod(debug)    
+    debug = staticmethod(debug)
 
     def output(o):
         for m, c, d in Messager.__pending_messages:
@@ -62,7 +66,8 @@ class Messager:
             return Messager.__output_json(json_dict)
         except Exception as e:
             # TODO: do we want to always give the exception?
-            json_dict['messages'] = [['Messager error adding messages to json (internal error in message.py, please contact administrator): %s' % str(e),'error', -1]]
+            json_dict['messages'] = [
+                ['Messager error adding messages to json (internal error in message.py, please contact administrator): %s' % str(e), 'error', -1]]
             return json_dict
     output_json = staticmethod(output_json)
 
@@ -74,7 +79,8 @@ class Messager:
                 encoded = m[0].encode('utf-8')
                 convertable_messages.append(m)
             except UnicodeDecodeError:
-                convertable_messages.append((u'[ERROR: MESSAGE THAT CANNOT BE ENCODED AS UTF-8 OMITTED]', 'error', 5))
+                convertable_messages.append(
+                    (u'[ERROR: MESSAGE THAT CANNOT BE ENCODED AS UTF-8 OMITTED]', 'error', 5))
         Messager.__pending_messages = convertable_messages
 
         # clean up messages by removing possible control characters
@@ -83,10 +89,11 @@ class Messager:
         for s, t, r in Messager.__pending_messages:
             cs = remove_control_chars(s)
             if cs != s:
-                s = cs + u'[NOTE: SOME NONPRINTABLE CHARACTERS REMOVED FROM MESSAGE]'
-            cleaned_messages.append((s,t,r))
+                s = cs + \
+                    u'[NOTE: SOME NONPRINTABLE CHARACTERS REMOVED FROM MESSAGE]'
+            cleaned_messages.append((s, t, r))
         Messager.__pending_messages = cleaned_messages
-        
+
         # to avoid crowding the interface, combine messages with identical content
         msgcount = {}
         for m in Messager.__pending_messages:
@@ -100,7 +107,7 @@ class Messager:
                 s, t, r = m
                 if count > 1:
                     s = s + '<br/><b>[message repeated %d times]</b>' % count
-                merged_messages.append((s,t,r))
+                merged_messages.append((s, t, r))
 
         if 'messages' not in json_dict:
             json_dict['messages'] = []
@@ -121,5 +128,3 @@ class Messager:
             msg = Messager.__escape(msg)
         Messager.__pending_messages.append((msg, type, duration))
     __message = staticmethod(__message)
-
-

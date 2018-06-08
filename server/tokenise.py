@@ -18,6 +18,7 @@ from subprocess import Popen, PIPE
 from shlex import split as shlex_split
 from server.message import Messager
 
+
 def _token_boundaries_by_alignment(tokens, original_text):
     curr_pos = 0
     for tok in tokens:
@@ -26,6 +27,7 @@ def _token_boundaries_by_alignment(tokens, original_text):
         end_pos = start_pos + len(tok)
         yield (start_pos, end_pos)
         curr_pos = end_pos
+
 
 def jp_token_boundary_gen(text):
     try:
@@ -40,10 +42,11 @@ def jp_token_boundary_gen(text):
         for o in whitespace_token_boundary_gen(text):
             yield o
 
+
 def gtb_token_boundary_gen(text):
     """
     >>> text = u"Specialized tokenizer for this p65(RelA)/p50 and that E. coli"
-        
+
     >>> list(whitespace_token_boundary_gen(text))
     [(0, 11), (12, 21), (22, 25), (26, 30), (31, 44), (45, 48), (49, 53), (54, 56), (57, 61)]
     """
@@ -52,10 +55,11 @@ def gtb_token_boundary_gen(text):
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o
 
+
 def whitespace_token_boundary_gen(text):
     """
     >>> text = u"A simple text to tokenize ."
-        
+
     >>> list(whitespace_token_boundary_gen(text))
     [(0, 1), (2, 8), (9, 13), (14, 16), (17, 25), (26, 27)]
     """
@@ -63,9 +67,11 @@ def whitespace_token_boundary_gen(text):
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o
 
+
 REGISTERED_TOKENISER = {"mecab": jp_token_boundary_gen,
                         'whitespace': whitespace_token_boundary_gen,
                         'ptblike': gtb_token_boundary_gen}
+
 
 def tokeniser_by_name(name):
     if name in REGISTERED_TOKENISER:
@@ -74,6 +80,7 @@ def tokeniser_by_name(name):
     Messager.warning('Unrecognized tokenisation option '
                      ', reverting to whitespace tokenisation.')
     return whitespace_token_boundary_gen
+
 
 if __name__ == '__main__':
     from sys import argv
@@ -105,8 +112,7 @@ if __name__ == '__main__':
             for tok in _text_by_offsets_gen(text, offsets):
                 assert tok, 'blank tokens disallowed'
                 assert not tok[0].isspace() and not tok[-1].isspace(), (
-                        'tokens may not start or end with white-space "%s"' % tok)
+                    'tokens may not start or end with white-space "%s"' % tok)
                 print('"%s"' % tok)
     except IOError:
         raise
-

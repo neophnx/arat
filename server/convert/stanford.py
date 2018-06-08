@@ -30,13 +30,14 @@ except ImportError:
 
 try:
     from server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
-            TextBoundAnnotation)
+                                   TextBoundAnnotation)
 except ImportError:
     sys_path.append(path_join(dirname(__file__), '..'))
     from server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
-            TextBoundAnnotation)
+                                   TextBoundAnnotation)
 
 Token = namedtuple('Token', ('word', 'lemma', 'start', 'end', 'pos', 'ner', ))
+
 
 def _escape_pos_tags(pos):
     pos_res = pos
@@ -48,9 +49,10 @@ def _escape_pos_tags(pos):
             ('.', '__DOT__', ),
             (':', '__COLON__', ),
             ('`', '__BACKTICK__', ),
-            ):
+    ):
         pos_res = pos_res.replace(_from, to)
     return pos_res
+
 
 def _token_by_ids(soup):
     token_by_ids = defaultdict(dict)
@@ -67,45 +69,51 @@ def _token_by_ids(soup):
             tok_ner = six.text_type(tok_e.find('NER').text)
 
             token_by_ids[sent_id][tok_id] = Token(
-                    word=tok_word,
-                    lemma=tok_lemma,
-                    start=tok_start,
-                    end=tok_end,
-                    # Escape the PoS since brat dislike $ and .
-                    pos=_escape_pos_tags(tok_pos),
-                    ner=tok_ner
-                    )
+                word=tok_word,
+                lemma=tok_lemma,
+                start=tok_start,
+                end=tok_end,
+                # Escape the PoS since brat dislike $ and .
+                pos=_escape_pos_tags(tok_pos),
+                ner=tok_ner
+            )
 
     return token_by_ids
+
 
 def _tok_it(token_by_ids):
     for s_id in sorted(k for k in token_by_ids):
         for t_id in sorted(k for k in token_by_ids[s_id]):
             yield s_id, t_id, token_by_ids[s_id][t_id]
 
+
 def _soup(xml):
     return ElementTree.fromstring(xml.encode('utf-8'))
+
 
 def token_offsets(xml):
     soup = _soup(xml)
     token_by_ids = _token_by_ids(soup)
     return [(tok.start, tok.end) for _, _, tok in _tok_it(token_by_ids)]
 
+
 def sentence_offsets(xml):
     soup = _soup(xml)
     token_by_ids = _token_by_ids(soup)
-    sent_min_max = defaultdict(lambda : (2**32, -1, ))
+    sent_min_max = defaultdict(lambda: (2**32, -1, ))
     for s_id, _, tok in _tok_it(token_by_ids):
         s_entry = sent_min_max[s_id]
-        sent_min_max[s_id] = (min(tok.start, s_entry[0]), max(tok.end, s_entry[1]), )
+        sent_min_max[s_id] = (min(tok.start, s_entry[0]),
+                              max(tok.end, s_entry[1]), )
     return sorted((s_start, s_end) for s_start, s_end in six.itervalues(sent_min_max))
+
 
 def text(xml):
     # It would be nice to have access to the original text, but this actually
     # isn't a part of the XML. Constructing it isn't that easy either, you
     # would have to assume that each "missing" character is a space, but you
     # don't really have any guarantee that this is the case...
-    
+
     soup = _soup(xml)
     token_by_ids = _token_by_ids(soup)
 
@@ -113,7 +121,7 @@ def text(xml):
     max_offset = -1
     for _, _, tok in _tok_it(token_by_ids):
         max_offset = max(max_offset, tok.end)
-    
+
     # Then re-construct what we believe the text to be
     text = list(' ' * max_offset)
     for _, _, tok in _tok_it(token_by_ids):
@@ -125,6 +133,7 @@ def text(xml):
 
     return u''.join(text)
 
+
 def _pos(xml, start_id=1):
     soup = _soup(xml)
     token_by_ids = _token_by_ids(soup)
@@ -132,11 +141,13 @@ def _pos(xml, start_id=1):
     curr_id = start_id
     for s_id, t_id, tok in _tok_it(token_by_ids):
         yield s_id, t_id, TextBoundAnnotation(((tok.start, tok.end, ), ),
-                'T%s' % curr_id, tok.pos, '')
+                                              'T%s' % curr_id, tok.pos, '')
         curr_id += 1
+
 
 def pos(xml, start_id=1):
     return (a for _, _, a in _pos(xml, start_id=start_id))
+
 
 def ner(xml, start_id=1):
     soup = _soup(xml)
@@ -153,7 +164,8 @@ def ner(xml, start_id=1):
                 last_ne_tok = tok
             elif tok.ner != last_ne_tok.ner:
                 # Change in NE type
-                nes.append((last_ne_tok.start, prev_tok.end, last_ne_tok.ner, ))
+                nes.append(
+                    (last_ne_tok.start, prev_tok.end, last_ne_tok.ner, ))
                 last_ne_tok = tok
             else:
                 # Continuation of the last NE, move along
@@ -172,11 +184,12 @@ def ner(xml, start_id=1):
     for start, end, _type in nes:
         yield TextBoundAnnotation(((start, end), ), 'T%s' % curr_id, _type, '')
         curr_id += 1
-       
+
+
 def coref(xml, start_id=1):
     soup = _soup(xml)
     token_by_ids = _token_by_ids(soup)
-    
+
     docs_e = soup.findall('document')
     assert len(docs_e) == 1
     docs_e = docs_e[0]
@@ -208,11 +221,12 @@ def coref(xml, start_id=1):
             chain.append(mention_id)
             curr_id += 1
             yield TextBoundAnnotation(
-                    ((token_by_ids[sentence_id][start_tok_id].start,
-                    token_by_ids[sentence_id][end_tok_id].end), ),
-                    mention_id, 'Mention', '')
+                ((token_by_ids[sentence_id][start_tok_id].start,
+                  token_by_ids[sentence_id][end_tok_id].end), ),
+                mention_id, 'Mention', '')
 
         yield EquivAnnotation('Coreference', chain, '')
+
 
 def _find_sentences_element(soup):
     # Find the right portion of the XML and do some limited sanity checking
@@ -224,6 +238,7 @@ def _find_sentences_element(soup):
     sents_e = sents_e[0]
 
     return sents_e
+
 
 def _dep(xml, source_element='basic-dependencies'):
     soup = _soup(xml)
@@ -246,10 +261,10 @@ def _dep(xml, source_element='basic-dependencies'):
             #   check for the same identifier but as a type attribute for
             #   general "dependencies" elements.
             deps_e = list(e for e in sent_e.getiterator('dependencies')
-                    if e.attrib['type'] == source_element)
+                          if e.attrib['type'] == source_element)
         assert len(deps_e) == 1
         deps_e = deps_e[0]
-        
+
         for dep_e in deps_e:
             if dep_e.tag != 'dep':
                 # To be on the safe side
@@ -262,25 +277,26 @@ def _dep(xml, source_element='basic-dependencies'):
                 # Skip dependencies to the root node, this behaviour conforms
                 #   with how we treated the pre-2013 format.
                 continue
-            
+
             gov_tok_id = int(dep_e.find('governor').get('idx'))
             dep_tok_id = int(dep_e.find('dependent').get('idx'))
 
             yield BinaryRelationAnnotation(
-                    'R%s' % curr_rel_id, dep_type,
-                    'Governor', ann_by_ids[sent_id][gov_tok_id].id,
-                    'Dependent', ann_by_ids[sent_id][dep_tok_id].id,
-                    ''
-                    )
+                'R%s' % curr_rel_id, dep_type,
+                'Governor', ann_by_ids[sent_id][gov_tok_id].id,
+                'Dependent', ann_by_ids[sent_id][dep_tok_id].id,
+                ''
+            )
             curr_rel_id += 1
+
 
 def basic_dep(xml):
     return _dep(xml)
-    
+
+
 def collapsed_dep(xml):
     return _dep(xml, source_element='collapsed-dependencies')
 
+
 def collapsed_ccproc_dep(xml):
     return _dep(xml, source_element='collapsed-ccprocessed-dependencies')
-
-

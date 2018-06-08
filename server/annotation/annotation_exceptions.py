@@ -71,6 +71,7 @@ class AnnotationCollectionNotFoundError(ProtocolError):
     """
     AnnotationCollectionNotFoundError: collection of annotations can't be found
     """
+
     def __init__(self, collection):
         ProtocolError.__init__(self)
         self.collection = collection
@@ -200,6 +201,7 @@ class SpanOffsetOverlapError(ProtocolError):
     def json(self, json_dic):
         json_dic['exception'] = 'spanOffsetOverlapError'
         return json_dic
+
 
 def deprecation(message):
     warnings.warn(message, DeprecationWarning, stacklevel=2)

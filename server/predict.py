@@ -10,7 +10,7 @@ Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
 Version:    2011-11-17
 '''
 
-### Constants
+# Constants
 from __future__ import absolute_import
 from __future__ import print_function
 CUT_OFF = 0.95
@@ -27,6 +27,7 @@ from server.jsonwrap import loads
 from server.projectconfig import ProjectConfiguration
 
 # TODO: Reduce the SimSem coupling
+
 
 class SimSemConnectionNotConfiguredError(ProtocolError):
     def __str__(self):
@@ -70,7 +71,7 @@ def suggest_span_types(collection, document, start, end, text, model):
     except URLError:
         # TODO: Could give more details
         raise SimSemConnectionError
-    
+
     json = loads(resp.read())
 
     preds = json['result'][text.decode('utf-8')]
@@ -84,18 +85,20 @@ def suggest_span_types(collection, document, start, end, text, model):
             break
 
     log_annotation(collection, document, 'DONE', 'suggestion',
-            [None, None, text, ] + [selected_preds, ])
+                   [None, None, text, ] + [selected_preds, ])
 
     # array so that server can control presentation order in UI
     # independently from scores if needed
-    return { 'types': selected_preds,
-             'collection': collection, # echo for reference
-             'document': document,
-             'start': start,
-             'end': end,
-             'text': text,
-             }
+    return {'types': selected_preds,
+            'collection': collection,  # echo for reference
+            'document': document,
+            'start': start,
+            'end': end,
+            'text': text,
+            }
+
 
 if __name__ == '__main__':
     from config import DATA_DIR
-    print(suggest_span_types(DATA_DIR, 'dummy', -1, -1, 'proposición', 'ner_spanish'))
+    print(suggest_span_types(DATA_DIR, 'dummy', -
+                             1, -1, 'proposición', 'ner_spanish'))
