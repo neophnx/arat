@@ -1,8 +1,8 @@
 tests2: clean
-	python2 -m nose --processes=-1 -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+	python2 -m nose -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
 
 tests3: clean
-	python3 -m nose --processes=-1 -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+	python3 -m nose -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
 
 lint2:
 	autopep8 -i $(DOC)
@@ -10,10 +10,10 @@ lint2:
 	
 lint-all:
 	autopep8 -j=-1 -ir standalone.py server tests
-	python3 -m pylint standalone.py server tests |tee >pylint.txt
+	python3 -m pylint standalone.py server tests |tee pylint.txt
 
 static-test:
-	python3 -m pylint -disable=R,C,W standalone.py server tests |tee >pylint.txt
+	python3 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
     
 
 clean:
