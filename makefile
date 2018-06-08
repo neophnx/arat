@@ -20,6 +20,7 @@ clean:
 	find . -name "*.pyc" | xargs rm -f
 	find data -name ".stats_cache" |xargs rm -f
 	rm -rf work/*
+	rm -rf pylint.txt .coverage
 
 test-platform:
 	docker build -f tests-docker/Dockerfile-ubuntu_18.04-CPython_2.7 -t ubuntu_18.04-cpython_2.7 .
