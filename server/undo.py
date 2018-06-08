@@ -53,7 +53,7 @@ def undo(collection, document, token):
     try:
         action = token['action']
     except KeyError:
-        raise InvalidTokenError('action')
+        raise InvalidUndoTokenError('action')
 
     if action == 'add_tb':
         # Undo an addition
@@ -61,9 +61,12 @@ def undo(collection, document, token):
     if action == 'mod_tb':
         # Undo a modification
         # TODO: We do not handle attributes and comments
-        return create_span(collection, document, token['start'], token['end'],
-                token['type'], id=token['id'], attributes=token['attributes'],
-                comment=token['comment'] if 'comment' in token else None)
+        raise NotImplementedError
+        
+        # FIX: create_span call does not fit with the current implementation
+#        return create_span(collection, document, token['start'], token['end'],
+#                token['type'], id=token['id'], attributes=token['attributes'],
+#                comment=token['comment'] if 'comment' in token else None)
     else:
         raise NonUndoableActionError
     assert False, 'should have returned prior to this point'

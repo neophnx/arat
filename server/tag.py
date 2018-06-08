@@ -15,9 +15,9 @@ from __future__ import absolute_import
 from os.path import join as path_join
 from socket import error as SocketError
 
-from six.moves.http_client import HTTPConnection
-from six.moves.urllib.parse import urlparse
-import six
+from six.moves.http_client import HTTPConnection # pylint disable: import-error
+from six.moves.urllib.parse import urlparse # pylint disable: import-error
+import six # pylint disable: import-error
 
 from server.annotation import TextAnnotations, TextBoundAnnotationWithText
 from server.annotation import NormalizationAnnotation
@@ -51,8 +51,8 @@ class InvalidConnectionSchemeError(ProtocolError):
         self.scheme = scheme
 
     def __str__(self):
-        return ('The tagger "%s" uses the unsupported scheme "%s"'
-                ' "%s"') % (self.tagger, self.scheme, )
+        return ('The tagger "%s" '
+                'uses the unsupported scheme "%s"') % (self.tagger, self.scheme)
 
     def json(self, json_dic):
         json_dic['exception'] = 'unknownTaggerError'

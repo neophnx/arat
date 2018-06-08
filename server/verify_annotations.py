@@ -8,7 +8,7 @@ from __future__ import with_statement
 
 from __future__ import absolute_import
 from __future__ import print_function
-import annotation
+from server import annotation
 
 from server.projectconfig import ProjectConfiguration
 

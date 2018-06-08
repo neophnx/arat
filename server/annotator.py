@@ -18,8 +18,8 @@ from os.path import join as path_join
 from os.path import split as path_split
 from re import compile as re_compile
 
-import six
-from six.moves import range
+import six # pylint disable: import-error
+from six.moves import range # pylint disable: import-error
 
 
 from server.annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
@@ -876,6 +876,8 @@ def create_arc(collection, document, origin, target, type, attributes=None,
         origin = ann_obj.get_ann_by_id(origin) 
         target = ann_obj.get_ann_by_id(target)
 
+        ann = None
+        
         # if there is a previous annotation and the arcs aren't in
         # the same category (e.g. relation vs. event arg), process
         # as delete + create instead of update.
@@ -896,7 +898,7 @@ def create_arc(collection, document, origin, target, type, attributes=None,
             ann = _create_relation(ann_obj, projectconf, mods, origin, target, 
                                    type, attributes, old_type, old_target)
         else:
-            ann = _create_argument(ann_obj, projectconf, mods, origin, target,
+            _create_argument(ann_obj, projectconf, mods, origin, target,
                                    type, attributes, old_type, old_target)
 
         # process comments
@@ -1171,7 +1173,7 @@ def split_span(collection, document, args, id):
         mods_json['annotations'] = _json_from_ann(ann_obj)
         return mods_json
 
-def set_status(directory, document, status=None):
+def set_status(directory, document, new_status=None):
     real_dir = real_directory(directory) 
 
     with TextAnnotations(path_join(real_dir, document)) as ann:

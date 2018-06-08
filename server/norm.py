@@ -17,9 +17,11 @@ from server.message import Messager
 from server.normdb import string_norm_form
 from server.document import real_directory
 from server.projectconfig import ProjectConfiguration
-from six.moves import range
+from six.moves import range# pylint disable: import-error
 from functools import reduce
+import sys
 
+_PYTHON3 = (sys.version_info > (3, 0))
 # whether to display alignment scores in search result table
 DISPLAY_SEARCH_SCORES = False
 
@@ -205,7 +207,10 @@ def _format_datas(datas, scores=None, matched=None):
 
     # sort unique labels by group index (should be otherwise stable,
     # holds since python 2.3), and flatten
-    unique_labels.sort(lambda a,b: cmp(a[0],b[0]))
+    if _PYTHON3:
+        unique_labels.sort(lambda a: a[0])
+    else:
+        unique_labels.sort(lambda a, b: cmp(a[0], b[0]))# pylint: disable=undefined-variable
     unique_labels = [a[1] for a in unique_labels]
 
     # ID is first field, and datatype is "string" for all labels
@@ -215,9 +220,12 @@ def _format_datas(datas, scores=None, matched=None):
         header += [("score", "int")]
 
     # construct items, sorted by score first, ID second (latter for stability)
-    sorted_keys = sorted(list(datas.keys()), lambda a,b: cmp((scores.get(b,0),b),
-                                                       (scores.get(a,0),a)))
-
+    sorted_keys = list(datas.keys())
+    if _PYTHON3:
+        sorted_keys.sort(lambda a,b: cmp((scores.get(b,0),b),# pylint: disable=undefined-variable
+                                         (scores.get(a,0),a)))
+    else:
+        sorted_keys.sort(lambda a: (scores.get(a,0),a), reverse=True)
     items = []
     for key in sorted_keys:
         # make dict for lookup. In case of duplicates (e.g. multiple
@@ -317,7 +325,10 @@ def _norm_search_name_attr(database, name, attr,
     # consider removing as unnecessary complication (ss_norm_score also).
     id_name_scores = [(i, n, ss_norm_score[string_norm_form(n)]) 
                       for i, n in id_names]
-    id_name_scores.sort(lambda a,b: cmp(b[2],a[2]))
+    if _PYTHON3:
+        id_name_scores.sort(lambda a: a[2], reverse=True)
+    else:
+        id_name_scores.sort(lambda a, b: cmp(b[2],a[2]))# pylint: disable=undefined-variable
     id_names = [(i, n) for i, n, s in id_name_scores]
 
     # update matches and scores

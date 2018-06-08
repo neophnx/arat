@@ -28,8 +28,8 @@ from logging import info as log_info
 
 
 # third party
-import six
-from six.moves import range
+import six# pylint disable: import-error
+from six.moves import range# pylint disable: import-error
 
 # brat
 from server.annotation import (TextAnnotations, TEXT_FILE_SUFFIX,
@@ -802,7 +802,7 @@ def _enrich_json_with_data(j_dic, ann_obj):
         import os
         docdir = os.path.dirname(ann_obj._document)
         if options_get_validation(docdir) in ('all', 'full', ):
-            from brat_server.verify_annotations import verify_annotation
+            from server.verify_annotations import verify_annotation
             projectconf = ProjectConfiguration(docdir)
             issues = verify_annotation(ann_obj, projectconf)
         else:

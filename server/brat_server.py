@@ -22,8 +22,9 @@ from os.path import abspath
 from os.path import join as path_join
 from sys import version_info, stderr
 from time import time
-from six.moves._thread import allocate_lock
+from six.moves._thread import allocate_lock # pylint disable: import-error
 import six
+import sys# pylint disable: import-error
 
 ### Constants
 # This handling of version_info is strictly for backwards compatibility
@@ -35,7 +36,7 @@ CONF_FNAME = 'config.py'
 CONF_TEMPLATE_FNAME = 'config_template.py'
 CONFIG_CHECK_LOCK = allocate_lock()
 ###
-
+_PYTHON3 = (sys.version_info > (3, 0))
 
 class PermissionError(Exception):
     def json(self, json_dic):
@@ -102,7 +103,9 @@ def _config_check():
         except ImportError as e:
             path.extend(orig_path)
             # "Prettiest" way to check specific failure
-            if e.message == 'No module named config':
+            if _PYTHON3 and e.msg == 'No module named config':
+                Messager.error(_miss_config_msg(), duration=-1)
+            elif e.message == 'No module named config':
                 Messager.error(_miss_config_msg(), duration=-1)
             else:
                 Messager.error(_get_stack_trace(), duration=-1)

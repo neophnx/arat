@@ -19,14 +19,16 @@ from cgi import FieldStorage
 import socket
 
 # six
-from six.moves.BaseHTTPServer import HTTPServer
-from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
-from six.moves.socketserver import ForkingMixIn
-from six.moves.urllib.parse import unquote
-import six
+from six.moves.BaseHTTPServer import HTTPServer# pylint disable: import-error
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler# pylint disable: import-error
+from six.moves.socketserver import ForkingMixIn# pylint disable: import-error
+from six.moves.urllib.parse import unquote# pylint disable: import-error
+import six# pylint disable: import-error
 
 # brat imports
 from server.brat_server import serve
+
+_PYTHON3 = (sys.version_info > (3, 0))
 
 _VERBOSE_HANDLER = False
 _DEFAULT_SERVER_ADDR = ''
@@ -296,7 +298,10 @@ server is experimental and should not be run as administrator.
         # normal exit
         pass
     except socket.error as why:
-        print("Error binding to port", port, ":", why[1], file=sys.stderr)
+        if _PYTHON3:
+            print("Error binding to port", port, ":", why, file=sys.stderr)
+        else:
+            print("Error binding to port", port, ":", why[1], file=sys.stderr)# pylint: disable=unsubscriptable-object
     except Exception as exception:
         print("Server error", exception, file=sys.stderr)
         raise
