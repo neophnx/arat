@@ -19,11 +19,21 @@ static-test3:
 	python3 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
     
 
+requirements:
+	pipreqs --force . --ignore external,tools,tests
+	pipreqs --force . --savepath requirements_test.txt --ignore external,tools
+	cat requirements.txt requirements_test.txt |sort| uniq -u >requirements_test
+
+
+build:
+	python3 setup.py sdist
+	
 clean:
 	find . -name "*.pyc" | xargs rm -f
 	find data -name ".stats_cache" |xargs rm -f
 	rm -rf work/*
 	rm -rf pylint.txt .coverage
+	rm -rf brat.egg-info
 
 test-platform:
 	docker build -f tests-docker/Dockerfile-ubuntu_18.04-CPython_2.7 -t ubuntu_18.04-cpython_2.7 .

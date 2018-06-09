@@ -1,0 +1,5 @@
+six==1.11.0
+ujson==1.35
+setuptools==39.0.1
+ply==3.11
+simstring==1.1
