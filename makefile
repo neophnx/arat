@@ -12,7 +12,10 @@ lint-all:
 	autopep8 -j=-1 -ir standalone.py server tests
 	python3 -m pylint standalone.py server tests |tee pylint.txt
 
-static-test:
+static-test2:
+	python2 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
+
+static-test3:
 	python3 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
     
 

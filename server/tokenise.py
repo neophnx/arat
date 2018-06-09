@@ -50,7 +50,7 @@ def gtb_token_boundary_gen(text):
     >>> list(whitespace_token_boundary_gen(text))
     [(0, 11), (12, 21), (22, 25), (26, 30), (31, 44), (45, 48), (49, 53), (54, 56), (57, 61)]
     """
-    from gtbtokenize import tokenize
+    from server.gtbtokenize import tokenize
     tokens = tokenize(text).split()
     for o in _token_boundaries_by_alignment(tokens, text):
         yield o

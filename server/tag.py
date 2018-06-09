@@ -15,9 +15,9 @@ from __future__ import absolute_import
 from os.path import join as path_join
 from socket import error as SocketError
 
-from six.moves.http_client import HTTPConnection  # pylint disable: import-error
-from six.moves.urllib.parse import urlparse  # pylint disable: import-error
-import six  # pylint disable: import-error
+from six.moves.http_client import HTTPConnection  # pylint: disable=import-error
+from six.moves.urllib.parse import urlparse  # pylint: disable=import-error
+import six  # pylint: disable=import-error
 
 from server.annotation import TextAnnotations, TextBoundAnnotationWithText
 from server.annotation import NormalizationAnnotation
@@ -115,7 +115,7 @@ def tag(collection, document, tagger):
             #   missing if you roll your own Python, for once we should not
             #   fail early since tagging is currently an edge case and we
             #   can't allow it to bring down the whole server.
-            from six.moves.http_client import HTTPSConnection
+            from six.moves.http_client import HTTPSConnection # pylint: disable=import-error
             Connection = HTTPSConnection
         else:
             raise InvalidConnectionSchemeError(tagger_token, url_soup.scheme)

@@ -15,8 +15,8 @@ Version:    2011-08-15
 
 from __future__ import absolute_import
 import re
-import six.moves.urllib_robotparser  # TODO reduce scope
-import six.moves.urllib.parse  # TODO reduce scope
+import six.moves.urllib_robotparser   # pylint: disable=import-error
+import six.moves.urllib.parse   # pylint: disable=import-error
 import sys
 
 from server.annotation import open_textfile
@@ -27,6 +27,10 @@ from six.moves import range
 
 ENTITY_CATEGORY, EVENT_CATEGORY, RELATION_CATEGORY, UNKNOWN_CATEGORY = range(4)
 
+_PYTHON3 = (sys.version_info > (3, 0))
+
+if not _PYTHON3:
+    FileNotFoundError = OSError
 
 class InvalidProjectConfigException(Exception):
     pass
@@ -566,10 +570,10 @@ def __read_or_default(filename, default):
         r = f.read()
         f.close()
         return r
-    except IOError:
-        return default
     except FileNotFoundError:
         # TODO: specific exception handling and reporting
+        return default
+    except IOError:
         return default
 
 
@@ -600,7 +604,7 @@ def __parse_access_control(acstr, source):
         parser.parse(acstr.split("\n"))
     except:
         # TODO: specific exception handling
-        display_message(
+        Messager.warning(
             "Project configuration: error parsing access control rules from %s. Configuration may be wrong." % source, "warning", 5)
         parser = None
     return parser

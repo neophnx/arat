@@ -22,9 +22,9 @@ from os.path import abspath
 from os.path import join as path_join
 from sys import version_info, stderr
 from time import time
-from six.moves._thread import allocate_lock  # pylint disable: import-error
+from six.moves._thread import allocate_lock  # pylint: disable=import-error
 import six
-import sys  # pylint disable: import-error
+import sys
 
 # Constants
 # This handling of version_info is strictly for backwards compatibility
@@ -108,9 +108,9 @@ def _config_check():
         except ImportError as e:
             path.extend(orig_path)
             # "Prettiest" way to check specific failure
-            if _PYTHON3 and e.msg == 'No module named config':
+            if _PYTHON3 and e.msg == 'No module named config': # pylint: disable=no-member
                 Messager.error(_miss_config_msg(), duration=-1)
-            elif e.message == 'No module named config':
+            elif e.message == 'No module named config': # pylint: disable= no-member
                 Messager.error(_miss_config_msg(), duration=-1)
             else:
                 Messager.error(_get_stack_trace(), duration=-1)

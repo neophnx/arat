@@ -7,7 +7,6 @@ Created on Sun Jun  3 10:58:39 2018
 """
 from __future__ import absolute_import
 import unittest
-from sys import stdout
 
 from server.convert import stanford
 
@@ -305,7 +304,7 @@ class TestStanford(unittest.TestCase):
         self.assertEquals([i.type for i in stanford.coref(xml_string)],
                           ['Mention', 'Mention', 'Mention', 'Coreference'])
 
-    def test_coref(self):
+    def test_basic_dep(self):
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals([i.type for i in stanford.basic_dep(xml_string)],

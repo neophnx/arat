@@ -11,8 +11,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import re
+import sys
 
-import six
 from six.moves import range
 
 
@@ -24,6 +24,8 @@ DEFAULT_EMPTY_STRING = "***"
 REPORT_SEARCH_TIMINGS = False
 DEFAULT_RE_FLAGS = re.UNICODE
 ###
+
+_PYTHON3 = (sys.version_info > (3, 0))
 
 if REPORT_SEARCH_TIMINGS:
     from sys import stderr
@@ -60,8 +62,11 @@ class SearchMatchSet(object):
 
     def sort_matches(self):
         # sort by document name
-        self.__matches.sort(lambda a, b: cmp(
-            a[0].get_document(), b[0].get_document()))
+        if _PYTHON3:
+            self.__matches.sort(lambda a: a[0].get_document())
+        else:
+            self.__matches.sort(lambda a, b: cmp(# pylint: disable=undefined-variable
+                    a[0].get_document(), b[0].get_document()))
 
     def limit_to(self, num):
         # don't limit to less than one match
@@ -357,7 +362,7 @@ def _get_offset_sentence_map(s):
     Helper, sentence-splits and returns a mapping from character
     offsets to sentence number.
     """
-    from ssplit import regex_sentence_boundary_gen
+    from server.ssplit import regex_sentence_boundary_gen
 
     m = {}  # TODO: why is this a dict and not an array?
     sprev, snum = 0, 1  # note: sentences indexed from 1
@@ -378,8 +383,8 @@ def _split_and_tokenize(s):
     Helper, sentence-splits and tokenizes, returns array comparable to
     what you would get from re.split(r'(\s+)', s).
     """
-    from ssplit import regex_sentence_boundary_gen
-    from tokenise import gtb_token_boundary_gen
+    from server.ssplit import regex_sentence_boundary_gen
+    from server.tokenise import gtb_token_boundary_gen
 
     tokens = []
 
@@ -697,8 +702,11 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
             ann_matches.append(t)
 
         # sort by start offset
-        ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),
-                                          (b.first_start(), -b.last_end())))
+        if _PYTHON3:
+            ann_matches.sort(lambda a, b: (a.first_start(), -a.last_end()))
+        else:
+            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()), # pylint: disable=undefined-variable
+                                              (b.first_start(), -b.last_end())))
 
         # add to overall collection
         for t in ann_matches:
@@ -774,8 +782,11 @@ def search_anns_for_note(ann_objs, text, category,
 
             ann_matches.append(NoteMatch(n, a))
 
-        ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),
-                                          (b.first_start(), -b.last_end())))
+        if _PYTHON3:
+            ann_matches.sort(lambda a: (a.first_start(), -a.last_end()))
+        else:
+            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),# pylint: disable=undefined-variable
+                                              (b.first_start(), -b.last_end())))
 
         # add to overall collection
         for t in ann_matches:
@@ -1015,7 +1026,7 @@ def search_anns_for_event(ann_objs, trigger_text, args,
                             if isinstance(arg_ent, annotation.EventAnnotation):
                                 # compare against trigger text
                                 text_ent = ann_obj.get_ann_by_id(
-                                    ann_ent.trigger)
+                                    arg_ent.trigger)
                             else:
                                 # compare against entity text
                                 text_ent = arg_ent
@@ -1034,8 +1045,11 @@ def search_anns_for_event(ann_objs, trigger_text, args,
             ann_matches.append((t_ann, e))
 
         # sort by trigger start offset
-        ann_matches.sort(lambda a, b: cmp((a[0].first_start(), -a[0].last_end()),
-                                          (b[0].first_start(), -b[0].last_end())))
+        if _PYTHON3:
+            ann_matches.sort(lambda a: (a[0].first_start(), -a[0].last_end()))
+        else:
+            ann_matches.sort(lambda a, b: cmp((a[0].first_start(), -a[0].last_end()),# pylint: disable=undefined-variable
+                                              (b[0].first_start(), -b[0].last_end())))
 
         # add to overall collection
         for t_obj, e in ann_matches:
@@ -1595,10 +1609,9 @@ def argparser():
 
 def main(argv=None):
     import sys
-    import os
-    import six.moves.urllib.request
-    import six.moves.urllib.parse
-    import six.moves.urllib.error
+    import six.moves.urllib.request # pylint: disable=import-error
+    import six.moves.urllib.parse # pylint: disable=import-error
+    import six.moves.urllib.error # pylint: disable=import-error
 
     # ignore search result number limits on command-line invocations
     global MAX_SEARCH_RESULT_NUMBER

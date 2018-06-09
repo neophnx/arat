@@ -12,9 +12,9 @@ Version:    2011-04-21
 '''
 
 
-from six.moves.cPickle import UnpicklingError
-from six.moves.cPickle import dump as pickle_dump
-from six.moves.cPickle import load as pickle_load
+from six.moves.cPickle import UnpicklingError # pylint: disable=import-error, no-name-in-module
+from six.moves.cPickle import dump as pickle_dump # pylint: disable=import-error, no-name-in-module
+from six.moves.cPickle import load as pickle_load # pylint: disable=import-error, no-name-in-module
 from logging import info as log_info
 from os import listdir
 from os.path import isfile, getmtime
@@ -121,7 +121,7 @@ def get_statistics(directory, base_names, use_cache=True):
                         try:
                             from server.projectconfig import ProjectConfiguration
                             projectconf = ProjectConfiguration(directory)
-                            from verify_annotations import verify_annotation
+                            from server.verify_annotations import verify_annotation
                             issues = verify_annotation(ann_obj, projectconf)
                             issue_count = len(issues)
                         except:

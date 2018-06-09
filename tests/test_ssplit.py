@@ -37,7 +37,7 @@ class TestSentenceSplit(unittest.TestCase):
         self.assertEquals(ret, ans)
         print('Successful!')
 
-    def testEnglish1(self):
+    def testEnglish2(self):
         sentence = ' One of these days Jimmy, one of these days. Boom! Kaboom '
         print('Sentence:', sentence)
         print('Len sentence:', len(sentence))

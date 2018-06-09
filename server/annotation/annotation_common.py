@@ -831,7 +831,7 @@ class Annotations(object):
     def __getitem__(self, val):
         try:
             # First, try to use it as a slice object
-            return self._lines[val.start, val.stop, val.step]
+            return self._lines[val.start, val.stop, val.step] # pylint: disable= invalid-sequence-index
         except AttributeError:
             # It appears not to be a slice object, try it as an index
             return self._lines[val]

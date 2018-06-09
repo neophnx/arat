@@ -18,13 +18,11 @@ import os
 from cgi import FieldStorage
 import socket
 
-# six
-from six.moves.BaseHTTPServer import HTTPServer  # pylint disable: import-error
-# pylint disable: import-error
-from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
-from six.moves.socketserver import ForkingMixIn  # pylint disable: import-error
-from six.moves.urllib.parse import unquote  # pylint disable: import-error
-import six  # pylint disable: import-error
+from six.moves.BaseHTTPServer import HTTPServer  # pylint: disable=import-error
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler # pylint: disable=import-error
+from six.moves.socketserver import ForkingMixIn  # pylint: disable=import-error
+from six.moves.urllib.parse import unquote  # pylint: disable=import-error
+import six  # pylint: disable=import-error
 
 # brat imports
 from server.brat_server import serve

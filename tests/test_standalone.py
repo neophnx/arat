@@ -16,10 +16,9 @@ import sys
 import os
 import requests
 from time import sleep
-from six.moves.urllib.parse import urlencode
+from six.moves.urllib.parse import urlencode # pylint: disable=import-error
 import six
 
-import standalone
 
 
 def wait_net_service(server, port, timeout=None):
@@ -28,8 +27,6 @@ def wait_net_service(server, port, timeout=None):
         @return: True of False, if timeout is None may return only True or
                  throw unhandled network exception
     """
-    import socket
-    import errno
 
     s = socket.socket()
     if timeout:
@@ -53,7 +50,7 @@ def wait_net_service(server, port, timeout=None):
             if timeout:
                 return False
 
-        except socket.error as err:
+        except socket.error:
             pass
             # catch timeout exception from underlying network library
             # this one is different from socket.timeout
@@ -68,9 +65,11 @@ class TestStandalone(unittest.TestCase):
 
     @classmethod
     def _find_free_port(cls):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            s.bind(('', 0))
-            return s.getsockname()[1]
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('', 0))
+        port = s.getsockname()[1]
+        s.close()
+        return port
 
     @classmethod
     def setUpClass(cls):
@@ -81,7 +80,7 @@ class TestStandalone(unittest.TestCase):
 
         if not wait_net_service("localhost", free_port, 5):
             cls.proc.kill()
-            raise TimeoutError
+            raise OSError
 
         # get a session id
         response = requests.post(cls.url+"ajax.cgi", json={"action": "getCollectionInformation",

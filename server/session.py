@@ -15,7 +15,7 @@ Version:    2011-03-11
 from __future__ import with_statement
 
 from __future__ import absolute_import
-from six.moves.http_cookies import CookieError, SimpleCookie
+from six.moves.http_cookies import CookieError, SimpleCookie # pylint: disable=import-error
 from atexit import register as atexit_register
 from datetime import datetime, timedelta
 from hashlib import sha224
