@@ -9,7 +9,7 @@ from __future__ import print_function
 import unittest
 
 from server import session
-
+from server import constants
 
 class TestSentenceSplit(unittest.TestCase):
     def test01_SessionNotInitialize(self):
@@ -42,7 +42,7 @@ class TestSentenceSplit(unittest.TestCase):
             this_session = session.get_session()
             this_session['foo'] = 'bar'
             with open(tmp_file_path, 'wb') as tmp_file:
-                session.pickle_dump(this_session, tmp_file)
+                session.pickle_dump(this_session, tmp_file, protocol=constants.PICKLE_PROTOCOL)
             del this_session
 
             with open(tmp_file_path, 'rb') as tmp_file:

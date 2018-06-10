@@ -24,7 +24,7 @@ from server.annotation import Annotations, open_textfile
 from config import DATA_DIR, BASE_DIR
 from server.message import Messager
 from server.projectconfig import get_config_path, options_get_validation
-
+from server import constants
 # Constants
 STATS_CACHE_FILE_NAME = '.stats_cache'
 ###
@@ -137,7 +137,7 @@ def get_statistics(directory, base_names, use_cache=True):
         # Cache the statistics
         try:
             with open(cache_file_path, 'wb') as cache_file:
-                pickle_dump(docstats, cache_file)
+                pickle_dump(docstats, cache_file, protocol=constants.PICKLE_PROTOCOL)
         except IOError as e:
             Messager.warning(
                 "Could not write statistics cache file to directory %s: %s" % (directory, e))

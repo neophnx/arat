@@ -24,6 +24,7 @@ from os.path import exists, dirname, join as path_join, isfile
 from shutil import copy
 from shutil import move
 from tempfile import mkstemp
+from server import constants
 
 try:
     from six.moves.cPickle import dump as pickle_dump, load as pickle_load
@@ -197,7 +198,7 @@ def close_session():
         os_close(tmp_file_fh)
 
         with open(tmp_file_path, 'wb') as tmp_file:
-            pickle_dump(CURRENT_SESSION, tmp_file)
+            pickle_dump(CURRENT_SESSION, tmp_file, protocol=constants.PICKLE_PROTOCOL)
         copy(tmp_file_path, get_session_pickle_path(CURRENT_SESSION.get_sid()))
     except IOError:
         # failed store: no permissions?

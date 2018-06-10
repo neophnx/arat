@@ -126,9 +126,10 @@ def namedtuple(typename, field_names, verbose=False, rename=False):
 if __name__ == '__main__':
     # verify that instances can be pickled
     from six.moves.cPickle import loads, dumps
+    from server import constants
     Point = namedtuple('Point', 'x, y', True)
     p = Point(x=10, y=20)
-    assert p == loads(dumps(p, -1))
+    assert p == loads(dumps(p, -1, protocol=constants.PICKLE_PROTOCOL))
 
     # test and demonstrate ability to override methods
     class Point(namedtuple('Point', 'x y')):
