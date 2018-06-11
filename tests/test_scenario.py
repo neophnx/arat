@@ -6,15 +6,10 @@ Created on Sat Jun  2 06:55:31 2018
 @author: phnx
 
 TODO: add test case for the following actions
-'storeSVG': store_svg,
-'retrieveStored': retrieve_stored,
-'downloadFile': download_file,
 'downloadCollection': download_collection,
 
+"splitSpan"
 
-'createSpan': create_span,
-'deleteSpan': delete_span,
-'splitSpan': split_span,
 
 'createArc': create_arc,
 'reverseArc': reverse_arc,
@@ -275,8 +270,94 @@ class ScenarioAnnotation(unittest.TestCase):
                                              'test']],
                                   'protocol': 1})
     
+    
+    def test09_createSpan(self):
+        res = dispatcher({"action": "createSpan",
+                            "protocol": "1",\
+                            "collection":"/",\
+                            "offsets": "[[10, 14]]",\
+                            "type": "Protein",\
+                            "attributes": "{}",\
+                            "normalizations": "",
+                            "document":"id01",
+                            "id":None,
+                            "comment":""},\
+                           "127.0.0.1",\
+                           "localhost")
+        self.assertEquals(res["edited"], [['T1']])
         
-    def test100_deleteDocument(self):
+    def test10_deleteSpan(self):
+        res = dispatcher({"action": "deleteSpan",
+                                "protocol": "1",\
+                                "collection":"/",\
+                                "document":"id01",
+                                "id":'T1'},\
+                               "127.0.0.1",\
+                               "localhost")
+        self.assertEquals(res["edited"], [])
+        
+    def test10_storeSVG(self):
+        svgData = open("tests/test_data/test.svg", "rb").read().decode("utf-8")
+        
+        res = dispatcher({"action": "storeSVG",
+                                "protocol": "1",\
+                                "collection":"/",\
+                                "document":"id01",
+                                "svg": svgData},\
+                               "127.0.0.1",\
+                               "localhost")
+        self.assertEquals(res["stored"], [{'name': 'svg', 'suffix': 'svg'}])
+        
+        self.assertGreater(len(open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read().decode("utf-8")),
+                           len(svgData))
+        
+    def test11_retrieveStored(self):
+        svgData = open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read()
+        import server
+        with self.assertRaises(server.common.NoPrintJSONError) as context:
+            dispatcher({"action": "retrieveStored",
+                                "protocol": "1",\
+                                "collection":"/",\
+                                "document":"id01",
+                                "suffix": "svg"},\
+                               "127.0.0.1",\
+                               "localhost")
+        self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "image/svg+xml")
+        self.assertEquals(context.exception.data, svgData)
+    
+    
+    def test12_downloadFile(self):
+        import server
+        
+        for extension in ["txt", "ann"]:
+            data = open("data/id01.%s"%extension, "rb").read()
+            with self.assertRaises(server.common.NoPrintJSONError) as context:
+                dispatcher({"action": "downloadFile",
+                                    "protocol": "1",\
+                                    "collection":"/",\
+                                    "document":"id01",
+                                    "extension":extension},\
+                                   "127.0.0.1",\
+                                   "localhost")
+            self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "text/plain; charset=utf-8")
+            self.assertEquals(context.exception.data, data)
+    
+    def test13_downloadCollection(self):
+        import server
+        
+        with self.assertRaises(server.common.NoPrintJSONError) as context:
+            dispatcher({"action": "downloadCollection",
+                                "protocol": "1",\
+                                "collection":"/", 
+                                "include_conf":True},\
+                               "127.0.0.1",\
+                               "localhost")
+        self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "application/octet-stream")
+        # TODO: write extra check
+    
+#'downloadCollection': download_collection,
+        
+    def test99_deleteDocument(self):
         """
         delete the test document
         
