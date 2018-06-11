@@ -102,10 +102,10 @@ class ScenarioAnnotation(unittest.TestCase):
                             "collection":"/example-data/"},\
                            "127.0.0.1",\
                            "localhost")
-        self.assertEquals(res['items'], [['c', None, 'corpora'],
-                                         ['c', None, 'tutorials'],
-                                         ['c', None, 'normalisation'],
-                                         ['c', None, '..']])
+        self.assertEquals(sorted(res['items']), [['c', None, '..'],
+                                                 ['c', None, 'corpora'],
+                                                 ['c', None, 'normalisation'],
+                                                 ['c', None, 'tutorials'],])
 
         # list corpora content
         res = dispatcher({"action": "getCollectionInformation",
@@ -113,12 +113,12 @@ class ScenarioAnnotation(unittest.TestCase):
                             "collection":"/example-data/corpora/"},\
                            "127.0.0.1",\
                            "localhost")
-        self.assertEquals(res['items'], [['c', None, 'CoNLL-ST_2002'],
-                                         ['c', None, 'BioNLP-ST_2011'],
-                                         ['c', None, 'CoNLL-ST_2006'],
-                                         ['c', None, 'TDT'],
-                                         ['c', None, 'NCBI-disease'],
-                                         ['c', None, '..']])
+        self.assertEquals(sorted(res['items']), [['c', None, '..'],
+                                                 ['c', None, 'BioNLP-ST_2011'],
+                                                 ['c', None, 'CoNLL-ST_2002'],
+                                                 ['c', None, 'CoNLL-ST_2006'],
+                                                 ['c', None, 'NCBI-disease'],
+                                                 ['c', None, 'TDT']])
     
         # list CoNLL-ST_2002 content
         res = dispatcher({"action": "getCollectionInformation",
@@ -126,9 +126,9 @@ class ScenarioAnnotation(unittest.TestCase):
                             "collection":"/example-data/corpora/CoNLL-ST_2002"},\
                            "127.0.0.1",\
                            "localhost")
-        self.assertEquals(res['items'], [['c', None, 'esp'],
-                                         ['c', None, 'ned'],
-                                         ['c', None, '..']])
+        self.assertEquals(sorted(res['items']), [['c', None, '..'],
+                                                 ['c', None, 'esp'],
+                                                 ['c', None, 'ned']])
 
         # list esp content
         res = dispatcher({"action": "getCollectionInformation",
@@ -171,7 +171,7 @@ class ScenarioAnnotation(unittest.TestCase):
                            "127.0.0.1",\
                            "localhost")
         
-        self.assertGreater(res["mtime"], 1528259273)
+        self.assertGreater(res["mtime"], 1528000000)
         
     def test04_importDocument(self):
         """
