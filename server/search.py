@@ -63,7 +63,7 @@ class SearchMatchSet(object):
     def sort_matches(self):
         # sort by document name
         if _PYTHON3:
-            self.__matches.sort(lambda a: a[0].get_document())
+            self.__matches.sort(key=lambda a: a[0].get_document())
         else:
             self.__matches.sort(lambda a, b: cmp(# pylint: disable=undefined-variable
                     a[0].get_document(), b[0].get_document()))
@@ -683,7 +683,6 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
             candidates = ann_obj.get_textbounds()
         else:
             candidates = ann_obj.get_entities()
-
         for t in candidates:
             if t.type in ignore_types:
                 continue
@@ -703,7 +702,7 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
 
         # sort by start offset
         if _PYTHON3:
-            ann_matches.sort(lambda a, b: (a.first_start(), -a.last_end()))
+            ann_matches.sort(key=lambda a: (a.first_start(), -a.last_end()))
         else:
             ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()), # pylint: disable=undefined-variable
                                               (b.first_start(), -b.last_end())))
@@ -1430,7 +1429,6 @@ def search_entity(collection, document, scope="collection",
     match_case = _to_bool(match_case)
 
     ann_objs = __doc_or_dir_to_annotations(directory, document, scope)
-
     restrict_types = []
     if type is not None and type != "":
         restrict_types.append(type)

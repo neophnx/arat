@@ -17,11 +17,9 @@ TODO: add test case for the following actions
 
 # NOTE: search actions are redundant to allow different
 # permissions for single-document and whole-collection search.
-'searchEntityInDocument': search_entity,
 'searchEventInDocument': search_event,
 'searchRelationInDocument': search_relation,
 'searchNoteInDocument': search_note,
-'searchEntityInCollection': search_entity,
 'searchEventInCollection': search_event,
 'searchRelationInCollection': search_relation,
 'searchNoteInCollection': search_note,
@@ -59,7 +57,7 @@ from config import DATA_DIR
 dispatcher = Dispatcher()
 
 class ScenarioAnnotation(unittest.TestCase):
-    def test01_login(self):
+    def setUp(self):
         """
         Create a session and login
         """
@@ -76,6 +74,17 @@ class ScenarioAnnotation(unittest.TestCase):
                            "localhost")
         self.assertEquals(res, {"action": "login",
                                 'protocol': 1})
+    @classmethod
+    def tearDownClass(cls):
+        session.CURRENT_SESSION = None
+        try:
+            os.remove(DATA_DIR+"/id01.txt")
+        except:
+            pass
+        try:
+            os.remove(DATA_DIR+"/id01.ann")
+        except:
+            pass
         
     def test02_getCollectionInformation(self):
         """
@@ -286,7 +295,74 @@ class ScenarioAnnotation(unittest.TestCase):
                            "localhost")
         self.assertEquals(res["edited"], [['T1']])
         
-    def test10_deleteSpan(self):
+    def test10_searchEntityInDocument(self):
+        res = dispatcher({"action": "searchEntityInDocument",
+                            "protocol": "1",\
+                            "type": "Protein",
+                            "text_match": "word",
+                            "text": "test",
+                            "collection":"/",
+                            "scope":"document",
+                            'concordancing':"false",
+                            'context_length':10,
+                            'match_case':"false",
+                            "document":"id01"},\
+                           "127.0.0.1",\
+                           "localhost")
+        
+        self.assertEquals(res["items"], [['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+
+        res = dispatcher({"action": "searchEntityInDocument",
+                            "protocol": "1",\
+                            "type": "dont_exists",
+                            "text_match": "word",
+                            "text": "test",
+                            "collection":"/",
+                            "scope":"document",
+                            'concordancing':"false",
+                            'context_length':10,
+                            'match_case':"false",
+                            "document":"id01"},\
+                           "127.0.0.1",\
+                           "localhost")
+        
+        self.assertEquals(res["items"], [])
+        
+    def test10_searchEntityInCollection(self):
+        res = dispatcher({"action": "searchEntityInCollection",
+                            "protocol": "1",\
+                            "type": "Protein",
+                            "text_match": "word",
+                            "text": "test",
+                            "collection":"/",
+                            "scope":"collection",
+                            'concordancing':"false",
+                            'context_length':10,
+                            'match_case':"false",
+                            'document':'id01'},\
+                           "127.0.0.1",\
+                           "localhost")
+        
+        self.assertEquals(res["items"], [['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+
+        res = dispatcher({"action": "searchEntityInCollection",
+                            "protocol": "1",\
+                            "type": "dont_exists",
+                            "text_match": "word",
+                            "text": "test",
+                            "collection":"/",
+                            "scope":"collection",
+                            'concordancing':"false",
+                            'context_length':10,
+                            'match_case':"false",
+                            'document':'id01'},\
+                           "127.0.0.1",\
+                           "localhost")
+        
+        self.assertEquals(res["items"], [])
+        
+        
+    def test20_deleteSpan(self):
         res = dispatcher({"action": "deleteSpan",
                                 "protocol": "1",\
                                 "collection":"/",\
@@ -296,7 +372,7 @@ class ScenarioAnnotation(unittest.TestCase):
                                "localhost")
         self.assertEquals(res["edited"], [])
         
-    def test10_storeSVG(self):
+    def test21_storeSVG_retrieveSVG(self):
         svgData = open("tests/test_data/test.svg", "rb").read().decode("utf-8")
         
         res = dispatcher({"action": "storeSVG",
@@ -311,7 +387,6 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertGreater(len(open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read().decode("utf-8")),
                            len(svgData))
         
-    def test11_retrieveStored(self):
         svgData = open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read()
         import server
         with self.assertRaises(server.common.NoPrintJSONError) as context:
@@ -326,7 +401,7 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertEquals(context.exception.data, svgData)
     
     
-    def test12_downloadFile(self):
+    def test23_downloadFile(self):
         import server
         
         for extension in ["txt", "ann"]:
@@ -342,7 +417,7 @@ class ScenarioAnnotation(unittest.TestCase):
             self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "text/plain; charset=utf-8")
             self.assertEquals(context.exception.data, data)
     
-    def test13_downloadCollection(self):
+    def test24_downloadCollection(self):
         import server
         
         with self.assertRaises(server.common.NoPrintJSONError) as context:
@@ -388,3 +463,4 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertEquals(res, {'action': 'logout', 'protocol': 1})
         
         session.CURRENT_SESSION = None
+        
