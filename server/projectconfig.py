@@ -617,12 +617,8 @@ def get_config_path(directory):
 def __read_first_in_directory_tree(directory, filename):
     # config will not be available command-line invocations;
     # in these cases search whole tree
-    try:
-        from config import BASE_DIR
-    except:
-        BASE_DIR = "/"
+    from config import BASE_DIR
     from os.path import split, join
-
     source, result = None, None
 
     # check from the given directory and parents, but not above BASE_DIR
@@ -701,7 +697,7 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
                 source = "[default]"
             else:
                 source = filename
-
+        
         # try to parse what was found, fall back to minimal config
         try:
             configs, section_labels = __parse_configs(
@@ -732,6 +728,7 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
 
         get_configs.__cache[(directory, filename)] = (configs, section_labels)
 
+        
     return get_configs.__cache[(directory, filename)]
 
 

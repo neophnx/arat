@@ -18,7 +18,7 @@ instances of the string CHANGE_ME with their appropriate values.
 Please note that these values MUST appear in quotes, e.g. as in
 """
 from __future__ import absolute_import
-from os.path import dirname, join
+from os.path import dirname, join, abspath
 from six.moves import range
 
 
@@ -31,9 +31,9 @@ ADMIN_CONTACT_EMAIL = ''
 #     DATA_DIR: directory containing texts and annotations
 #     WORK_DIR: directory that the server uses for temporary files
 #
-BASE_DIR = dirname(__file__)
-DATA_DIR = join(BASE_DIR, 'data')
-WORK_DIR = join(BASE_DIR, 'work')
+BASE_DIR = abspath(dirname(__file__))
+DATA_DIR = abspath(join(BASE_DIR, 'data'))
+WORK_DIR = abspath(join(BASE_DIR, 'work'))
 # If you have installed brat as suggested in the installation
 # instructions, you can set up BASE_DIR, DATA_DIR and WORK_DIR by
 # removing the three lines above and deleting the initial '#'
