@@ -30,11 +30,12 @@ except ImportError:
     from cgi import parse_qs
 from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
-### Constants
+# Constants
 ARGPARSER = ArgumentParser(description='An trivial tokenization service')
 ARGPARSER.add_argument('-p', '--port', type=int, default=47111,
-        help='port to run the HTTP service on (default: 47111)')
+                       help='port to run the HTTP service on (default: 47111)')
 ###
+
 
 def _tokens(text):
     # Generate Token annotations
@@ -46,24 +47,25 @@ def _tokens(text):
     offset, aseq = 0, 1
     for token in re.split('(\s+)', text):
         if token and not token.isspace():
-            anns['T%d'%aseq] = {
+            anns['T%d' % aseq] = {
                 'type': 'Token',
                 'offsets': ((offset, offset+len(token)), ),
                 'texts': (token, ),
-                }
+            }
             aseq += 1
         offset += len(token)
     return anns
 
+
 class TokenizerHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         field_storage = FieldStorage(
-                headers=self.headers,
-                environ={
-                    'REQUEST_METHOD':'POST',
-                    'CONTENT_TYPE':self.headers['Content-type'],
-                    },
-                fp=self.rfile)
+            headers=self.headers,
+            environ={
+                'REQUEST_METHOD': 'POST',
+                'CONTENT_TYPE': self.headers['Content-type'],
+            },
+            fp=self.rfile)
 
         # Do your random tagging magic
         try:
@@ -81,7 +83,8 @@ class TokenizerHandler(BaseHTTPRequestHandler):
         print(('Generated %d tokens' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
-        return # Too much noise from the default implementation
+        return  # Too much noise from the default implementation
+
 
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
@@ -95,6 +98,7 @@ def main(args):
         pass
     httpd.server_close()
     print('Tokenizer service stopped', file=stderr)
+
 
 if __name__ == '__main__':
     from sys import argv

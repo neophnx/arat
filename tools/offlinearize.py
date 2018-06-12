@@ -26,8 +26,8 @@ import sys
 from six.moves.urllib.parse import urlparse, urljoin
 from os.path import dirname, join as joinpath
 from os import makedirs
-from six.moves.urllib.request import urlopen
-from simplejson import loads
+from six.moves.urllib.request import urlopen # pylint: disable=import-error
+from server.jsonwrap import loads
 
 try:
     base_url = sys.argv[1]
@@ -43,18 +43,20 @@ datadir = joinpath(this_dir, '../offline_data')
 coll_and_doc = url.fragment
 coll = dirname(coll_and_doc)[1:]
 
+
 def convert_coll(coll):
     if coll == '':
         ajax_coll = '/'
     else:
         ajax_coll = '/%s/' % coll
 
-    coll_query_url = urljoin(base_url, 'ajax.cgi?action=getCollectionInformation&collection=%s' % ajax_coll)
+    coll_query_url = urljoin(
+        base_url, 'ajax.cgi?action=getCollectionInformation&collection=%s' % ajax_coll)
     coll_dir = joinpath(datadir, coll)
     try:
         makedirs(coll_dir)
     except:
-        pass # hopefully because it exists; TODO: check the error value?
+        pass  # hopefully because it exists; TODO: check the error value?
 
     print(ajax_coll)
     conn = urlopen(coll_query_url)
@@ -69,7 +71,8 @@ def convert_coll(coll):
         if item[0] == 'd':
             doc = item[2]
             print("  %s" % doc)
-            doc_query_url = urljoin(base_url, 'ajax.cgi?action=getDocument&collection=%s&document=%s' % (ajax_coll, doc))
+            doc_query_url = urljoin(
+                base_url, 'ajax.cgi?action=getDocument&collection=%s&document=%s' % (ajax_coll, doc))
 
             conn = urlopen(doc_query_url)
             jsonp = conn.read()
@@ -79,5 +82,6 @@ def convert_coll(coll):
                 f.write(jsonp)
         elif item[0] == 'c' and item[2] != '..':
             convert_coll(item[2])
+
 
 convert_coll(coll)

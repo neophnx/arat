@@ -12,6 +12,7 @@ import re
 
 DEBUG = True
 
+
 class Annotation(object):
     def __init__(self, id_, type_):
         self.id_ = id_
@@ -19,6 +20,7 @@ class Annotation(object):
 
     def map_ids(self, idmap):
         self.id_ = idmap[self.id_]
+
 
 class Textbound(Annotation):
     def __init__(self, id_, type_, offsets, text):
@@ -30,8 +32,10 @@ class Textbound(Annotation):
         Annotation.map_ids(self, idmap)
 
     def __str__(self):
-        return "%s\t%s %s\t%s" % (self.id_, self.type_, 
+        return "%s\t%s %s\t%s" % (self.id_, self.type_,
                                   ' '.join(self.offsets), self.text)
+
+
 class ArgAnnotation(Annotation):
     def __init__(self, id_, type_, args):
         Annotation.__init__(self, id_, type_)
@@ -41,10 +45,11 @@ class ArgAnnotation(Annotation):
         Annotation.map_ids(self, idmap)
         mapped = []
         for arg in self.args:
-            key, value = arg.split(':') 
+            key, value = arg.split(':')
             value = idmap[value]
             mapped.append("%s:%s" % (key, value))
         self.args = mapped
+
 
 class Relation(ArgAnnotation):
     def __init__(self, id_, type_, args):
@@ -56,6 +61,7 @@ class Relation(ArgAnnotation):
     def __str__(self):
         return "%s\t%s %s" % (self.id_, self.type_, ' '.join(self.args))
 
+
 class Event(ArgAnnotation):
     def __init__(self, id_, type_, trigger, args):
         ArgAnnotation.__init__(self, id_, type_, args)
@@ -66,8 +72,9 @@ class Event(ArgAnnotation):
         self.trigger = idmap[self.trigger]
 
     def __str__(self):
-        return "%s\t%s:%s %s" % (self.id_, self.type_, self.trigger, 
+        return "%s\t%s:%s %s" % (self.id_, self.type_, self.trigger,
                                  ' '.join(self.args))
+
 
 class Attribute(Annotation):
     def __init__(self, id_, type_, target, value):
@@ -80,8 +87,9 @@ class Attribute(Annotation):
         self.target = idmap[self.target]
 
     def __str__(self):
-        return "%s\t%s %s%s" % (self.id_, self.type_, self.target, 
+        return "%s\t%s %s%s" % (self.id_, self.type_, self.target,
                                 '' if self.value is None else ' '+self.value)
+
 
 class Normalization(Annotation):
     def __init__(self, id_, type_, target, ref, reftext):
@@ -98,6 +106,7 @@ class Normalization(Annotation):
         return "%s\t%s %s %s\t%s" % (self.id_, self.type_, self.target,
                                      self.ref, self.reftext)
 
+
 class Equiv(Annotation):
     def __init__(self, id_, type_, targets):
         Annotation.__init__(self, id_, type_)
@@ -109,6 +118,7 @@ class Equiv(Annotation):
 
     def __str__(self):
         return "%s\t%s %s" % (self.id_, self.type_, ' '.join(self.targets))
+
 
 class Note(Annotation):
     def __init__(self, id_, type_, target, text):
@@ -123,17 +133,20 @@ class Note(Annotation):
     def __str__(self):
         return "%s\t%s %s\t%s" % (self.id_, self.type_, self.target, self.text)
 
+
 def parse_textbound(fields):
     id_, type_offsets, text = fields
     type_offsets = type_offsets.split(' ')
     type_, offsets = type_offsets[0], type_offsets[1:]
     return Textbound(id_, type_, offsets, text)
 
+
 def parse_relation(fields):
     id_, type_args = fields
     type_args = type_args.split(' ')
     type_, args = type_args[0], type_args[1:]
     return Relation(id_, type_, args)
+
 
 def parse_event(fields):
     id_, type_trigger_args = fields
@@ -143,6 +156,7 @@ def parse_event(fields):
     # remove empty "arguments"
     args = [a for a in args if a]
     return Event(id_, type_, trigger, args)
+
 
 def parse_attribute(fields):
     id_, type_target_value = fields
@@ -154,21 +168,25 @@ def parse_attribute(fields):
         value = None
     return Attribute(id_, type_, target, value)
 
+
 def parse_normalization(fields):
     id_, type_target_ref, reftext = fields
     type_, target, ref = type_target_ref.split(' ')
     return Normalization(id_, type_, target, ref, reftext)
+
 
 def parse_note(fields):
     id_, type_target, text = fields
     type_, target = type_target.split(' ')
     return Note(id_, type_, target, text)
 
+
 def parse_equiv(fields):
     id_, type_targets = fields
     type_targets = type_targets.split(' ')
     type_, targets = type_targets[0], type_targets[1:]
     return Equiv(id_, type_, targets)
+
 
 parse_func = {
     'T': parse_textbound,
@@ -179,7 +197,8 @@ parse_func = {
     'A': parse_attribute,
     '#': parse_note,
     '*': parse_equiv,
-    }
+}
+
 
 def parse(l, ln):
     assert len(l) and l[0] in parse_func, "Error on line %d: %s" % (ln, l)
@@ -187,6 +206,7 @@ def parse(l, ln):
         return parse_func[l[0]](l.split('\t'))
     except Exception:
         assert False, "Error on line %d: %s" % (ln, l)
+
 
 def process(fn):
     idmap = {}
@@ -200,8 +220,8 @@ def process(fn):
 
         if DEBUG:
             for i, a in enumerate(annotations):
-                assert lines[i] == str(a), ("Cross-check failed:\n  "+
-                                            '"%s"' % lines[i] + " !=\n  "+
+                assert lines[i] == str(a), ("Cross-check failed:\n  " +
+                                            '"%s"' % lines[i] + " !=\n  " +
                                             '"%s"' % str(a))
 
         idmap = {}
@@ -219,7 +239,8 @@ def process(fn):
 
         for i, a in enumerate(annotations):
             a.map_ids(idmap)
-            print(a)        
+            print(a)
+
 
 def main(argv):
     if len(argv) < 2:
@@ -230,6 +251,7 @@ def main(argv):
         process(fn)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

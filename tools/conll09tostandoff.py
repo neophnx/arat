@@ -32,25 +32,28 @@ OUTPUT_ENCODING = "UTF-8"
 # POS PPOS FEAT PFEAT HEAD PHEAD DEPREL PDEPREL FILLPRED PRED APREDs
 # (http://ufal.mff.cuni.cz/conll2009-st/task-description.html)
 
-F_ID, F_FORM, F_LEMMA, F_POS, F_FEAT, F_HEAD, F_DEPREL, F_FILLPRED, F_PRED, F_APRED1 = list(range(10))
+F_ID, F_FORM, F_LEMMA, F_POS, F_FEAT, F_HEAD, F_DEPREL, F_FILLPRED, F_PRED, F_APRED1 = list(
+    range(10))
 
 output_directory = None
 
 # rewrites for characters appearing in CoNLL-X types that cannot be
 # directly used in identifiers in brat-flavored standoff
 charmap = {
-    '<' : '_lt_',
-    '>' : '_gt_',
-    '+' : '_plus_',
-    '?' : '_question_',
-    '&' : '_amp_',
-    ':' : '_colon_',
-    '.' : '_period_',
-    '!' : '_exclamation_',
+    '<': '_lt_',
+    '>': '_gt_',
+    '+': '_plus_',
+    '?': '_question_',
+    '&': '_amp_',
+    ':': '_colon_',
+    '.': '_period_',
+    '!': '_exclamation_',
 }
 
+
 def maptype(s):
-    return "".join([charmap.get(c,c) for c in s])
+    return "".join([charmap.get(c, c) for c in s])
+
 
 def tokstr(start, end, ttype, idnum, text):
     # sanity checks
@@ -58,11 +61,14 @@ def tokstr(start, end, ttype, idnum, text):
     assert text == text.strip(), "ERROR: tagged span contains extra whitespace: '%s'" % (text)
     return "T%d\t%s %d %d\t%s" % (idnum, maptype(ttype), start, end, text)
 
+
 def featstr(lemma, feats, idnum):
     return "#%d\tData T%d\tLemma: %s, Feats: %s" % (idnum, idnum, lemma, feats)
 
+
 def depstr(depid, headid, rel, idnum):
     return "R%d\t%s Arg1:T%d Arg2:T%d" % (idnum, maptype(rel), headid, depid)
+
 
 def output(infn, docnum, sentences):
     global output_directory
@@ -116,7 +122,7 @@ def output(infn, docnum, sentences):
 
             doctext = doctext + form
             offset += len(form)
-            
+
             prev_form = form
 
         # output dependencies
@@ -126,15 +132,17 @@ def output(infn, docnum, sentences):
                     # if root is not added, skip deps to the root (idx 0)
                     if not OUTPUT_ROOT and head == 0:
                         continue
-                    
-                    print(depstr(idmap[dep], idmap[head], rel, ridnum), file=soout)
+
+                    print(depstr(idmap[dep], idmap[head],
+                                 rel, ridnum), file=soout)
                     ridnum += 1
-        
+
         if si+1 != len(sentences):
-            doctext = doctext + '\n'        
+            doctext = doctext + '\n'
             offset += 1
-            
+
     print(doctext, file=txtout)
+
 
 def read_sentences(fn):
     """Read sentences in CoNLL format.
@@ -142,22 +150,23 @@ def read_sentences(fn):
     Return list of sentences, each represented as list of fields.
     """
     # original author: @fginter
-    sentences=[[]]
+    sentences = [[]]
     with codecs.open(fn, 'rU', INPUT_ENCODING) as f:
         for line in f:
-            line=line.rstrip()
+            line = line.rstrip()
             if not line:
                 continue
             # igore lines starting with "#" as comments
             if line and line[0] == "#":
                 continue
-            cols=line.split(u'\t')
+            cols = line.split(u'\t')
             # break sentences on token index instead of blank line;
             # the latter isn't reliably written by all generators
             if cols[0] == u'1' and sentences[-1]:
                 sentences.append([])
             sentences[-1].append(cols)
     return sentences
+
 
 def resolve_format(sentences, options):
     fields = {}
@@ -184,6 +193,7 @@ def resolve_format(sentences, options):
 
     return fields
 
+
 def mark_dependencies(dependency, head, dependent, deprel):
     if head not in dependency:
         dependency[head] = {}
@@ -191,6 +201,7 @@ def mark_dependencies(dependency, head, dependent, deprel):
         dependency[head][dependent] = []
     dependency[head][dependent].append(deprel)
     return dependency
+
 
 def process_sentence(sentence, fieldmap):
     # dependencies represented as dict of dicts of lists of dep types
@@ -222,7 +233,8 @@ def process_sentence(sentence, fieldmap):
         token[id_] = (form, lemma, pos, feat)
 
     return token, dependency
-        
+
+
 def process(fn, options=None):
     docnum = 1
     sentences = read_sentences(fn)
@@ -239,6 +251,7 @@ def process(fn, options=None):
             output(fn, docnum, processed)
             processed = []
             docnum += 1
+
 
 def main(argv):
     global output_directory
@@ -271,6 +284,7 @@ def main(argv):
 """ % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

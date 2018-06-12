@@ -6,50 +6,45 @@ An example of a tagging service using NER suite.
 
 from __future__ import absolute_import
 from __future__ import print_function
-from argparse import ArgumentParser
 
+from argparse import ArgumentParser
 from os.path import join as path_join
 from os.path import dirname
-
-try:
-    from json import dumps
-except ImportError:
-    # likely old Python; try to fall back on ujson in brat distrib
-    from sys import path as sys_path
-    sys_path.append(path_join(dirname(__file__), '../server/lib/ujson'))
-    from ujson import dumps
-
 from subprocess import PIPE, Popen
-
+import re
 from random import choice, randint
 from sys import stderr
+
+
 from six.moves.urllib.parse import urlparse
-try:
-    from six.moves.urllib.parse import parse_qs
-except ImportError:
-    # old Python again?
-    from cgi import parse_qs
+from six.moves.urllib.parse import parse_qs
 from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import re
 
-# use the brat sentence splitter
-from sentencesplit import sentencebreaks_to_newlines
 
 # and use this hack for converting BIO to standoff
-from BIOtoStandoff import BIO_lines_to_standoff
+from tools.BIOtoStandoff import BIO_lines_to_standoff
 
-### Constants
+
+# use the brat sentence splitter
+from tools.sentencesplit import sentencebreaks_to_newlines
+from server.jsonwrap import dumps
+
+
+# Constants
 DOCUMENT_BOUNDARY = 'END-DOCUMENT'
-NERSUITE_SCRIPT   = path_join(dirname(__file__), './nersuite_tag.sh')
-NERSUITE_COMMAND  = [NERSUITE_SCRIPT, '-multidoc', DOCUMENT_BOUNDARY]
+NERSUITE_SCRIPT = path_join(dirname(__file__), './nersuite_tag.sh')
+NERSUITE_COMMAND = [NERSUITE_SCRIPT, '-multidoc', DOCUMENT_BOUNDARY]
 
-ARGPARSER = ArgumentParser(description='An example HTTP tagging service using NERsuite')
+ARGPARSER = ArgumentParser(
+    description='An example HTTP tagging service using NERsuite')
 ARGPARSER.add_argument('-p', '--port', type=int, default=47111,
-        help='port to run the HTTP service on (default: 47111)')
+                       help='port to run the HTTP service on (default: 47111)')
 ###
 
-### Globals
+# Globals
 tagger_process = None
+
 
 def run_tagger(cmd):
     # runs the tagger identified by the given command.
@@ -60,6 +55,7 @@ def run_tagger(cmd):
         print("Error running '%s':" % cmd, e, file=stderr)
         raise
 
+
 def _apply_tagger(text):
     global tagger_process, tagger_queue
 
@@ -69,7 +65,8 @@ def _apply_tagger(text):
     except:
         # if anything goes wrong, just go with the
         # original text instead
-        print("Warning: sentence splitting failed for input:\n'%s'" % text, file=stderr)
+        print("Warning: sentence splitting failed for input:\n'%s'" %
+              text, file=stderr)
         splittext = text
 
     print(splittext, file=tagger_process.stdin)
@@ -80,17 +77,18 @@ def _apply_tagger(text):
     while True:
         l = tagger_process.stdout.readline()
         l = l.rstrip('\n')
-        
+
         if l == DOCUMENT_BOUNDARY:
             break
 
         response_lines.append(l)
-        
+
     try:
         tagged_entities = BIO_lines_to_standoff(response_lines, text)
     except:
         # if anything goes wrong, bail out
-        print("Warning: BIO-to-standoff conversion failed for BIO:\n'%s'" % '\n'.join(response_lines), file=stderr)
+        print("Warning: BIO-to-standoff conversion failed for BIO:\n'%s'" %
+              '\n'.join(response_lines), file=stderr)
         return {}
 
     anns = {}
@@ -100,9 +98,10 @@ def _apply_tagger(text):
             'type': t.eType,
             'offsets': ((t.startOff, t.endOff), ),
             'texts': (t.eText, ),
-            }
+        }
 
     return anns
+
 
 class NERsuiteTaggerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -124,7 +123,8 @@ class NERsuiteTaggerHandler(BaseHTTPRequestHandler):
         print(('Generated %d annotations' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
-        return # Too much noise from the default implementation
+        return  # Too much noise from the default implementation
+
 
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
@@ -142,6 +142,7 @@ def main(args):
         pass
     httpd.server_close()
     print('NERsuite tagger service stopped', file=stderr)
+
 
 if __name__ == '__main__':
     from sys import argv

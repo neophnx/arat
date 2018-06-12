@@ -19,29 +19,32 @@ from six.moves import range
 DEFAULT_ENCODING = 'UTF-8'
 TEST_ARG = '--test'
 
-DEBUG=False
+DEBUG = False
 
 WARN_LENGTH_PRODUCT = 1000000
 
 options = None
 
+
 def argparser():
     import argparse
 
-    ap=argparse.ArgumentParser(description="Align text and annotations to different version of same text.")
-    ap.add_argument(TEST_ARG, default=False, action="store_true", 
+    ap = argparse.ArgumentParser(
+        description="Align text and annotations to different version of same text.")
+    ap.add_argument(TEST_ARG, default=False, action="store_true",
                     help="Perform self-test and exit")
     ap.add_argument('-e', '--encoding', default=DEFAULT_ENCODING,
                     help='text encoding (default %s)' % DEFAULT_ENCODING)
-    ap.add_argument('-v', '--verbose', default=False, action="store_true", 
+    ap.add_argument('-v', '--verbose', default=False, action="store_true",
                     help="Verbose output")
-    ap.add_argument("ann", metavar="ANN", nargs=1, 
+    ap.add_argument("ann", metavar="ANN", nargs=1,
                     help="Annotation file")
-    ap.add_argument("oldtext", metavar="OLD-TEXT", nargs=1, 
+    ap.add_argument("oldtext", metavar="OLD-TEXT", nargs=1,
                     help="Text matching annotation")
-    ap.add_argument("newtext", metavar="NEW-TEXT", nargs=1, 
+    ap.add_argument("newtext", metavar="NEW-TEXT", nargs=1,
                     help="Text to align to")
     return ap
+
 
 class Annotation(object):
     def __init__(self, id_, type_):
@@ -56,8 +59,10 @@ class Annotation(object):
         # assume not text-bound: no-op
         return None
 
+
 def escape_tb_text(s):
     return s.replace('\n', '\\n')
+
 
 def is_newline(c):
     # from http://stackoverflow.com/a/18325046
@@ -74,6 +79,7 @@ def is_newline(c):
         u'\u2029'     # PARAGRAPH SEPARATOR
     )
 
+
 class Textbound(Annotation):
     def __init__(self, id_, type_, offsets, text):
         Annotation.__init__(self, id_, type_)
@@ -82,7 +88,8 @@ class Textbound(Annotation):
         self.offsets = []
         if ';' in offsets:
             # not tested w/discont, so better not to try
-            raise NotImplementedError('Discontinuous annotations not supported')
+            raise NotImplementedError(
+                'Discontinuous annotations not supported')
         assert len(offsets) == 2, "Data format error"
         self.offsets.append((int(offsets[0]), int(offsets[1])))
 
@@ -100,10 +107,10 @@ class Textbound(Annotation):
         for start, end in self.offsets:
             while start < end:
                 while start < end and is_newline(text[start]):
-                    start += 1 # skip initial newlines
+                    start += 1  # skip initial newlines
                 fend = start
                 while fend < end and not is_newline(text[fend]):
-                    fend += 1 # find max sequence of non-newlines
+                    fend += 1  # find max sequence of non-newlines
                 if fend > start:
                     fragmented.append((start, fend))
                 start = fend
@@ -122,16 +129,17 @@ class Textbound(Annotation):
             print('Warning: newline in text: %s' % self.text, file=sys.stderr)
 
     def __unicode__(self):
-        return u"%s\t%s %s\t%s" % (self.id_, self.type_, 
+        return u"%s\t%s %s\t%s" % (self.id_, self.type_,
+                                   ';'.join(['%d %d' % (s, e)
+                                             for s, e in self.offsets]),
+                                   escape_tb_text(self.text))
+
+    def __str__(self):
+        return "%s\t%s %s\t%s" % (self.id_, self.type_,
                                   ';'.join(['%d %d' % (s, e)
                                             for s, e in self.offsets]),
                                   escape_tb_text(self.text))
 
-    def __str__(self):
-        return "%s\t%s %s\t%s" % (self.id_, self.type_, 
-                                  ';'.join(['%d %d' % (s, e)
-                                            for s, e in self.offsets]),
-                                  escape_tb_text(self.text))
 
 class XMLElement(Textbound):
     def __init__(self, id_, type_, offsets, text, attributes):
@@ -139,16 +147,18 @@ class XMLElement(Textbound):
         self.attributes = attributes
 
     def __str__(self):
-        return "%s\t%s %s\t%s\t%s" % (self.id_, self.type_, 
+        return "%s\t%s %s\t%s\t%s" % (self.id_, self.type_,
                                       ';'.join(['%d %d' % (s, e)
                                                 for s, e in self.offsets]),
-                                      escape_tb_text(self.text), 
+                                      escape_tb_text(self.text),
                                       self.attributes)
+
 
 class ArgAnnotation(Annotation):
     def __init__(self, id_, type_, args):
         Annotation.__init__(self, id_, type_)
         self.args = args
+
 
 class Relation(ArgAnnotation):
     def __init__(self, id_, type_, args):
@@ -157,14 +167,16 @@ class Relation(ArgAnnotation):
     def __str__(self):
         return "%s\t%s %s" % (self.id_, self.type_, ' '.join(self.args))
 
+
 class Event(ArgAnnotation):
     def __init__(self, id_, type_, trigger, args):
         ArgAnnotation.__init__(self, id_, type_, args)
         self.trigger = trigger
 
     def __str__(self):
-        return "%s\t%s:%s %s" % (self.id_, self.type_, self.trigger, 
+        return "%s\t%s:%s %s" % (self.id_, self.type_, self.trigger,
                                  ' '.join(self.args))
+
 
 class Attribute(Annotation):
     def __init__(self, id_, type_, target, value):
@@ -173,8 +185,9 @@ class Attribute(Annotation):
         self.value = value
 
     def __str__(self):
-        return "%s\t%s %s%s" % (self.id_, self.type_, self.target, 
+        return "%s\t%s %s%s" % (self.id_, self.type_, self.target,
                                 '' if self.value is None else ' '+self.value)
+
 
 class Normalization(Annotation):
     def __init__(self, id_, type_, target, ref, reftext):
@@ -187,6 +200,7 @@ class Normalization(Annotation):
         return "%s\t%s %s %s\t%s" % (self.id_, self.type_, self.target,
                                      self.ref, self.reftext)
 
+
 class Equiv(Annotation):
     def __init__(self, id_, type_, targets):
         Annotation.__init__(self, id_, type_)
@@ -194,6 +208,7 @@ class Equiv(Annotation):
 
     def __str__(self):
         return "%s\t%s %s" % (self.id_, self.type_, ' '.join(self.targets))
+
 
 class Note(Annotation):
     def __init__(self, id_, type_, target, text):
@@ -204,17 +219,20 @@ class Note(Annotation):
     def __str__(self):
         return "%s\t%s %s\t%s" % (self.id_, self.type_, self.target, self.text)
 
+
 def parse_xml(fields):
     id_, type_offsets, text, attributes = fields
     type_offsets = type_offsets.split(' ')
     type_, offsets = type_offsets[0], type_offsets[1:]
     return XMLElement(id_, type_, offsets, text, attributes)
 
+
 def parse_textbound(fields):
     id_, type_offsets, text = fields
     type_offsets = type_offsets.split(' ')
     type_, offsets = type_offsets[0], type_offsets[1:]
     return Textbound(id_, type_, offsets, text)
+
 
 def parse_relation(fields):
     # allow a variant where the two initial TAB-separated fields are
@@ -226,12 +244,14 @@ def parse_relation(fields):
     type_, args = type_args[0], type_args[1:]
     return Relation(id_, type_, args)
 
+
 def parse_event(fields):
     id_, type_trigger_args = fields
     type_trigger_args = type_trigger_args.split(' ')
     type_trigger, args = type_trigger_args[0], type_trigger_args[1:]
     type_, trigger = type_trigger.split(':')
     return Event(id_, type_, trigger, args)
+
 
 def parse_attribute(fields):
     id_, type_target_value = fields
@@ -243,21 +263,25 @@ def parse_attribute(fields):
         value = None
     return Attribute(id_, type_, target, value)
 
+
 def parse_normalization(fields):
     id_, type_target_ref, reftext = fields
     type_, target, ref = type_target_ref.split(' ')
     return Normalization(id_, type_, target, ref, reftext)
+
 
 def parse_note(fields):
     id_, type_target, text = fields
     type_, target = type_target.split(' ')
     return Note(id_, type_, target, text)
 
+
 def parse_equiv(fields):
     id_, type_targets = fields
     type_targets = type_targets.split(' ')
     type_, targets = type_targets[0], type_targets[1:]
     return Equiv(id_, type_, targets)
+
 
 parse_func = {
     'T': parse_textbound,
@@ -269,7 +293,8 @@ parse_func = {
     'X': parse_xml,
     '#': parse_note,
     '*': parse_equiv,
-    }
+}
+
 
 def parse(l, ln):
     assert len(l) and l[0] in parse_func, "Error on line %d: %s" % (ln, l)
@@ -278,10 +303,11 @@ def parse(l, ln):
     except Exception:
         assert False, "Error on line %d: %s" % (ln, l)
 
+
 def parseann(fn):
     global options
 
-    annotations = []    
+    annotations = []
     with codecs.open(fn, 'rU', encoding=options.encoding) as f:
         lines = [l.rstrip('\n') for l in f.readlines()]
 
@@ -289,11 +315,13 @@ def parseann(fn):
             annotations.append(parse(l, i+1))
     return annotations
 
+
 def sim(a, b):
     if a == b:
         return 10
     else:
         return -1000
+
 
 def swcost(a, b, extend=False):
     if a == b:
@@ -314,6 +342,7 @@ def swcost(a, b, extend=False):
         # mismatch
         return -1000
 
+
 def match_cost(a, b):
     if a == b:
         if a.isspace():
@@ -328,17 +357,21 @@ def match_cost(a, b):
             return 0
         else:
             return -1000
-    
+
+
 def space_boundary(s, i):
     if (i == 0 or s[i-1].isspace() != s[i].isspace() or
-        i+1 == len(s) or s[i+1].isspace() != s[i].isspace()):
+            i+1 == len(s) or s[i+1].isspace() != s[i].isspace()):
         return True
     else:
         return False
 
-CH_OUT, CH_MATCH, CH_DELETE, CH_SPC_DELETE, CH_INSERT, CH_SPC_INSERT = list(range(6))
 
-def delete_cost(A, B, i, j, choices):   
+CH_OUT, CH_MATCH, CH_DELETE, CH_SPC_DELETE, CH_INSERT, CH_SPC_INSERT = list(
+    range(6))
+
+
+def delete_cost(A, B, i, j, choices):
     if choices[i-1][j] == CH_DELETE:
         # standard gap extend
         return -1, CH_DELETE
@@ -352,6 +385,7 @@ def delete_cost(A, B, i, j, choices):
         # standard gap open
         return -20, CH_DELETE
 
+
 def insert_cost(A, B, i, j, choices):
     if choices[i][j-1] == CH_INSERT:
         return -1, CH_INSERT
@@ -361,6 +395,7 @@ def insert_cost(A, B, i, j, choices):
         return -5, CH_INSERT
     else:
         return -10, CH_INSERT
+
 
 def swchoice(A, B, i, j, F, choices):
     a, b = A[i-1], B[j-1]
@@ -375,7 +410,7 @@ def swchoice(A, B, i, j, F, choices):
 
     best = max(match, delete, insert, 0)
 
-    if best == match:        
+    if best == match:
         choice = CH_MATCH
         if DEBUG and A[i-1] != B[j-1]:
             print("MISMATCH! '%s' vs '%s'" % (A[i-1], B[j-1]), file=sys.stderr)
@@ -388,6 +423,7 @@ def swchoice(A, B, i, j, F, choices):
         choice = CH_OUT
 
     return best, choice
+
 
 def smithwaterman(A, B, cost=swcost, as_str=False, align_full_A=True):
     """
@@ -456,8 +492,8 @@ def smithwaterman(A, B, cost=swcost, as_str=False, align_full_A=True):
     while i > 0 and j > 0 and F[i][j] > 0:
         if choices[i][j] == CH_MATCH:
             if options and options.verbose or DEBUG:
-                print('match : "%s"-"%s" (%d)' % \
-                    (A[i-1], B[j-1], F[i][j]), file=sys.stderr)
+                print('match : "%s"-"%s" (%d)' %
+                      (A[i-1], B[j-1], F[i][j]), file=sys.stderr)
             alignA.insert(0, A[i-1])
             alignB.insert(0, B[j-1])
             i -= 1
@@ -496,7 +532,8 @@ def smithwaterman(A, B, cost=swcost, as_str=False, align_full_A=True):
 
     return [alignA, alignB]
 
-def needlemanwunsch(A, B, gap_penalty = -5):
+
+def needlemanwunsch(A, B, gap_penalty=-5):
     rows = len(A) + 1
     cols = len(B) + 1
 
@@ -553,8 +590,10 @@ def needlemanwunsch(A, B, gap_penalty = -5):
 
     return F[-1][-1]
 
+
 class CannotSpaceAlign(Exception):
     pass
+
 
 def spacealign(A, B, as_str=False):
     As = ''.join([c for c in A if not c.isspace()])
@@ -601,6 +640,7 @@ def spacealign(A, B, as_str=False):
 
     return (alignA, alignB)
 
+
 def align(text1, text2):
     # Smith-Waterman is O(nm) in memory and time and will fail for
     # large inputs. As differences in space only represent a common
@@ -609,8 +649,8 @@ def align(text1, text2):
         a, b = spacealign(text1, text2)
     except CannotSpaceAlign:
         if len(text1) * len(text2) > WARN_LENGTH_PRODUCT:
-            print('Warning: running Smith-Waterman on long' \
-                ' texts, O(nm) in memory and time.', file=sys.stderr)
+            print('Warning: running Smith-Waterman on long'
+                  ' texts, O(nm) in memory and time.', file=sys.stderr)
         a, b = smithwaterman(text1, text2)
 
     # create offset map from text1 to text2
@@ -630,19 +670,22 @@ def align(text1, text2):
     assert len(offset_map) == len(text1)
     return offset_map
 
+
 class Remapper(object):
     def __init__(self, offset_map):
         self.offset_map = offset_map
 
     def remap(self, start, end):
         if start == end:
-            return offset_map[start], offset_map[end]
+            return self.offset_map[start], self.offset_map[end]
         else:
             return self.offset_map[start], self.offset_map[end-1]+1
-        
+
+
 def test():
     import doctest
     doctest.testmod()
+
 
 def main(argv=None):
     global options
@@ -671,6 +714,7 @@ def main(argv=None):
         print(six.text_type(a).encode(options.encoding))
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

@@ -18,15 +18,18 @@ OUTPUT_ENCODING = "UTF-8"
 
 output_directory = None
 
+
 def unescape_PTB(s):
     # Returns the given string with Penn treebank escape sequences
     # replaced with the escaped text.
     return s.replace("-LRB-", "(").replace("-RRB-", ")").replace("-LSB-", "[").replace("-RSB-", "]").replace("-LCB-", "{").replace("-RCB-", "}").replace('``', '"'). replace("''", '"').replace('\\/', '/')
 
+
 def quote(s):
     return s in ('"', )
 
-def space(t1, t2, quote_count = None):
+
+def space(t1, t2, quote_count=None):
     # Helper for reconstructing sentence text. Given the text of two
     # consecutive tokens, returns a heuristic estimate of whether a
     # space character should be placed between them.
@@ -41,11 +44,13 @@ def space(t1, t2, quote_count = None):
         return False
     return True
 
+
 def tagstr(start, end, ttype, idnum, text):
     # sanity checks
     assert '\n' not in text, "ERROR: newline in entity '%s'" % (text)
     assert text == text.strip(), "ERROR: tagged span contains extra whitespace: '%s'" % (text)
     return "T%d\t%s %d %d\t%s" % (idnum, ttype, start, end, text)
+
 
 def output(infn, docnum, sentences):
     global output_directory
@@ -54,7 +59,8 @@ def output(infn, docnum, sentences):
         txtout = sys.stdout
         soout = sys.stdout
     else:
-        outfn = os.path.join(output_directory, os.path.basename(infn)+'-doc-'+str(docnum))
+        outfn = os.path.join(
+            output_directory, os.path.basename(infn)+'-doc-'+str(docnum))
         txtout = codecs.open(outfn+'.txt', 'wt', encoding=OUTPUT_ENCODING)
         soout = codecs.open(outfn+'.ann', 'wt', encoding=OUTPUT_ENCODING)
 
@@ -74,7 +80,8 @@ def output(infn, docnum, sentences):
             if curr_type is not None and (ttag != "I" or ttype != curr_type):
                 # a previously started tagged sequence does not
                 # continue into this position.
-                print(tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset]), file=soout)
+                print(tagstr(curr_start, offset, curr_type, idnum,
+                             doctext[curr_start:offset]), file=soout)
                 idnum += 1
                 curr_start, curr_type = None, None
 
@@ -94,17 +101,19 @@ def output(infn, docnum, sentences):
 
             prev_token = token
             prev_tag = ttag
-        
+
         # leftovers?
         if curr_type is not None:
-            print(tagstr(curr_start, offset, curr_type, idnum, doctext[curr_start:offset]), file=soout)
+            print(tagstr(curr_start, offset, curr_type, idnum,
+                         doctext[curr_start:offset]), file=soout)
             idnum += 1
 
         if si+1 != len(sentences):
-            doctext = doctext + '\n'        
+            doctext = doctext + '\n'
             offset += 1
-            
+
     print(doctext, file=txtout)
+
 
 def process(fn):
     docnum = 1
@@ -160,9 +169,9 @@ def process(fn):
         if len(sentences) > 0:
             output(fn, docnum, sentences)
 
+
 def main(argv):
     global output_directory
-
 
     # Take an optional "-o" arg specifying an output directory for the results
     output_directory = None
@@ -190,6 +199,7 @@ def main(argv):
 """ % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

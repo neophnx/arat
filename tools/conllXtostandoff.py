@@ -31,18 +31,20 @@ output_directory = None
 # rewrites for characters appearing in CoNLL-X types that cannot be
 # directly used in identifiers in brat-flavored standoff
 charmap = {
-    '<' : '_lt_',
-    '>' : '_gt_',
-    '+' : '_plus_',
-    '?' : '_question_',
-    '&' : '_amp_',
-    ':' : '_colon_',
-    '.' : '_period_',
-    '!' : '_exclamation_',
+    '<': '_lt_',
+    '>': '_gt_',
+    '+': '_plus_',
+    '?': '_question_',
+    '&': '_amp_',
+    ':': '_colon_',
+    '.': '_period_',
+    '!': '_exclamation_',
 }
 
+
 def maptype(s):
-    return "".join([charmap.get(c,c) for c in s])
+    return "".join([charmap.get(c, c) for c in s])
+
 
 def tokstr(start, end, ttype, idnum, text):
     # sanity checks
@@ -50,8 +52,10 @@ def tokstr(start, end, ttype, idnum, text):
     assert text == text.strip(), "ERROR: tagged span contains extra whitespace: '%s'" % (text)
     return "T%d\t%s %d %d\t%s" % (idnum, maptype(ttype), start, end, text)
 
+
 def depstr(depid, headid, rel, idnum):
     return "R%d\t%s Arg1:T%d Arg2:T%d" % (idnum, maptype(rel), headid, depid)
+
 
 def output(infn, docnum, sentences):
     global output_directory
@@ -102,7 +106,7 @@ def output(infn, docnum, sentences):
 
             doctext = doctext + form
             offset += len(form)
-            
+
             prev_form = form
 
         # output dependencies
@@ -114,12 +118,13 @@ def output(infn, docnum, sentences):
 
             print(depstr(idmap[dep], idmap[head], rel, ridnum), file=soout)
             ridnum += 1
-        
+
         if si+1 != len(sentences):
-            doctext = doctext + '\n'        
+            doctext = doctext + '\n'
             offset += 1
-            
+
     print(doctext, file=txtout)
+
 
 def process(fn):
     docnum = 1
@@ -162,7 +167,8 @@ def process(fn):
             # 8 DEPREL Dependency relation to the HEAD.
             fields = l.split('\t')
 
-            assert len(fields) == 10, "Format error on line %d in %s: expected 10 fields, got %d: %s" % (ln, fn, len(fields), l)
+            assert len(fields) == 10, "Format error on line %d in %s: expected 10 fields, got %d: %s" % (
+                ln, fn, len(fields), l)
 
             ID, form, POS = fields[0], fields[1], fields[4]
             head, rel = fields[6], fields[7]
@@ -177,6 +183,7 @@ def process(fn):
             sentences.append((tokens, deps))
         if len(sentences) > 0:
             output(fn, docnum, sentences)
+
 
 def main(argv):
     global output_directory
@@ -208,6 +215,7 @@ def main(argv):
 """ % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

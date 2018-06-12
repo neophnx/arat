@@ -29,6 +29,8 @@ import sys
 import re
 import codecs
 
+_PYTHON3 = (sys.version_info > (3, 0))
+
 INPUT_ENCODING = "UTF-8"
 
 # Name classes to discard from the data (unless they are the only that
@@ -52,12 +54,12 @@ DISCARD_NAME_CLASS = [
 # Note that this excludes initial character capitalization, which is
 # performed for by default as the last stage of processing.
 NAME_CLASS_MAP = {
-    "genbank common name" : "common name",
-    "genbank synonym" : "synonym",
-    "equivalent name" : "synonym",
-    "acronym" : "synonym",
-    "genbank acronym" : "synonym",
-    "genbank anamorph" : "anamorph",
+    "genbank common name": "common name",
+    "genbank synonym": "synonym",
+    "equivalent name": "synonym",
+    "acronym": "synonym",
+    "genbank acronym": "synonym",
+    "genbank anamorph": "anamorph",
 }
 
 # Sort order of names for output.
@@ -66,6 +68,7 @@ NAME_ORDER_BY_CLASS = [
     "common name",
     "synonym",
 ] + DISCARD_NAME_CLASS
+
 
 def main(argv):
     if len(argv) < 2:
@@ -79,7 +82,7 @@ def main(argv):
     with codecs.open(namesfn, encoding=INPUT_ENCODING) as f:
         for i, l in enumerate(f):
             l = l.strip('\n\r')
-            
+
             fields = l.split('|')
 
             assert len(fields) >= 4, "Format error on line %d: %s" % (i+1, l)
@@ -92,7 +95,7 @@ def main(argv):
 
     # filter names by class
     for tax_id in names_by_tax_id:
-        for dnc in DISCARD_NAME_CLASS:            
+        for dnc in DISCARD_NAME_CLASS:
             filtered = [(t, c) for t, c in names_by_tax_id[tax_id] if c != dnc]
             if filtered:
                 names_by_tax_id[tax_id] = filtered
@@ -103,22 +106,31 @@ def main(argv):
     for tax_id in names_by_tax_id:
         mapped = []
         for t, c in names_by_tax_id[tax_id]:
-            mapped.append((t, NAME_CLASS_MAP.get(c,c)))
+            mapped.append((t, NAME_CLASS_MAP.get(c, c)))
         names_by_tax_id[tax_id] = mapped
 
     # sort for output
-    nc_rank = dict((b,a) for a,b in enumerate(NAME_ORDER_BY_CLASS))
+    nc_rank = dict((b, a) for a, b in enumerate(NAME_ORDER_BY_CLASS))
     for tax_id in names_by_tax_id:
-        names_by_tax_id[tax_id].sort(lambda a, b: cmp(nc_rank[a[1]],
-                                                      nc_rank[b[1]]))
-
+        if _PYTHON3:
+            names_by_tax_id[tax_id].sort(key=lambda a: nc_rank[a[1]]) # pylint: disable=undefined-variable
+        else:
+            names_by_tax_id[tax_id].sort(lambda a, b: cmp(nc_rank[a[1]],# pylint: disable=undefined-variable
+                                                          nc_rank[b[1]]))
+            
+    if _PYTHON3:
+        res = sorted(names_by_tax_id, key=lambda a:int(a))# pylint: disable=undefined-variable
+    else:
+        res = sorted(names_by_tax_id, lambda a, b: cmp(int(a), int(b)))# pylint: disable=undefined-variable
+    
     # output in numerical order by taxonomy ID.
-    for tax_id in sorted(names_by_tax_id, lambda a, b: cmp(int(a),int(b))):
+    for tax_id in res:
         sys.stdout.write(tax_id)
         for t, c in names_by_tax_id[tax_id]:
             c = c[0].upper()+c[1:]
             sys.stdout.write("\tname:%s:%s" % (c, t))
         sys.stdout.write("\n")
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

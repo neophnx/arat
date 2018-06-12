@@ -30,6 +30,7 @@ FILE_PREFIX = "PMID-"
 
 output_directory = None
 
+
 def output(docid, text, anns):
     global output_directory
 
@@ -48,13 +49,14 @@ def output(docid, text, anns):
     for start, end, type_, text in anns:
         # write type as separate attribute
         print("T%d\t%s %d %d\t%s" % (idseq, ENTITY_TYPE, start, end,
-                                               text), file=soout)
+                                     text), file=soout)
         print("A%d\t%s T%d %s" % (idseq, ATTR_TYPE, idseq, type_), file=soout)
         idseq += 1
 
     if output_directory is not None:
         txtout.close()
         soout.close()
+
 
 def parse(s):
     text, anns = "", []
@@ -73,6 +75,7 @@ def parse(s):
     text += rest
     return text, anns
 
+
 def process(fn):
     docnum = 1
     sentences = []
@@ -83,7 +86,7 @@ def process(fn):
             try:
                 PMID, title, body = l.split('\t', 2)
             except ValueError:
-                assert False, "Expected three TAB-separated fields, got '%s'" %l
+                assert False, "Expected three TAB-separated fields, got '%s'" % l
             # In a few cases, the body text contains tabs (probably by
             # error). Replace these with space.
             body = body.replace('\t', ' ')
@@ -93,9 +96,10 @@ def process(fn):
             t_text += '\n'
             b_text += '\n'
             text = t_text + b_text
-            anns = t_anns + [(a[0]+len(t_text),a[1]+len(t_text),a[2],a[3]) 
+            anns = t_anns + [(a[0]+len(t_text), a[1]+len(t_text), a[2], a[3])
                              for a in b_anns]
             output(PMID, text, anns)
+
 
 def main(argv):
     global output_directory
@@ -124,6 +128,7 @@ def main(argv):
 #
 ##############################################################################
 """ % (fail_count, len(filenames)), file=sys.stderr)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

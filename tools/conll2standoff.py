@@ -12,17 +12,13 @@ import os
 import codecs
 from six.moves import range
 
-try:
-    import psyco
-    psyco.full()
-except:
-    pass
 
 # what to do if an error in the tag sequence (e.g. "O I-T1" or "B-T1
-# I-T2") is encountered: recover/discard the erroneously tagged 
+# I-T2") is encountered: recover/discard the erroneously tagged
 # sequence, or abord the entire process
 # TODO: add a command-line option for this
-SEQUENCE_ERROR_RECOVER, SEQUENCE_ERROR_DISCARD, SEQUENCE_ERROR_FAIL = list(range(3))
+SEQUENCE_ERROR_RECOVER, SEQUENCE_ERROR_DISCARD, SEQUENCE_ERROR_FAIL = list(
+    range(3))
 
 SEQUENCE_ERROR_PROCESSING = SEQUENCE_ERROR_RECOVER
 
@@ -32,6 +28,7 @@ SEQUENCE_ERROR_PROCESSING = SEQUENCE_ERROR_RECOVER
 out = sys.stdout
 reference_directory = None
 output_directory = None
+
 
 def reference_text_filename(fn):
     # Tries to determine the name of the reference text file
@@ -47,12 +44,14 @@ def reference_text_filename(fn):
 
     return reffn
 
+
 def output_filename(fn):
     if output_directory is None:
         return None
 
     reffn = reference_text_filename(fn)
-    return os.path.join(output_directory, os.path.basename(reffn).replace(".txt",".a1"))
+    return os.path.join(output_directory, os.path.basename(reffn).replace(".txt", ".a1"))
+
 
 def process(fn):
     global out
@@ -63,7 +62,8 @@ def process(fn):
         #reffile = open(reffn)
         reffile = codecs.open(reffn, "rt", "UTF-8")
     except:
-        print("ERROR: failed to open reference file %s" % reffn, file=sys.stderr)
+        print("ERROR: failed to open reference file %s" %
+              reffn, file=sys.stderr)
         raise
     reftext = reffile.read()
     reffile.close()
@@ -103,7 +103,8 @@ def process(fn):
             continue
 
         fields = l.split('\t')
-        assert len(fields) == 7, "Error: expected 7 tab-separated fields on line %d in %s, found %d: %s" % (ln+1, fn, len(fields), l.encode("UTF-8"))
+        assert len(fields) == 7, "Error: expected 7 tab-separated fields on line %d in %s, found %d: %s" % (
+            ln+1, fn, len(fields), l.encode("UTF-8"))
 
         start, end, ttext = fields[0:3]
         tag = fields[6]
@@ -120,10 +121,11 @@ def process(fn):
 
         # sanity check
         assert ((ttype == "" and ttag == "O") or
-                (ttype != "" and ttag in ("B","I"))), "Error: tag format '%s' in %s" % (tag, fn)
+                (ttype != "" and ttag in ("B", "I"))), "Error: tag format '%s' in %s" % (tag, fn)
 
         # verify that the text matches the original
-        assert reftext[start:end] == ttext, "ERROR: text mismatch for %s on line %d: reference '%s' tagged '%s': %s" % (fn, ln+1, reftext[start:end].encode("UTF-8"), ttext.encode("UTF-8"), l.encode("UTF-8"))
+        assert reftext[start:end] == ttext, "ERROR: text mismatch for %s on line %d: reference '%s' tagged '%s': %s" % (
+            fn, ln+1, reftext[start:end].encode("UTF-8"), ttext.encode("UTF-8"), l.encode("UTF-8"))
 
         # store tagged token as (begin, end, tag, tagtype) tuple.
         taggedTokens.append((start, end, ttag, ttype))
@@ -141,8 +143,10 @@ def process(fn):
         # sanity checks: the string should not contain newlines and
         # should be minimal wrt surrounding whitespace
         eText = fullText[startOff:endOff]
-        assert "\n" not in eText, "ERROR: newline in entity in %s: '%s'" % (fn, eText)
-        assert eText == eText.strip(), "ERROR: entity contains extra whitespace in %s: '%s'" % (fn, eText)
+        assert "\n" not in eText, "ERROR: newline in entity in %s: '%s'" % (
+            fn, eText)
+        assert eText == eText.strip(
+        ), "ERROR: entity contains extra whitespace in %s: '%s'" % (fn, eText)
         return "T%d\t%s %d %d\t%s" % (idNum, eType, startOff, endOff, eText)
 
     idIdx = 1
@@ -162,23 +166,25 @@ def process(fn):
                 ttag = "O"
             else:
                 assert SEQUENCE_ERROR_PROCESSING == SEQUENCE_ERROR_FAIL
-                pass # will fail on later check
+                pass  # will fail on later check
 
         # similarly if an "I" tag occurs after an "O" tag
         if prevTag == "O" and ttag == "I":
             if SEQUENCE_ERROR_PROCESSING == SEQUENCE_ERROR_RECOVER:
-                ttag = "B"            
+                ttag = "B"
             elif SEQUENCE_ERROR_PROCESSING == SEQUENCE_ERROR_DISCARD:
                 ttag = "O"
             else:
                 assert SEQUENCE_ERROR_PROCESSING == SEQUENCE_ERROR_FAIL
-                pass # will fail on later check
+                pass  # will fail on later check
 
         if prevTag != "O" and ttag != "I":
             # previous entity does not continue into this tag; output
-            assert currType is not None and currStart is not None, "ERROR at %s (%d-%d) in %s" % (reftext[startoff:endoff], startoff, endoff, fn)
-            
-            print(entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8"), file=out)
+            assert currType is not None and currStart is not None, "ERROR at %s (%d-%d) in %s" % (
+                reftext[startoff:endoff], startoff, endoff, fn)
+
+            print(entityStr(currStart, prevEnd, currType,
+                            idIdx, reftext).encode("UTF-8"), file=out)
 
             idIdx += 1
 
@@ -188,26 +194,28 @@ def process(fn):
         elif prevTag != "O":
             # previous entity continues ; just check sanity
             assert ttag == "I", "ERROR in %s" % fn
-            assert currType == ttype, "ERROR: entity of type '%s' continues as type '%s' in %s" % (currType, ttype, fn)
-            
+            assert currType == ttype, "ERROR: entity of type '%s' continues as type '%s' in %s" % (
+                currType, ttype, fn)
+
         if ttag == "B":
             # new entity starts
             currType, currStart = ttype, startoff
-            
+
         prevTag, prevEnd = ttag, endoff
 
     # if there's an open entity after all tokens have been processed,
     # we need to output it separately
     if prevTag != "O":
-        print(entityStr(currStart, prevEnd, currType, idIdx, reftext).encode("UTF-8"), file=out)
+        print(entityStr(currStart, prevEnd, currType,
+                        idIdx, reftext).encode("UTF-8"), file=out)
 
     if output_directory is not None:
         # we've opened a specific output for this
         out.close()
 
+
 def main(argv):
     global reference_directory, output_directory
-
 
     # (clumsy arg parsing, sorry)
 
@@ -215,7 +223,8 @@ def main(argv):
     # unsegmented and untagged reference files.
 
     if len(argv) < 3 or argv[1] != "-d":
-        print("USAGE:", argv[0], "-d REF-DIR [-o OUT-DIR] (FILES|DIR)", file=sys.stderr)
+        print(
+            "USAGE:", argv[0], "-d REF-DIR [-o OUT-DIR] (FILES|DIR)", file=sys.stderr)
         return 1
 
     reference_directory = argv[2]
@@ -229,14 +238,15 @@ def main(argv):
         print("Writing output to %s" % output_directory, file=sys.stderr)
         filenames = argv[5:]
 
-
     # special case: if we only have a single file in input and it specifies
     # a directory, process all files in that directory
     input_directory = None
     if len(filenames) == 1 and os.path.isdir(filenames[0]):
         input_directory = filenames[0]
-        filenames = [os.path.join(input_directory, fn) for fn in os.listdir(input_directory)]
-        print("Processing %d files in %s ..." % (len(filenames), input_directory), file=sys.stderr)
+        filenames = [os.path.join(input_directory, fn)
+                     for fn in os.listdir(input_directory)]
+        print("Processing %d files in %s ..." %
+              (len(filenames), input_directory), file=sys.stderr)
 
     fail_count = 0
     for fn in filenames:
@@ -265,6 +275,7 @@ def main(argv):
 """ % (fail_count, len(filenames)), file=sys.stderr)
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

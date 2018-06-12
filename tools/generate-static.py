@@ -1,23 +1,14 @@
-#!/usr/bin/env python
 # -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
-
-# Generates a web pages linking to visualizations of each document in
-# a BioNLP ST 2011 Shared Task dataset.
-
+"""
+Generates a web pages linking to visualizations of each document in
+a BioNLP ST 2011 Shared Task dataset.
+"""
 from __future__ import absolute_import
 from __future__ import print_function
+
 import sys
 import os
-
-try:
-    import argparse
-except ImportError:
-    from os.path import basename
-    from sys import path as sys_path
-    # We are most likely on an old Python and need to use our internal version
-    sys_path.append(join_path(basename(__file__), '../server/lib'))
-    import argparse
+import argparse
 
 # Filename extensions that should be considered in selecting files to
 # process.
@@ -25,12 +16,17 @@ known_filename_extensions = [".txt", ".a1", ".a2"]
 
 
 def argparser():
-    ap=argparse.ArgumentParser(description="Generate web page linking to visualizations of BioNLP ST documents.")
-    ap.add_argument("-v", "--visualizer", default="visualizer.xhtml", metavar="URL", help="Visualization script")
-    ap.add_argument("-s", "--staticdir", default="static", metavar="DIR", help="Directory containing static visualizations")
-    ap.add_argument("-d", "--dataset", default=None, metavar="NAME", help="Dataset name (derived from directory by default.)")
+    ap = argparse.ArgumentParser(
+        description="Generate web page linking to visualizations of BioNLP ST documents.")
+    ap.add_argument("-v", "--visualizer", default="visualizer.xhtml",
+                    metavar="URL", help="Visualization script")
+    ap.add_argument("-s", "--staticdir", default="static", metavar="DIR",
+                    help="Directory containing static visualizations")
+    ap.add_argument("-d", "--dataset", default=None, metavar="NAME",
+                    help="Dataset name (derived from directory by default.)")
     ap.add_argument("directory", help="Directory containing ST documents.")
-    ap.add_argument("prefix", metavar="URL", help="URL prefix to prepend to links")
+    ap.add_argument("prefix", metavar="URL",
+                    help="URL prefix to prepend to links")
     return ap
 
 
@@ -50,6 +46,7 @@ def files_to_process(dir):
         print("Error processing %s: %s" % (dir, e), file=sys.stderr)
 
     return toprocess
+
 
 def print_links(files, arg, out=sys.stdout):
     # group by filename root (filename without extension)
@@ -73,16 +70,20 @@ def print_links(files, arg, out=sys.stdout):
         print("  <td>%s</td>" % fn, file=out)
 
         # dynamic visualization
-        print("  <td><a href=\"%s\">dynamic</a></td>" % (arg.prefix+arg.visualizer+"#"+arg.dataset+"/"+fn), file=out)
+        print("  <td><a href=\"%s\">dynamic</a></td>" %
+              (arg.prefix+arg.visualizer+"#"+arg.dataset+"/"+fn), file=out)
 
         # static visualizations
-        print("  <td><a href=\"%s\">svg</a></td>" % (arg.prefix+arg.staticdir+"/svg/"+arg.dataset+"/"+fn+".svg"), file=out)
-        print("  <td><a href=\"%s\">png</a></td>" % (arg.prefix+arg.staticdir+"/png/"+arg.dataset+"/"+fn+".png"), file=out)
+        print("  <td><a href=\"%s\">svg</a></td>" % (arg.prefix +
+                                                     arg.staticdir+"/svg/"+arg.dataset+"/"+fn+".svg"), file=out)
+        print("  <td><a href=\"%s\">png</a></td>" % (arg.prefix +
+                                                     arg.staticdir+"/png/"+arg.dataset+"/"+fn+".png"), file=out)
 
         # data files
         for ext in known_filename_extensions:
             if ext in grouped[root]:
-                print("  <td><a href=\"%s\">%s</a></td>" % (arg.prefix+root+ext, ext[1:]), file=out)
+                print("  <td><a href=\"%s\">%s</a></td>" %
+                      (arg.prefix+root+ext, ext[1:]), file=out)
             else:
                 # missing
                 print("  <td>-</td>", file=out)
@@ -90,6 +91,7 @@ def print_links(files, arg, out=sys.stdout):
         print("</tr>", file=out)
 
     print("</table>", file=out)
+
 
 def main(argv=None):
     if argv is None:
@@ -103,7 +105,8 @@ def main(argv=None):
         while dir[-1] == os.sep:
             dir = dir[:-1]
         arg.dataset = os.path.split(dir)[1]
-        print("Assuming dataset name '%s', visualizations in %s" % (arg.dataset, os.path.join(arg.staticdir,arg.dataset)), file=sys.stderr)
+        print("Assuming dataset name '%s', visualizations in %s" % (
+            arg.dataset, os.path.join(arg.staticdir, arg.dataset)), file=sys.stderr)
 
     try:
         files = files_to_process(arg.directory)
@@ -117,6 +120,7 @@ def main(argv=None):
         print("Error processing %s" % arg.directory, file=sys.stderr)
         raise
     return 0
+
 
 def print_header(out=sys.stdout):
     print("""<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>
@@ -169,6 +173,7 @@ def print_header(out=sys.stdout):
 			<div id="main">
 """, file=out)
 
+
 def print_footer(out=sys.stdout):
     print("""		      </div> 		      
 		    </div>
@@ -183,6 +188,7 @@ def print_footer(out=sys.stdout):
   </div>
 </body>
 </html>""", file=out)
+
 
 if __name__ == "__main__":
     sys.exit(main())

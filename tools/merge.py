@@ -34,18 +34,19 @@ except ImportError:
     sys_path.append(join_path(basename(__file__), '../server/lib'))
     from argparse import ArgumentParser
 
-### Constants
-#TODO: Add to options?
-UNMERGED_SUFFIXES=['a1', 'a2', 'co', 'rel']
-#TODO: Add to options?
-MERGED_SUFFIX='ann'
+# Constants
+# TODO: Add to options?
+UNMERGED_SUFFIXES = ['a1', 'a2', 'co', 'rel']
+# TODO: Add to options?
+MERGED_SUFFIX = 'ann'
 ARGPARSER = ArgumentParser(description=("Merge BioNLP'11 ST annotations "
-    'into a single file, reads paths from stdin'))
+                                        'into a single file, reads paths from stdin'))
 ARGPARSER.add_argument('-w', '--no-warn', action='store_true',
-        help='suppress warnings')
-#ARGPARSER.add_argument('-d', '--debug', action='store_true',
+                       help='suppress warnings')
+# ARGPARSER.add_argument('-d', '--debug', action='store_true',
 #        help='activate additional debug output')
 ###
+
 
 def keynat(string):
     '''
@@ -56,13 +57,14 @@ def keynat(string):
     for c in string:
         if c.isdigit():
             d = int(c)
-            if r and type( r[-1] ) == it:
+            if r and type(r[-1]) == it:
                 r[-1] = r[-1] * 10 + d
-            else: 
+            else:
                 r.append(d)
         else:
             r.append(c.lower())
     return r
+
 
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
@@ -74,16 +76,16 @@ def main(args):
             if not argp.no_warn:
                 import sys
                 print((
-                        'WARNING: invalid file suffix for %s, ignoring'
-                        ) % (file_path, ), file=sys.stderr)
+                    'WARNING: invalid file suffix for %s, ignoring'
+                ) % (file_path, ), file=sys.stderr)
             continue
-        
+
         dirname, basename = split_path(file_path)
         id = join_path(dirname, basename.split('.')[0])
         id_to_ann_files[id].append(file_path)
 
     for id, ann_files in six.iteritems(id_to_ann_files):
-        #XXX: Check if output file exists
+        # XXX: Check if output file exists
         lines = []
         for ann_file_path in ann_files:
             with open(ann_file_path, 'r') as ann_file:
@@ -93,6 +95,7 @@ def main(args):
         with open(id + '.' + MERGED_SUFFIX, 'w') as merged_ann_file:
             for line in lines:
                 merged_ann_file.write(line)
+
 
 if __name__ == '__main__':
     from sys import argv

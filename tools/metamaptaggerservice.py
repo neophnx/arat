@@ -6,46 +6,39 @@ An example of a tagging service using metamap.
 
 from __future__ import absolute_import
 from __future__ import print_function
-from argparse import ArgumentParser
 
+from argparse import ArgumentParser
 from os.path import join as path_join
 from os.path import dirname
-
-try:
-    from json import dumps
-except ImportError:
-    # likely old Python; try to fall back on ujson in brat distrib
-    from sys import path as sys_path
-    sys_path.append(path_join(dirname(__file__), '../server/lib/ujson'))
-    from ujson import dumps
-
 from subprocess import PIPE, Popen
-
 from random import choice, randint
 from sys import stderr
-from six.moves.urllib.parse import urlparse
-try:
-    from six.moves.urllib.parse import parse_qs
-except ImportError:
-    # old Python again?
-    from cgi import parse_qs
-from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import re
 
+
+
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import parse_qs
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+
+from server.jsonwrap import dumps
+
 # use the brat sentence splitter
-from sentencesplit import sentencebreaks_to_newlines
+from tools.sentencesplit import sentencebreaks_to_newlines
 
 # use this MetaMap output converter
-from MetaMaptoStandoff import MetaMap_lines_to_standoff
+from tools.MetaMaptoStandoff import MetaMap_lines_to_standoff
 
-### Constants
-METAMAP_SCRIPT   = path_join(dirname(__file__), './metamap_tag.sh')
-METAMAP_COMMAND  = [METAMAP_SCRIPT]
+# Constants
+METAMAP_SCRIPT = path_join(dirname(__file__), './metamap_tag.sh')
+METAMAP_COMMAND = [METAMAP_SCRIPT]
 
-ARGPARSER = ArgumentParser(description='An example HTTP tagging service using MetaMap')
+ARGPARSER = ArgumentParser(
+    description='An example HTTP tagging service using MetaMap')
 ARGPARSER.add_argument('-p', '--port', type=int, default=47111,
-        help='port to run the HTTP service on (default: 47111)')
+                       help='port to run the HTTP service on (default: 47111)')
 ###
+
 
 def run_tagger(cmd):
     # runs the tagger identified by the given command.
@@ -54,7 +47,8 @@ def run_tagger(cmd):
         return tagger_process
     except Exception as e:
         print("Error running '%s':" % cmd, e, file=stderr)
-        raise    
+        raise
+
 
 def _apply_tagger_to_sentence(text):
     # can afford to restart this on each invocation
@@ -69,20 +63,22 @@ def _apply_tagger_to_sentence(text):
     for l in tagger_process.stdout:
         l = l.rstrip('\n')
         response_lines.append(l)
-        
+
     try:
         tagged_entities = MetaMap_lines_to_standoff(response_lines, text)
     except:
         # if anything goes wrong, bail out
-        print("Warning: MetaMap-to-standoff conversion failed for output:\n'%s'" % '\n'.join(response_lines), file=stderr)
+        print("Warning: MetaMap-to-standoff conversion failed for output:\n'%s'" %
+              '\n'.join(response_lines), file=stderr)
         raise
-        #return {}
+        # return {}
 
     # MetaMap won't echo matched text, so get this separately
     for t in tagged_entities:
         t.eText = text[t.startOff:t.endOff]
 
     return tagged_entities
+
 
 def _apply_tagger(text):
     # MetaMap isn't too happy with large outputs, so process a
@@ -93,7 +89,8 @@ def _apply_tagger(text):
     except:
         # if anything goes wrong, just go with the
         # original text instead
-        print("Warning: sentence splitting failed for input:\n'%s'" % text, file=stderr)
+        print("Warning: sentence splitting failed for input:\n'%s'" %
+              text, file=stderr)
         splittext = text
 
     sentences = splittext.split('\n')
@@ -118,11 +115,11 @@ def _apply_tagger(text):
             'type': t.eType,
             'offsets': ((t.startOff, t.endOff), ),
             'texts': (t.eText, ),
-            }
+        }
         idseq += 1
 
     return anns
-        
+
 
 class MetaMapTaggerHandler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -144,7 +141,8 @@ class MetaMapTaggerHandler(BaseHTTPRequestHandler):
         print(('Generated %d annotations' % len(json_dic)), file=stderr)
 
     def log_message(self, format, *args):
-        return # Too much noise from the default implementation
+        return  # Too much noise from the default implementation
+
 
 def main(args):
     argp = ARGPARSER.parse_args(args[1:])
@@ -161,6 +159,7 @@ def main(args):
         pass
     httpd.server_close()
     print('MetaMap tagger service stopped', file=stderr)
+
 
 if __name__ == '__main__':
     from sys import argv

@@ -83,16 +83,16 @@ TYPE_VALUES = ["name", "attr", "info"]
 
 # Which SQL DB table to enter type into
 TABLE_FOR_TYPE = {
-    "name" : "names",
-    "attr" : "attributes",
-    "info" : "infos",
+    "name": "names",
+    "attr": "attributes",
+    "info": "infos",
 }
 
 # Whether SQL table includes a normalized string form
 TABLE_HAS_NORMVALUE = {
-    "names" : True,
-    "attributes" : True,
-    "infos" : False,
+    "names": True,
+    "attributes": True,
+    "infos": False,
 }
 
 # sanity
@@ -101,19 +101,19 @@ assert set(TABLE_FOR_TYPE.values()) == set(TABLE_HAS_NORMVALUE.keys())
 
 # SQL for creating tables and indices
 CREATE_TABLE_COMMANDS = [
-"""
+    """
 CREATE TABLE entities (
   id INTEGER PRIMARY KEY,
   uid VARCHAR(255) UNIQUE
 );
 """,
-"""
+    """
 CREATE TABLE labels (
   id INTEGER PRIMARY KEY,
   text VARCHAR(255)
 );
 """,
-"""
+    """
 CREATE TABLE names (
   id INTEGER PRIMARY KEY,
   entity_id INTEGER REFERENCES entities (id),
@@ -122,7 +122,7 @@ CREATE TABLE names (
   normvalue VARCHAR(255)
 );
 """,
-"""
+    """
 CREATE TABLE attributes (
   id INTEGER PRIMARY KEY,
   entity_id INTEGER REFERENCES entities (id),
@@ -131,7 +131,7 @@ CREATE TABLE attributes (
   normvalue VARCHAR(255)
 );
 """,
-"""
+    """
 CREATE TABLE infos (
   id INTEGER PRIMARY KEY,
   entity_id INTEGER REFERENCES entities (id),
@@ -141,15 +141,15 @@ CREATE TABLE infos (
 """,
 ]
 CREATE_INDEX_COMMANDS = [
-"CREATE INDEX entities_uid ON entities (uid);",
-"CREATE INDEX names_value ON names (value);",
-"CREATE INDEX names_normvalue ON names (normvalue);",
-"CREATE INDEX names_entity_id ON names (entity_id);",
-"CREATE INDEX attributes_value ON attributes (value);",
-"CREATE INDEX attributes_normvalue ON attributes (normvalue);",
-"CREATE INDEX attributes_entity_id ON attributes (entity_id);",
-#"CREATE INDEX infos_value ON infos (value);", # unnecessary, not searchable
-"CREATE INDEX infos_entity_id ON infos (entity_id);",
+    "CREATE INDEX entities_uid ON entities (uid);",
+    "CREATE INDEX names_value ON names (value);",
+    "CREATE INDEX names_normvalue ON names (normvalue);",
+    "CREATE INDEX names_entity_id ON names (entity_id);",
+    "CREATE INDEX attributes_value ON attributes (value);",
+    "CREATE INDEX attributes_normvalue ON attributes (normvalue);",
+    "CREATE INDEX attributes_entity_id ON attributes (entity_id);",
+    #"CREATE INDEX infos_value ON infos (value);", # unnecessary, not searchable
+    "CREATE INDEX infos_entity_id ON infos (entity_id);",
 ]
 
 # SQL for selecting strings to be inserted into the simstring DB for
@@ -168,8 +168,11 @@ SELECT DISTINCT(normvalue) from attributes;
 # NOTE2: it is critically important that this function is performed
 # identically during DB initialization and actual lookup.
 # TODO: enforce a single implementation.
+
+
 def string_norm_form(s):
     return s.lower().strip().replace('-', ' ')
+
 
 def default_db_dir():
     # Returns the default directory into which to store the created DBs.
@@ -184,15 +187,21 @@ def default_db_dir():
         print("Warning: failed to determine brat work directory, using current instead.", file=sys.stderr)
         return "."
 
+
 def argparser():
     import argparse
 
-    ap=argparse.ArgumentParser(description="Create normalization DBs for given file")
-    ap.add_argument("-v", "--verbose", default=False, action="store_true", help="Verbose output")
-    ap.add_argument("-d", "--database", default=None, help="Base name of databases to create (default by input file name in brat work directory)")
-    ap.add_argument("-e", "--encoding", default=DEFAULT_INPUT_ENCODING, help="Input text encoding (default "+DEFAULT_INPUT_ENCODING+")")
+    ap = argparse.ArgumentParser(
+        description="Create normalization DBs for given file")
+    ap.add_argument("-v", "--verbose", default=False,
+                    action="store_true", help="Verbose output")
+    ap.add_argument("-d", "--database", default=None,
+                    help="Base name of databases to create (default by input file name in brat work directory)")
+    ap.add_argument("-e", "--encoding", default=DEFAULT_INPUT_ENCODING,
+                    help="Input text encoding (default "+DEFAULT_INPUT_ENCODING+")")
     ap.add_argument("file", metavar="FILE", help="Normalization data")
     return ap
+
 
 def sqldb_filename(dbname):
     '''
@@ -201,12 +210,14 @@ def sqldb_filename(dbname):
     '''
     return join(default_db_dir(), dbname+'.'+SQL_DB_FILENAME_EXTENSION)
 
+
 def ssdb_filename(dbname):
     '''
     Given a DB name, returns the  name of the file that is expected to
     contain the simstring DB.
     '''
     return join(default_db_dir(), dbname+'.'+SS_DB_FILENAME_EXTENSION)
+
 
 def main(argv):
     arg = argparser().parse_args(argv[1:])
@@ -233,7 +244,7 @@ def main(argv):
 
     import_count, duplicate_count, error_count, simstring_count = 0, 0, 0, 0
 
-    with codecs.open(infn, 'rU', encoding=arg.encoding) as inf:        
+    with codecs.open(infn, 'rU', encoding=arg.encoding) as inf:
 
         # create SQL DB
         try:
@@ -251,7 +262,8 @@ def main(argv):
             try:
                 cursor.execute(command)
             except sqlite.OperationalError as e:
-                print("Error creating %s:" % sqldbfn, e, "(DB exists?)", file=sys.stderr)
+                print("Error creating %s:" %
+                      sqldbfn, e, "(DB exists?)", file=sys.stderr)
                 return 1
 
         # import data
@@ -262,7 +274,7 @@ def main(argv):
         next_eid = 1
         label_id = {}
         next_lid = 1
-        next_pid = dict([(t,1) for t in TYPE_VALUES])
+        next_pid = dict([(t, 1) for t in TYPE_VALUES])
 
         for i, l in enumerate(inf):
             l = l.rstrip('\n')
@@ -272,9 +284,11 @@ def main(argv):
                 id_, rest = l.split('\t', 1)
             except ValueError:
                 if error_count < MAX_ERROR_LINES:
-                    print("Error: skipping line %d: expected tab-separated fields, got '%s'" % (i+1, l), file=sys.stderr)
+                    print("Error: skipping line %d: expected tab-separated fields, got '%s'" %
+                          (i+1, l), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
+                    print(
+                        "(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
@@ -288,9 +302,11 @@ def main(argv):
                     triples.append((type_, label, string))
             except ValueError:
                 if error_count < MAX_ERROR_LINES:
-                    print("Error: skipping line %d: expected tab-separated TYPE:LABEL:STRING triples, got '%s'" % (i+1, rest), file=sys.stderr)
+                    print("Error: skipping line %d: expected tab-separated TYPE:LABEL:STRING triples, got '%s'" %
+                          (i+1, rest), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
+                    print(
+                        "(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
@@ -298,22 +314,26 @@ def main(argv):
             eid = next_eid
             next_eid += 1
             try:
-                cursor.execute("INSERT into entities VALUES (?, ?)", (eid, id_))
+                cursor.execute(
+                    "INSERT into entities VALUES (?, ?)", (eid, id_))
             except sqlite.IntegrityError as e:
                 if error_count < MAX_ERROR_LINES:
-                    print("Error inserting %s (skipping): %s" % (id_, e), file=sys.stderr)
+                    print("Error inserting %s (skipping): %s" %
+                          (id_, e), file=sys.stderr)
                 elif error_count == MAX_ERROR_LINES:
-                    print("(Too many errors; suppressing further error messages)", file=sys.stderr)
+                    print(
+                        "(Too many errors; suppressing further error messages)", file=sys.stderr)
                 error_count += 1
                 continue
 
             # insert new labels (if any)
-            labels = set([l for t,l,s in triples])
+            labels = set([l for t, l, s in triples])
             new_labels = [l for l in labels if l not in label_id]
             for label in new_labels:
                 lid = next_lid
                 next_lid += 1
-                cursor.execute("INSERT into labels VALUES (?, ?)", (lid, label))
+                cursor.execute(
+                    "INSERT into labels VALUES (?, ?)", (lid, label))
                 label_id[label] = lid
 
             # insert associated strings
@@ -321,7 +341,7 @@ def main(argv):
                 table = TABLE_FOR_TYPE[type_]
                 pid = next_pid[type_]
                 next_pid[type_] += 1
-                lid = label_id[label] # TODO
+                lid = label_id[label]  # TODO
                 if TABLE_HAS_NORMVALUE[table]:
                     normstring = string_norm_form(string)
                     cursor.execute("INSERT into %s VALUES (?, ?, ?, ?, ?)" % table,
@@ -332,7 +352,7 @@ def main(argv):
 
             import_count += 1
 
-            if arg.verbose and (i+1)%10000 == 0:
+            if arg.verbose and (i+1) % 10000 == 0:
                 print('.', end=' ', file=sys.stderr)
 
         if arg.verbose:
@@ -358,7 +378,7 @@ def main(argv):
         # create simstring DB
         if arg.verbose:
             print("Creating simstring DB ...", end=' ', file=sys.stderr)
-        
+
         try:
             ssdb = simstring.writer(ssdbfn)
             for row in cursor.execute(SELECT_SIMSTRING_STRINGS_COMMAND):
@@ -381,11 +401,14 @@ def main(argv):
 
     if arg.verbose:
         print(file=sys.stderr)
-        print("Done in:", str(delta.seconds)+"."+str(delta.microseconds/10000), "seconds", file=sys.stderr)
-    
-    print("Done, imported %d entries (%d strings), skipped %d duplicate keys, skipped %d invalid lines" % (import_count, simstring_count, duplicate_count, error_count))
+        print("Done in:", str(delta.seconds)+"." +
+              str(delta.microseconds/10000), "seconds", file=sys.stderr)
+
+    print("Done, imported %d entries (%d strings), skipped %d duplicate keys, skipped %d invalid lines" % (
+        import_count, simstring_count, duplicate_count, error_count))
 
     return 0
-    
+
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

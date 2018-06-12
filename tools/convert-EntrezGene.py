@@ -12,7 +12,7 @@
 # 1:  tax_id: info:Taxonomy id
 # 2:  GeneID: primary identifier
 # 3:  Symbol: name:Symbol
-# 4:  LocusTag: name:Locus 
+# 4:  LocusTag: name:Locus
 # 5:  Synonyms: name:Synonym
 # 6:  dbXrefs: (not included in output)
 # 7:  chromosome: info:Chromosome
@@ -37,7 +37,10 @@ import sys
 import re
 import codecs
 
+_PYTHON3 = (sys.version_info > (3, 0))
+
 INPUT_ENCODING = "UTF-8"
+
 
 # Field labels in output (mostly following Entrez Gene web interface labels)
 TAX_ID_LABEL = 'Organism'
@@ -68,16 +71,19 @@ OUTPUT_LABEL_ORDER = [
 
 # Values to filter out
 FILTER_LIST = [
-#    ('info', DESCRIPTION_LABEL, 'hypothetical protein'),
+    #    ('info', DESCRIPTION_LABEL, 'hypothetical protein'),
 ]
+
 
 def process_tax_id(val, record):
     assert re.match(r'^[0-9]+$', val)
     record.append(('info', TAX_ID_LABEL, val))
 
+
 def process_gene_id(val, record):
     assert re.match(r'^[0-9]+$', val)
     record.append(('key', GENE_ID_LABEL, val))
+
 
 def process_symbol(val, record):
     assert val != '-'
@@ -85,10 +91,12 @@ def process_symbol(val, record):
         assert re.match(r'^\S(?:.*\S)?$', v)
         record.append(('name', SYMBOL_LABEL, v))
 
+
 def process_locus(val, record):
     if val != '-':
         assert re.match(r'^[^\s|]+$', val)
         record.append(('name', LOCUS_LABEL, val))
+
 
 def process_synonyms(val, record):
     if val != '-':
@@ -96,26 +104,32 @@ def process_synonyms(val, record):
             assert re.match(r'^\S(?:.*\S)?$', v)
             record.append(('name', SYNONYM_LABEL, v))
 
+
 def process_chromosome(val, record):
     if val != '-':
         assert re.match(r'^\S(?:.*\S)?$', val)
         record.append(('info', CHROMOSOME_LABEL, val))
 
+
 def process_description(val, record):
     if val != '-':
-        record.append(('info', DESCRIPTION_LABEL, val))        
+        record.append(('info', DESCRIPTION_LABEL, val))
+
 
 def process_gene_type(val, record):
     if val != '-':
-        record.append(('info', GENE_TYPE_LABEL, val))        
+        record.append(('info', GENE_TYPE_LABEL, val))
+
 
 def process_symbol_authority(val, record):
     if val != '-':
         record.append(('name', SYMBOL_AUTHORITY_LABEL, val))
 
+
 def process_full_name_authority(val, record):
     if val != '-':
         record.append(('name', FULL_NAME_AUTHORITY_LABEL, val))
+
 
 def process_other_designations(val, record):
     if val != '-':
@@ -123,22 +137,23 @@ def process_other_designations(val, record):
             assert re.match(r'^\S(?:.*\S)?$', v)
             record.append(('name', OTHER_DESIGNATION_LABEL, v))
 
+
 field_processor = [
     process_tax_id,
     process_gene_id,
     process_symbol,
     process_locus,
     process_synonyms,
-    None, # dbXrefs
+    None,  # dbXrefs
     process_chromosome,
-    None, # map_location
+    None,  # map_location
     process_description,
     process_gene_type,
     process_symbol_authority,
     process_full_name_authority,
-    None, # Nomenclature_status
+    None,  # Nomenclature_status
     process_other_designations,
-    None, # Modification_date
+    None,  # Modification_date
 ]
 
 output_priority = {}
@@ -146,6 +161,7 @@ for i, l in enumerate(OUTPUT_LABEL_ORDER):
     output_priority[l] = output_priority.get(l, i)
 
 filter = set(FILTER_LIST)
+
 
 def process_line(l):
     fields = l.split('\t')
@@ -157,7 +173,8 @@ def process_line(l):
             try:
                 field_processor[i](f, record)
             except:
-                print("Error processing field %d: '%s'" % (i+1,f), file=sys.stderr)
+                print("Error processing field %d: '%s'" %
+                      (i+1, f), file=sys.stderr)
                 raise
 
     # record key (primary ID) processed separately
@@ -166,8 +183,11 @@ def process_line(l):
     key = keys[0]
     record = [r for r in record if r[0] != 'key']
 
-    record.sort(lambda a, b: cmp(output_priority[a[1]],
-                                 output_priority[b[1]]))
+    if _PYTHON3:
+        record.sort(lambda a: output_priority[a[1]]) # pylint: disable=undefined-variable
+    else:
+        record.sort(lambda a, b: cmp(output_priority[a[1]],# pylint: disable=undefined-variable
+                                     output_priority[b[1]]))
 
     filtered = []
     for r in record:
@@ -178,12 +198,13 @@ def process_line(l):
     seen = set()
     uniqued = []
     for r in record:
-        if (r[0],r[2]) not in seen:
-            seen.add((r[0],r[2]))
+        if (r[0], r[2]) not in seen:
+            seen.add((r[0], r[2]))
             uniqued.append(r)
     record = uniqued
 
     print('\t'.join([key[2]]+[':'.join(r) for r in record]))
+
 
 def process(fn):
     with codecs.open(fn, encoding=INPUT_ENCODING) as f:
@@ -197,9 +218,11 @@ def process(fn):
             try:
                 process_line(l)
             except Exception as e:
-                print("Error processing line %d: %s" % (ln, l), file=sys.stderr)
+                print("Error processing line %d: %s" %
+                      (ln, l), file=sys.stderr)
                 raise
-            
+
+
 def main(argv):
     if len(argv) < 2:
         print("Usage:", argv[0], "GENE-INFO-FILE", file=sys.stderr)
@@ -207,6 +230,7 @@ def main(argv):
 
     fn = argv[1]
     process(fn)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
