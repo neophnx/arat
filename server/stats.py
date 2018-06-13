@@ -12,9 +12,9 @@ Version:    2011-04-21
 '''
 
 
-from six.moves.cPickle import UnpicklingError # pylint: disable=import-error, no-name-in-module
-from six.moves.cPickle import dump as pickle_dump # pylint: disable=import-error, no-name-in-module
-from six.moves.cPickle import load as pickle_load # pylint: disable=import-error, no-name-in-module
+from six.moves.cPickle import UnpicklingError  # pylint: disable=import-error, no-name-in-module
+from six.moves.cPickle import dump as pickle_dump  # pylint: disable=import-error, no-name-in-module
+from six.moves.cPickle import load as pickle_load  # pylint: disable=import-error, no-name-in-module
 from logging import info as log_info
 from os import listdir
 from os.path import isfile, getmtime
@@ -137,7 +137,8 @@ def get_statistics(directory, base_names, use_cache=True):
         # Cache the statistics
         try:
             with open(cache_file_path, 'wb') as cache_file:
-                pickle_dump(docstats, cache_file, protocol=constants.PICKLE_PROTOCOL)
+                pickle_dump(docstats, cache_file,
+                            protocol=constants.PICKLE_PROTOCOL)
         except IOError as e:
             Messager.warning(
                 "Could not write statistics cache file to directory %s: %s" % (directory, e))

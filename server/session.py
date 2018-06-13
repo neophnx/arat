@@ -15,7 +15,7 @@ Version:    2011-03-11
 from __future__ import with_statement
 
 from __future__ import absolute_import
-from six.moves.http_cookies import CookieError, SimpleCookie # pylint: disable=import-error
+from six.moves.http_cookies import CookieError, SimpleCookie  # pylint: disable=import-error
 from atexit import register as atexit_register
 from datetime import datetime, timedelta
 from hashlib import sha224
@@ -198,7 +198,8 @@ def close_session():
         os_close(tmp_file_fh)
 
         with open(tmp_file_path, 'wb') as tmp_file:
-            pickle_dump(CURRENT_SESSION, tmp_file, protocol=constants.PICKLE_PROTOCOL)
+            pickle_dump(CURRENT_SESSION, tmp_file,
+                        protocol=constants.PICKLE_PROTOCOL)
         copy(tmp_file_path, get_session_pickle_path(CURRENT_SESSION.get_sid()))
     except IOError:
         # failed store: no permissions?

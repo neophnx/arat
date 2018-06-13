@@ -217,8 +217,8 @@ def _format_datas(datas, scores=None, matched=None):
     if _PYTHON3:
         unique_labels.sort(lambda a: a[0])
     else:
-        unique_labels.sort(lambda a, b: cmp(# pylint: disable=undefined-variable
-            a[0], b[0]))  
+        unique_labels.sort(lambda a, b: cmp(  # pylint: disable=undefined-variable
+            a[0], b[0]))
     unique_labels = [a[1] for a in unique_labels]
 
     # ID is first field, and datatype is "string" for all labels
@@ -342,8 +342,8 @@ def _norm_search_name_attr(database, name, attr,
     if _PYTHON3:
         id_name_scores.sort(lambda a: a[2], reverse=True)
     else:
-        id_name_scores.sort(lambda a, b: cmp(# pylint: disable=undefined-variable
-            b[2], a[2]))  
+        id_name_scores.sort(lambda a, b: cmp(  # pylint: disable=undefined-variable
+            b[2], a[2]))
     id_names = [(i, n) for i, n, s in id_name_scores]
 
     # update matches and scores

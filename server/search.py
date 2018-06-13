@@ -65,8 +65,8 @@ class SearchMatchSet(object):
         if _PYTHON3:
             self.__matches.sort(key=lambda a: a[0].get_document())
         else:
-            self.__matches.sort(lambda a, b: cmp(# pylint: disable=undefined-variable
-                    a[0].get_document(), b[0].get_document()))
+            self.__matches.sort(lambda a, b: cmp(  # pylint: disable=undefined-variable
+                a[0].get_document(), b[0].get_document()))
 
     def limit_to(self, num):
         # don't limit to less than one match
@@ -468,7 +468,7 @@ def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, n
     # TODO: faster and less hacky way to detect missing annotations
     text_untagged_map = {}
     for ann_obj in ann_objs:
-        doctext = ann_obj.get_document_text()
+        doctext = ann_obj.document
 
         # TODO: proper tokenization.
         # NOTE: this will include space.
@@ -704,7 +704,7 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
         if _PYTHON3:
             ann_matches.sort(key=lambda a: (a.first_start(), -a.last_end()))
         else:
-            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()), # pylint: disable=undefined-variable
+            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),  # pylint: disable=undefined-variable
                                               (b.first_start(), -b.last_end())))
 
         # add to overall collection
@@ -784,7 +784,7 @@ def search_anns_for_note(ann_objs, text, category,
         if _PYTHON3:
             ann_matches.sort(lambda a: (a.first_start(), -a.last_end()))
         else:
-            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),# pylint: disable=undefined-variable
+            ann_matches.sort(lambda a, b: cmp((a.first_start(), -a.last_end()),  # pylint: disable=undefined-variable
                                               (b.first_start(), -b.last_end())))
 
         # add to overall collection
@@ -1047,7 +1047,7 @@ def search_anns_for_event(ann_objs, trigger_text, args,
         if _PYTHON3:
             ann_matches.sort(lambda a: (a[0].first_start(), -a[0].last_end()))
         else:
-            ann_matches.sort(lambda a, b: cmp((a[0].first_start(), -a[0].last_end()),# pylint: disable=undefined-variable
+            ann_matches.sort(lambda a, b: cmp((a[0].first_start(), -a[0].last_end()),  # pylint: disable=undefined-variable
                                               (b[0].first_start(), -b[0].last_end())))
 
         # add to overall collection
@@ -1108,7 +1108,7 @@ def search_anns_for_text(ann_objs, text,
 
     # main search loop
     for ann_obj in ann_objs:
-        doctext = ann_obj.get_document_text()
+        doctext = ann_obj.document_text
 
         for m in match_regex.finditer(doctext):
             # only need to care about embedding annotations if there's
@@ -1345,7 +1345,7 @@ def format_results(matches, concordancing=False, context_length=50,
         if context_ann is not None:
             # left context
             start = max(context_ann.first_start() - context_length, 0)
-            doctext = ann_obj.get_document_text()
+            doctext = ann_obj.document_text
             items[-1].append(doctext[start:context_ann.first_start()])
 
         if include_text:
@@ -1361,8 +1361,8 @@ def format_results(matches, concordancing=False, context_length=50,
         if context_ann is not None:
             # right context
             end = min(context_ann.last_end() + context_length,
-                      len(ann_obj.get_document_text()))
-            doctext = ann_obj.get_document_text()
+                      len(ann_obj.document_text))
+            doctext = ann_obj.document_text
             items[-1].append(doctext[context_ann.last_end():end])
 
         if include_argument_type:
@@ -1607,9 +1607,9 @@ def argparser():
 
 def main(argv=None):
     import sys
-    import six.moves.urllib.request # pylint: disable=import-error
-    import six.moves.urllib.parse # pylint: disable=import-error
-    import six.moves.urllib.error # pylint: disable=import-error
+    import six.moves.urllib.request  # pylint: disable=import-error
+    import six.moves.urllib.parse  # pylint: disable=import-error
+    import six.moves.urllib.error  # pylint: disable=import-error
 
     # ignore search result number limits on command-line invocations
     global MAX_SEARCH_RESULT_NUMBER

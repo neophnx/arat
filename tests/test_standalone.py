@@ -22,7 +22,7 @@ from shutil import rmtree
 # third party
 import requests
 import six
-from six.moves.urllib.parse import urlencode # pylint: disable=import-error
+from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 
 def wait_net_service(server, port, timeout=None):
@@ -107,10 +107,9 @@ class TestStandalone(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.proc.kill()
-        
+
         # remove test directory recursively
         rmtree("data/test-data", ignore_errors=True)
-            
 
     def test_01_home(self):
         response = requests.get(self.url)

@@ -261,6 +261,10 @@ class Annotations(object):
             # We don't have a single file, just set to epoch for now
             self.ann_mtime = -1
             self.ann_ctime = -1
+        
+    @property
+    def read_only(self):
+        return self._read_only
 
     def _sanity(self):
         # Beware, we ONLY do format checking, leave your semantics hat at home
@@ -829,7 +833,7 @@ class Annotations(object):
     def __getitem__(self, val):
         try:
             # First, try to use it as a slice object
-            return self._lines[val.start, val.stop, val.step] # pylint: disable= invalid-sequence-index
+            return self._lines[val.start, val.stop, val.step]  # pylint: disable= invalid-sequence-index
         except AttributeError:
             # It appears not to be a slice object, try it as an index
             return self._lines[val]
@@ -1040,7 +1044,9 @@ class TextAnnotations(Annotations):
                                            data_tail,
                                            source_id=input_file_path)
 
-    def get_document_text(self):
+    
+    @property
+    def document_text(self):
         return self._document_text
 
     def _read_document_text(self, document):

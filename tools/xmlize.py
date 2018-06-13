@@ -21,7 +21,7 @@ WORD_RE = re.compile(r'\S+')
 
 
 def collect_sentences_and_get_words(sentences, ann, ssplitter):
-    text = ann.get_document_text()
+    text = ann.document_text
     words = []
     for sid, (sstart, send) in enumerate(ssplitter(text)):
         sentence = ET.SubElement(sentences, "sentence", start=str(

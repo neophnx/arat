@@ -16,7 +16,7 @@ from server import annotation
 # Processing {{{
 def correct_annotations(orig_fn, ann_fn, change_fn):
     with annotation.TextAnnotations(ann_fn) as anns:
-        orig_text = anns.get_document_text()
+        orig_text = anns.document_text
         with annotation.open_textfile(change_fn, 'r') as f:
             changed_text = f.read()
         diffs = diff_match_patch().diff_main(orig_text, changed_text)

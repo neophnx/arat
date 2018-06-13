@@ -10,7 +10,7 @@ lint2:
 	
 lint-all:
 	autopep8 -j=-1 -ir standalone.py server tests
-	python3 -m pylint standalone.py server tests |tee pylint.txt
+	python3 -m pylint --reports=y standalone.py server tests |tee pylint.txt
 
 static-test2:
 	python2 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
@@ -34,7 +34,8 @@ clean:
 	rm -rf work/*
 	rm -rf pylint.txt .coverage
 	rm -rf brat.egg-info
-
+	rm -rf work/sessions/
+	
 test-platform:
 	docker build -f tests-docker/Dockerfile-ubuntu_18.04-CPython_2.7 -t ubuntu_18.04-cpython_2.7 .
 	docker run ubuntu_18.04-cpython_2.7 2> tests-docker/ubuntu_18.04-CPython_2.7.txt

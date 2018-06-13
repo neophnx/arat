@@ -115,7 +115,7 @@ def tag(collection, document, tagger):
             #   missing if you roll your own Python, for once we should not
             #   fail early since tagging is currently an edge case and we
             #   can't allow it to bring down the whole server.
-            from six.moves.http_client import HTTPSConnection # pylint: disable=import-error
+            from six.moves.http_client import HTTPSConnection  # pylint: disable=import-error
             Connection = HTTPSConnection
         else:
             raise InvalidConnectionSchemeError(tagger_token, url_soup.scheme)
@@ -132,7 +132,7 @@ def tag(collection, document, tagger):
             service_url = url_soup.path + (
                 '?' + url_soup.query if url_soup.query else '')
             try:
-                data = ann_obj.get_document_text().encode('utf-8')
+                data = ann_obj.document_text.encode('utf-8')
                 req_headers['Content-length'] = len(data)
                 # Note: Trout slapping for anyone sending Unicode objects here
                 conn.request('POST',

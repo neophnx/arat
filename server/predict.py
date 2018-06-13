@@ -16,9 +16,9 @@ from __future__ import print_function
 CUT_OFF = 0.95
 # In seconds
 QUERY_TIMEOUT = 30
-from six.moves.urllib.parse import urlencode, quote_plus # pylint: disable=import-error
-from six.moves.urllib.request import urlopen # pylint: disable=import-error
-from six.moves.urllib.error import HTTPError, URLError # pylint: disable=import-error
+from six.moves.urllib.parse import urlencode, quote_plus  # pylint: disable=import-error
+from six.moves.urllib.request import urlopen  # pylint: disable=import-error
+from six.moves.urllib.error import HTTPError, URLError  # pylint: disable=import-error
 
 from server.annlog import log_annotation
 from server.document import real_directory

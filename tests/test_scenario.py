@@ -56,6 +56,7 @@ from config import DATA_DIR
 
 dispatcher = Dispatcher()
 
+
 class ScenarioAnnotation(unittest.TestCase):
     def setUp(self):
         """
@@ -64,16 +65,16 @@ class ScenarioAnnotation(unittest.TestCase):
         session.init_session("127.0.0.1")
 #        self.assertEquals(session.CURRENT_SESSION, "")
 
-
-        res = dispatcher({"action": "login",\
-                            "user": "admin",\
-                            "password": "admin",\
-                            "protocol": "1",\
-                            "collection":"/"},\
-                           "127.0.0.1",\
-                           "localhost")
+        res = dispatcher({"action": "login",
+                          "user": "admin",
+                          "password": "admin",
+                          "protocol": "1",
+                          "collection": "/"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res, {"action": "login",
                                 'protocol': 1})
+
     @classmethod
     def tearDownClass(cls):
         session.CURRENT_SESSION = None
@@ -85,382 +86,386 @@ class ScenarioAnnotation(unittest.TestCase):
             os.remove(DATA_DIR+"/id01.ann")
         except:
             pass
-        
+
     def test02_getCollectionInformation(self):
         """
         Walk the collection hierarchy
         """
-        
+
         # list the root content
         res = dispatcher({"action": "getCollectionInformation",
-                            "protocol": "1",\
-                            "collection":u"/"},\
-                           "127.0.0.1",\
-                           "localhost")
+                          "protocol": "1",
+                          "collection": u"/"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res['items'], [['c', None, 'example-data']])
-        
-        
+
         # list example-data content
         res = dispatcher({"action": "getCollectionInformation",
-                            "protocol": "1",\
-                            "collection":"/example-data/"},\
-                           "127.0.0.1",\
-                           "localhost")
+                          "protocol": "1",
+                          "collection": "/example-data/"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(sorted(res['items']), [['c', None, '..'],
                                                  ['c', None, 'corpora'],
                                                  ['c', None, 'normalisation'],
-                                                 ['c', None, 'tutorials'],])
+                                                 ['c', None, 'tutorials'], ])
 
         # list corpora content
         res = dispatcher({"action": "getCollectionInformation",
-                            "protocol": "1",\
-                            "collection":"/example-data/corpora/"},\
-                           "127.0.0.1",\
-                           "localhost")
+                          "protocol": "1",
+                          "collection": "/example-data/corpora/"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(sorted(res['items']), [['c', None, '..'],
                                                  ['c', None, 'BioNLP-ST_2011'],
                                                  ['c', None, 'CoNLL-ST_2002'],
                                                  ['c', None, 'CoNLL-ST_2006'],
                                                  ['c', None, 'NCBI-disease'],
                                                  ['c', None, 'TDT']])
-    
+
         # list CoNLL-ST_2002 content
         res = dispatcher({"action": "getCollectionInformation",
-                            "protocol": "1",\
-                            "collection":"/example-data/corpora/CoNLL-ST_2002"},\
-                           "127.0.0.1",\
-                           "localhost")
+                          "protocol": "1",
+                          "collection": "/example-data/corpora/CoNLL-ST_2002"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(sorted(res['items']), [['c', None, '..'],
                                                  ['c', None, 'esp'],
                                                  ['c', None, 'ned']])
 
         # list esp content
         res = dispatcher({"action": "getCollectionInformation",
-                            "protocol": "1",\
-                            "collection":"/example-data/corpora/CoNLL-ST_2002/esp"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "collection": "/example-data/corpora/CoNLL-ST_2002/esp"},
+                         "127.0.0.1",
+                         "localhost")
+
         res = [i[:3] for i in sorted(res['items'])[:3]]
         self.assertEquals(res, [['c', None, '..'],
                                 ['d', None, 'esp.train-doc-100'],
                                 ['d', None, 'esp.train-doc-1400']])
-    
+
     def test03_getDocument(self):
         """
         get a document from CoNLL-ST_2002/esp
         """
         res = dispatcher({"action": "getDocument",
-                            "protocol": "1",\
-                            "collection":"/example-data/corpora/CoNLL-ST_2002/esp",
-                            "document":"esp.train-doc-100"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
-        self.assertEquals(res["text"][:40], "Por Viruca Atanes Madrid, 24 may (EFE).\n")
-        self.assertEquals(res["entities"][:2], [['T1', 'PER', [(4, 17)]], ['T2', 'LOC', [(18, 24)]]])
+                          "protocol": "1",
+                          "collection": "/example-data/corpora/CoNLL-ST_2002/esp",
+                          "document": "esp.train-doc-100"},
+                         "127.0.0.1",
+                         "localhost")
+
+        self.assertEquals(res["text"][:40],
+                          "Por Viruca Atanes Madrid, 24 may (EFE).\n")
+        self.assertEquals(res["entities"][:2], [
+                          ['T1', 'PER', [(4, 17)]], ['T2', 'LOC', [(18, 24)]]])
         self.assertEquals(res["attributes"], [])
         self.assertEquals(res["relations"], [])
         self.assertEquals(res["events"], [])
         self.assertEquals(res["triggers"], [])
-        
+
     def test04_getDocumentTimestamp(self):
         """
         get document timestamp
         """
         res = dispatcher({"action": "getDocumentTimestamp",
-                            "protocol": "1",\
-                            "collection":"/example-data/corpora/CoNLL-ST_2002/esp",
-                            "document":"esp.train-doc-100"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "collection": "/example-data/corpora/CoNLL-ST_2002/esp",
+                          "document": "esp.train-doc-100"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertGreater(res["mtime"], 1528000000)
-        
+
     def test04_importDocument(self):
         """
         add a test document
         """
         res = dispatcher({"action": "importDocument",
-                            "protocol": "1",\
-                            "collection":"/",
-                            "text":"This is a test file.",
-                            "docid":"id01",
-                            "mtime":0},\
-                           "127.0.0.1",\
-                           "localhost")
-        
-        self.assertEquals(res, {'document': 'id01', 'action': 'importDocument', 'protocol': 1})
-    
-    
+                          "protocol": "1",
+                          "collection": "/",
+                          "text": "This is a test file.",
+                          "docid": "id01",
+                          "mtime": 0},
+                         "127.0.0.1",
+                         "localhost")
+
+        self.assertEquals(
+            res, {'document': 'id01', 'action': 'importDocument', 'protocol': 1})
+
     def test05_whoami(self):
         """
         check user session login
         """
         res = dispatcher({"action": "whoami",
-                            "protocol": "1",\
-                            "collection":"/"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
-        self.assertEquals(res, {'action': 'whoami', 'protocol': 1, 'user': 'admin'})
+                          "protocol": "1",
+                          "collection": "/"},
+                         "127.0.0.1",
+                         "localhost")
+
+        self.assertEquals(
+            res, {'action': 'whoami', 'protocol': 1, 'user': 'admin'})
 
     def test06_logout(self):
         """
         logout then login again
         """
         res = dispatcher({"action": "logout",
-                            "protocol": "1",\
-                            "collection":"/"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "collection": "/"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res, {'action': 'logout', 'protocol': 1})
-        
-        res = dispatcher({"action": "login",\
-                            "user": "admin",\
-                            "password": "admin",\
-                            "protocol": "1",\
-                            "collection":"/"},\
-                           "127.0.0.1",\
-                           "localhost")
+
+        res = dispatcher({"action": "login",
+                          "user": "admin",
+                          "password": "admin",
+                          "protocol": "1",
+                          "collection": "/"},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res, {"action": "login",
                                 'protocol': 1})
-        
+
     def test07_searchTextInDocument(self):
         res = dispatcher({"action": "searchTextInDocument",
-                            "protocol": "1",\
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"document",
-                            'concordancing':False,
-                            'context_length':10,
-                            'match_case':False,
-                            "document":"id01"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "document",
+                          'concordancing': False,
+                          'context_length': 10,
+                          'match_case': False,
+                          "document": "id01"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res, {'action': 'searchTextInDocument',
-                                  'collection': '/',
-                                  'header': [('Document', 'string'),
-                                             ('Annotation', 'string'),
-                                             ('Text', 'string')],
-                                  'items': [['a',
-                                             {'match': [], 'matchfocus': [[10, 14]]},
-                                             'id01',
-                                             '10-14',
-                                             'test']],
-                                  'protocol': 1})
+                                'collection': '/',
+                                'header': [('Document', 'string'),
+                                           ('Annotation', 'string'),
+                                           ('Text', 'string')],
+                                'items': [['a',
+                                           {'match': [], 'matchfocus': [[10, 14]]},
+                                           'id01',
+                                           '10-14',
+                                           'test']],
+                                'protocol': 1})
 
     def test08_searchTextInCollection(self):
         res = dispatcher({"action": "searchTextInCollection",
-                            "protocol": "1",\
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"collection",
-                            'concordancing':False,
-                            'context_length':10,
-                            'match_case':False,
-                            "document":"id01"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "collection",
+                          'concordancing': False,
+                          'context_length': 10,
+                          'match_case': False,
+                          "document": "id01"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res, {'action': 'searchTextInCollection',
-                                  'collection': '/',
-                                  'header': [('Document', 'string'),
-                                             ('Annotation', 'string'),
-                                             ('Text', 'string')],
-                                  'items': [['a',
-                                             {'match': [], 'matchfocus': [[10, 14]]},
-                                             'id01',
-                                             '10-14',
-                                             'test']],
-                                  'protocol': 1})
-    
-    
+                                'collection': '/',
+                                'header': [('Document', 'string'),
+                                           ('Annotation', 'string'),
+                                           ('Text', 'string')],
+                                'items': [['a',
+                                           {'match': [], 'matchfocus': [[10, 14]]},
+                                           'id01',
+                                           '10-14',
+                                           'test']],
+                                'protocol': 1})
+
     def test09_createSpan(self):
         res = dispatcher({"action": "createSpan",
-                            "protocol": "1",\
-                            "collection":"/",\
-                            "offsets": "[[10, 14]]",\
-                            "type": "Protein",\
-                            "attributes": "{}",\
-                            "normalizations": "",
-                            "document":"id01",
-                            "id":None,
-                            "comment":""},\
-                           "127.0.0.1",\
-                           "localhost")
+                          "protocol": "1",
+                          "collection": "/",
+                          "offsets": "[[10, 14]]",
+                          "type": "Protein",
+                          "attributes": "{}",
+                          "normalizations": "",
+                          "document": "id01",
+                          "id": None,
+                          "comment": ""},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res["edited"], [['T1']])
-        
+
     def test10_searchEntityInDocument(self):
         res = dispatcher({"action": "searchEntityInDocument",
-                            "protocol": "1",\
-                            "type": "Protein",
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"document",
-                            'concordancing':"false",
-                            'context_length':10,
-                            'match_case':"false",
-                            "document":"id01"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
-        self.assertEquals(res["items"], [['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+                          "protocol": "1",
+                          "type": "Protein",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "document",
+                          'concordancing': "false",
+                          'context_length': 10,
+                          'match_case': "false",
+                          "document": "id01"},
+                         "127.0.0.1",
+                         "localhost")
+
+        self.assertEquals(res["items"], [
+                          ['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
 
         res = dispatcher({"action": "searchEntityInDocument",
-                            "protocol": "1",\
-                            "type": "dont_exists",
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"document",
-                            'concordancing':"false",
-                            'context_length':10,
-                            'match_case':"false",
-                            "document":"id01"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "type": "dont_exists",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "document",
+                          'concordancing': "false",
+                          'context_length': 10,
+                          'match_case': "false",
+                          "document": "id01"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res["items"], [])
-        
+
     def test10_searchEntityInCollection(self):
         res = dispatcher({"action": "searchEntityInCollection",
-                            "protocol": "1",\
-                            "type": "Protein",
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"collection",
-                            'concordancing':"false",
-                            'context_length':10,
-                            'match_case':"false",
-                            'document':'id01'},\
-                           "127.0.0.1",\
-                           "localhost")
-        
-        self.assertEquals(res["items"], [['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+                          "protocol": "1",
+                          "type": "Protein",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "collection",
+                          'concordancing': "false",
+                          'context_length': 10,
+                          'match_case': "false",
+                          'document': 'id01'},
+                         "127.0.0.1",
+                         "localhost")
+
+        self.assertEquals(res["items"], [
+                          ['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
 
         res = dispatcher({"action": "searchEntityInCollection",
-                            "protocol": "1",\
-                            "type": "dont_exists",
-                            "text_match": "word",
-                            "text": "test",
-                            "collection":"/",
-                            "scope":"collection",
-                            'concordancing':"false",
-                            'context_length':10,
-                            'match_case':"false",
-                            'document':'id01'},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "type": "dont_exists",
+                          "text_match": "word",
+                          "text": "test",
+                          "collection": "/",
+                          "scope": "collection",
+                          'concordancing': "false",
+                          'context_length': 10,
+                          'match_case': "false",
+                          'document': 'id01'},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res["items"], [])
-        
-        
+
     def test20_deleteSpan(self):
         res = dispatcher({"action": "deleteSpan",
-                                "protocol": "1",\
-                                "collection":"/",\
-                                "document":"id01",
-                                "id":'T1'},\
-                               "127.0.0.1",\
-                               "localhost")
+                          "protocol": "1",
+                          "collection": "/",
+                          "document": "id01",
+                          "id": 'T1'},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res["edited"], [])
-        
+
     def test21_storeSVG_retrieveSVG(self):
         svgData = open("tests/test_data/test.svg", "rb").read().decode("utf-8")
-        
+
         res = dispatcher({"action": "storeSVG",
-                                "protocol": "1",\
-                                "collection":"/",\
-                                "document":"id01",
-                                "svg": svgData},\
-                               "127.0.0.1",\
-                               "localhost")
+                          "protocol": "1",
+                          "collection": "/",
+                          "document": "id01",
+                          "svg": svgData},
+                         "127.0.0.1",
+                         "localhost")
         self.assertEquals(res["stored"], [{'name': 'svg', 'suffix': 'svg'}])
-        
-        self.assertGreater(len(open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read().decode("utf-8")),
+
+        self.assertGreater(len(open("work/svg/%s.svg" % session.get_session().get_sid(), "rb").read().decode("utf-8")),
                            len(svgData))
-        
-        svgData = open("work/svg/%s.svg"%session.get_session().get_sid(), "rb").read()
+
+        svgData = open("work/svg/%s.svg" %
+                       session.get_session().get_sid(), "rb").read()
         import server
         with self.assertRaises(server.common.NoPrintJSONError) as context:
             dispatcher({"action": "retrieveStored",
-                                "protocol": "1",\
-                                "collection":"/",\
-                                "document":"id01",
-                                "suffix": "svg"},\
-                               "127.0.0.1",\
-                               "localhost")
-        self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "image/svg+xml")
+                        "protocol": "1",
+                        "collection": "/",
+                        "document": "id01",
+                        "suffix": "svg"},
+                       "127.0.0.1",
+                       "localhost")
+        self.assertEquals(dict(context.exception.hdrs)[
+                          "Content-Type"], "image/svg+xml")
         self.assertEquals(context.exception.data, svgData)
-    
-    
+
     def test23_downloadFile(self):
         import server
-        
+
         for extension in ["txt", "ann"]:
-            data = open("data/id01.%s"%extension, "rb").read()
+            data = open("data/id01.%s" % extension, "rb").read()
             with self.assertRaises(server.common.NoPrintJSONError) as context:
                 dispatcher({"action": "downloadFile",
-                                    "protocol": "1",\
-                                    "collection":"/",\
-                                    "document":"id01",
-                                    "extension":extension},\
-                                   "127.0.0.1",\
-                                   "localhost")
-            self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "text/plain; charset=utf-8")
+                            "protocol": "1",
+                            "collection": "/",
+                            "document": "id01",
+                            "extension": extension},
+                           "127.0.0.1",
+                           "localhost")
+            self.assertEquals(dict(context.exception.hdrs)[
+                              "Content-Type"], "text/plain; charset=utf-8")
             self.assertEquals(context.exception.data, data)
-    
+
     def test24_downloadCollection(self):
         import server
-        
+
         with self.assertRaises(server.common.NoPrintJSONError) as context:
             dispatcher({"action": "downloadCollection",
-                                "protocol": "1",\
-                                "collection":"/", 
-                                "include_conf":True},\
-                               "127.0.0.1",\
-                               "localhost")
-        self.assertEquals(dict(context.exception.hdrs)["Content-Type"], "application/octet-stream")
+                        "protocol": "1",
+                        "collection": "/",
+                        "include_conf": True},
+                       "127.0.0.1",
+                       "localhost")
+        self.assertEquals(dict(context.exception.hdrs)[
+                          "Content-Type"], "application/octet-stream")
         # TODO: write extra check
-    
-#'downloadCollection': download_collection,
-        
+
+# 'downloadCollection': download_collection,
+
     def test99_deleteDocument(self):
         """
         delete the test document
-        
+
         # TODO: complete this test once deleteDocument has been implemented
         """
-        
+
         # remove the document
         os.remove(DATA_DIR+"/id01.txt")
         os.remove(DATA_DIR+"/id01.ann")
-        
+
 #        res = dispatcher({"action": "deleteDocument",
 #                            "protocol": "1",\
 #                            "collection":"/",
 #                            "document":"id01"},\
 #                           "127.0.0.1",\
 #                           "localhost"))
-        
+
     def test200_logoutDeleteSession(self):
         """
         logout and delete session
         """
         res = dispatcher({"action": "logout",
-                            "protocol": "1",\
-                            "collection":"/"},\
-                           "127.0.0.1",\
-                           "localhost")
-        
+                          "protocol": "1",
+                          "collection": "/"},
+                         "127.0.0.1",
+                         "localhost")
+
         self.assertEquals(res, {'action': 'logout', 'protocol': 1})
-        
+
         session.CURRENT_SESSION = None
-        

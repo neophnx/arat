@@ -32,6 +32,7 @@ _PYTHON3 = (sys.version_info > (3, 0))
 if not _PYTHON3:
     FileNotFoundError = OSError
 
+
 class InvalidProjectConfigException(Exception):
     pass
 
@@ -697,7 +698,7 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
                 source = "[default]"
             else:
                 source = filename
-        
+
         # try to parse what was found, fall back to minimal config
         try:
             configs, section_labels = __parse_configs(
@@ -728,7 +729,6 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
 
         get_configs.__cache[(directory, filename)] = (configs, section_labels)
 
-        
     return get_configs.__cache[(directory, filename)]
 
 
