@@ -264,6 +264,10 @@ class Annotations(object):
     def read_only(self):
         return self._read_only
 
+    @property
+    def input_files(self):
+        return self._input_files
+
     def _sanity(self):
         # Beware, we ONLY do format checking, leave your semantics hat at home
 

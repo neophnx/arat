@@ -826,7 +826,7 @@ def _enrich_json_with_data(j_dic, ann_obj):
             j_dic['comments'] = [issue, ]
 
     # Attach the source files for the annotations and text
-    ann_files = [splitext(p)[1][1:] for p in ann_obj._input_files]
+    ann_files = [splitext(p)[1][1:] for p in ann_obj.input_files]
     ann_files.append(TEXT_FILE_SUFFIX)
     ann_files = [p for p in set(ann_files)]
     ann_files.sort()

@@ -1,23 +1,31 @@
 #!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
+# -*- coding: utf-8; -*-
 
 # Search-related functionality for BioNLP Shared Task - style
 # annotations.
 
-from __future__ import with_statement
 
+# future
+from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import print_function
 
+# standard
 import re
 import sys
+from sys import stderr
+from datetime import datetime
 
+# third party
 from six.moves import range
+import six.moves.urllib.request  # pylint: disable=import-error
+import six.moves.urllib.parse  # pylint: disable=import-error
+import six.moves.urllib.error  # pylint: disable=import-error
 
-
+# brat
 from server.message import Messager
 from server import annotation
+
 
 # Constants
 DEFAULT_EMPTY_STRING = "***"
@@ -27,9 +35,6 @@ DEFAULT_RE_FLAGS = re.UNICODE
 
 _PYTHON3 = (sys.version_info > (3, 0))
 
-if REPORT_SEARCH_TIMINGS:
-    from sys import stderr
-    from datetime import datetime
 
 # Search result number may be restricted to limit server load and
 # communication issues for searches in large collections that (perhaps
@@ -172,23 +177,22 @@ def __filenames_to_annotations(filenames):
     # TODO: error output should be done via messager to allow
     # both command-line and GUI invocations
 
-    global REPORT_SEARCH_TIMINGS
     if REPORT_SEARCH_TIMINGS:
         process_start = datetime.now()
 
     anns = []
-    for fn in filenames:
+    for filename in filenames:
         try:
             # remove suffixes for Annotations to prompt parsing of all
             # annotation files.
-            nosuff_fn = fn.replace(".ann", "").replace(
+            nosuff_fn = filename.replace(".ann", "").replace(
                 ".a1", "").replace(".a2", "").replace(".rel", "")
             ann_obj = annotation.TextAnnotations(nosuff_fn, read_only=True)
             anns.append(ann_obj)
         except annotation.AnnotationFileNotFoundError:
-            print("%s:\tFailed: file not found" % fn, file=sys.stderr)
-        except annotation.AnnotationNotFoundError as e:
-            print("%s:\tFailed: %s" % (fn, e), file=sys.stderr)
+            print("%s:\tFailed: file not found" % filename, file=sys.stderr)
+        except annotation.AnnotationNotFoundError as exception:
+            print("%s:\tFailed: %s" % (filename, exception), file=sys.stderr)
 
     if len(anns) != len(filenames):
         print("Note: only checking %d/%d given files" %
@@ -274,17 +278,17 @@ def _get_text_type_ann_map(ann_objs, restrict_types=None, ignore_types=None, nes
 
     text_type_ann_map = {}
     for ann_obj in ann_objs:
-        for t in ann_obj.get_textbounds():
-            if t.type in ignore_types:
+        for text in ann_obj.get_textbounds():
+            if text.type in ignore_types:
                 continue
-            if restrict_types != [] and t.type not in restrict_types:
+            if restrict_types != [] and text.type not in restrict_types:
                 continue
 
-            if t.text not in text_type_ann_map:
-                text_type_ann_map[t.text] = {}
-            if t.type not in text_type_ann_map[t.text]:
-                text_type_ann_map[t.text][t.type] = []
-            text_type_ann_map[t.text][t.type].append((ann_obj, t))
+            if text.text not in text_type_ann_map:
+                text_type_ann_map[text.text] = {}
+            if text.type not in text_type_ann_map[text.text]:
+                text_type_ann_map[text.text][text.type] = []
+            text_type_ann_map[text.text][text.type].append((ann_obj, text))
 
     return text_type_ann_map
 
@@ -302,17 +306,17 @@ def _get_offset_ann_map(ann_objs, restrict_types=None, ignore_types=None):
 
     offset_ann_map = {}
     for ann_obj in ann_objs:
-        for t in ann_obj.get_textbounds():
-            if t.type in ignore_types:
+        for text in ann_obj.get_textbounds():
+            if text.type in ignore_types:
                 continue
-            if restrict_types != [] and t.type not in restrict_types:
+            if restrict_types != [] and text.type not in restrict_types:
                 continue
 
-            for t_start, t_end in t.spans:
-                for o in range(t_start, t_end):
-                    if o not in offset_ann_map:
-                        offset_ann_map[o] = set()
-                    offset_ann_map[o].add(t)
+            for t_start, t_end in text.spans:
+                for i in range(t_start, t_end):
+                    if i not in offset_ann_map:
+                        offset_ann_map[i] = set()
+                    offset_ann_map[i].add(text)
 
     return offset_ann_map
 
@@ -346,10 +350,8 @@ def eq_text_neq_type_spans(ann_objs, restrict_types=None, ignore_types=None, nes
             # Does not involve any of the types restricted do
             continue
 
-        # debugging
-        #print >> sys.stderr, "Text marked with %d different types:\t%s\t: %s" % (len(text_type_ann_map[text]), text, ", ".join(["%s (%d occ.)" % (type, len(text_type_ann_map[text][type])) for type in text_type_ann_map[text]]))
-        for type in text_type_ann_map[text]:
-            for ann_obj, ann in text_type_ann_map[text][type]:
+        for type_ in text_type_ann_map[text]:
+            for ann_obj, ann in text_type_ann_map[text][type_]:
                 # debugging
                 #print >> sys.stderr, "\t%s %s" % (ann.source_id, ann)
                 matches.add_match(ann_obj, ann)
@@ -357,31 +359,32 @@ def eq_text_neq_type_spans(ann_objs, restrict_types=None, ignore_types=None, nes
     return matches
 
 
-def _get_offset_sentence_map(s):
+def _get_offset_sentence_map(sentence):
     """
     Helper, sentence-splits and returns a mapping from character
     offsets to sentence number.
     """
     from server.ssplit import regex_sentence_boundary_gen
 
-    m = {}  # TODO: why is this a dict and not an array?
+    offset = {}  # TODO: why is this a dict and not an array?
     sprev, snum = 0, 1  # note: sentences indexed from 1
-    for sstart, send in regex_sentence_boundary_gen(s):
+    for sstart, send in regex_sentence_boundary_gen(sentence):
         # if there are extra newlines (i.e. more than one) in between
         # the previous end and the current start, those need to be
         # added to the sentence number
-        snum += max(0, len([nl for nl in s[sprev:sstart] if nl == "\n"]) - 1)
-        for o in range(sprev, send):
-            m[o] = snum
+        snum += max(0,
+                    len([nl for nl in offset[sprev:sstart] if nl == "\n"]) - 1)
+        for i in range(sprev, send):
+            offset[i] = snum
         sprev = send
         snum += 1
-    return m
+    return offset
 
 
 def _split_and_tokenize(s):
     """
     Helper, sentence-splits and tokenizes, returns array comparable to
-    what you would get from re.split(r'(\s+)', s).
+    what you would get from re.split(r'(\\s+)', s).
     """
     from server.ssplit import regex_sentence_boundary_gen
     from server.tokenise import gtb_token_boundary_gen
@@ -423,29 +426,30 @@ def _split_tokens_more(tokens):
     Search-specific extra tokenization.
     More aggressive than the general visualization-oriented tokenization.
     """
-    pre_nonalnum_RE = re.compile(r'^(\W+)(.+)$', flags=DEFAULT_RE_FLAGS)
-    post_nonalnum_RE = re.compile(r'^(.+?)(\W+)$', flags=DEFAULT_RE_FLAGS)
+    pre_nonalnum_re = re.compile(r'^(\W+)(.+)$', flags=DEFAULT_RE_FLAGS)
+    post_nonalnum_re = re.compile(r'^(.+?)(\W+)$', flags=DEFAULT_RE_FLAGS)
 
     new_tokens = []
-    for t in tokens:
-        m = pre_nonalnum_RE.match(t)
-        if m:
-            pre, t = m.groups()
+    for token in tokens:
+        match_obj = pre_nonalnum_re.match(token)
+        if match_obj:
+            pre, token = match_obj.groups()
             new_tokens.append(pre)
-        m = post_nonalnum_RE.match(t)
-        if m:
-            t, post = m.groups()
-            new_tokens.append(t)
+        match_obj = post_nonalnum_re.match(token)
+        if match_obj:
+            token, post = match_obj.groups()
+            new_tokens.append(token)
             new_tokens.append(post)
         else:
-            new_tokens.append(t)
+            new_tokens.append(token)
 
     # sanity
     assert ''.join(tokens) == ''.join(new_tokens), "INTERNAL ERROR"
     return new_tokens
 
 
-def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, nested_types=None):
+def eq_text_partially_marked(ann_objs, restrict_types=None,
+                             ignore_types=None, nested_types=None):
     """
     Searches for spans that match in string content but are not all
     marked.
@@ -479,7 +483,7 @@ def eq_text_partially_marked(ann_objs, restrict_types=None, ignore_types=None, n
         except:
             # TODO: proper error handling
             print("ERROR: failed tokenization in %s, skipping" %
-                  ann_obj._input_files[0], file=sys.stderr)
+                  ann_obj.input_files[0], file=sys.stderr)
             continue
 
         # document-specific map
@@ -650,7 +654,6 @@ def search_anns_for_textbound(ann_objs, text, restrict_types=None,
     given Annotations objects.  Returns a SearchMatchSet object.
     """
 
-    global REPORT_SEARCH_TIMINGS
     if REPORT_SEARCH_TIMINGS:
         process_start = datetime.now()
 
@@ -738,7 +741,6 @@ def search_anns_for_note(ann_objs, text, category,
     given Annotations objects.  Returns a SearchMatchSet object.
     """
 
-    global REPORT_SEARCH_TIMINGS
     if REPORT_SEARCH_TIMINGS:
         process_start = datetime.now()
 
@@ -818,7 +820,6 @@ def search_anns_for_relation(ann_objs, arg1, arg1type, arg2, arg2type,
     matching the given specification. Returns a SearchMatchSet object.
     """
 
-    global REPORT_SEARCH_TIMINGS
     if REPORT_SEARCH_TIMINGS:
         process_start = datetime.now()
 
@@ -940,7 +941,6 @@ def search_anns_for_event(ann_objs, trigger_text, args,
     matching the given specification. Returns a SearchMatchSet object.
     """
 
-    global REPORT_SEARCH_TIMINGS
     if REPORT_SEARCH_TIMINGS:
         process_start = datetime.now()
 
@@ -979,7 +979,8 @@ def search_anns_for_event(ann_objs, trigger_text, args,
             except:
                 # TODO: specific exception
                 Messager.error(
-                    'Failed to retrieve trigger annotation %s, skipping event %s in search' % (e.trigger, e.id))
+                    'Failed to retrieve trigger annotation %s, '
+                    'skipping event %s in search' % (e.trigger, e.id))
 
             # TODO: make options for "text included" vs. "text matches"
             if (trigger_text != None and trigger_text != "" and
@@ -1218,46 +1219,32 @@ def format_results(matches, concordancing=False, context_length=50,
 
     # TODO: this is much uglier than necessary, revise
     include_type = True
-    try:
-        for ann_obj, ann in matches.get_matches():
-            ann.type
-    except AttributeError:
-        include_type = False
-
     include_text = True
-    try:
-        for ann_obj, ann in matches.get_matches():
-            ann.text
-    except AttributeError:
-        include_text = False
-
     include_trigger_text = True
-    try:
-        for ann_obj, ann in matches.get_matches():
-            ann.trigger
-    except AttributeError:
-        include_trigger_text = False
+    for ann_obj, ann in matches.get_matches():
+        if not hasattr(ann, "type"):
+            include_type = False
+        if not hasattr(ann, "text"):
+            include_text = False
+        if not hasattr(ann, "trigger"):
+            include_trigger_text = False
+        if not include_type | include_text | include_trigger_text:
+            break
 
     include_context = False
     if include_text and concordancing:
         include_context = True
-        try:
-            for ann_obj, ann in matches.get_matches():
-                ann.first_start()
-                ann.last_end()
-        except AttributeError:
-            include_context = False
+        for ann_obj, ann in matches.get_matches():
+            if not hasattr(ann, "first_start") and not hasattr(ann, "last_end"):
+                include_context = False
 
     include_trigger_context = False
     if include_trigger_text and concordancing and not include_context:
         include_trigger_context = True
-        try:
-            for ann_obj, ann in matches.get_matches():
-                trigger = ann_obj.get_ann_by_id(ann.trigger)
-                trigger.first_start()
-                trigger.last_end()
-        except AttributeError:
-            include_trigger_context = False
+        for ann_obj, ann in matches.get_matches():
+            trigger = ann_obj.get_ann_by_id(ann.trigger)
+            if not hasattr(trigger, "first_start") and not hasattr(trigger, "last_end"):
+                include_trigger_context = False
 
     if include_argument_text:
         try:
@@ -1420,7 +1407,7 @@ def search_text(collection, document, scope="collection",
 def search_entity(collection, document, scope="collection",
                   concordancing="false", context_length=50,
                   text_match="word", match_case="false",
-                  type=None, text=DEFAULT_EMPTY_STRING):
+                  type_=None, text=DEFAULT_EMPTY_STRING):
 
     directory = collection
 
@@ -1430,8 +1417,8 @@ def search_entity(collection, document, scope="collection",
 
     ann_objs = __doc_or_dir_to_annotations(directory, document, scope)
     restrict_types = []
-    if type is not None and type != "":
-        restrict_types.append(type)
+    if type_ is not None and type_ != "":
+        restrict_types.append(type_)
 
     matches = search_anns_for_textbound(ann_objs, text,
                                         restrict_types=restrict_types,
@@ -1447,7 +1434,7 @@ def search_entity(collection, document, scope="collection",
 def search_note(collection, document, scope="collection",
                 concordancing="false", context_length=50,
                 text_match="word", match_case="false",
-                category=None, type=None, text=DEFAULT_EMPTY_STRING):
+                category=None, type_=None, text=DEFAULT_EMPTY_STRING):
 
     directory = collection
 
@@ -1458,8 +1445,8 @@ def search_note(collection, document, scope="collection",
     ann_objs = __doc_or_dir_to_annotations(directory, document, scope)
 
     restrict_types = []
-    if type is not None and type != "":
-        restrict_types.append(type)
+    if type_ is not None and type_ != "":
+        restrict_types.append(type_)
 
     matches = search_anns_for_note(ann_objs, text, category,
                                    restrict_types=restrict_types,
@@ -1475,7 +1462,9 @@ def search_note(collection, document, scope="collection",
 def search_event(collection, document, scope="collection",
                  concordancing="false", context_length=50,
                  text_match="word", match_case="false",
-                 type=None, trigger=DEFAULT_EMPTY_STRING, args={}):
+                 type_=None, trigger=DEFAULT_EMPTY_STRING, args=None):
+    if args is None:
+        args = {}
 
     directory = collection
 
@@ -1486,8 +1475,8 @@ def search_event(collection, document, scope="collection",
     ann_objs = __doc_or_dir_to_annotations(directory, document, scope)
 
     restrict_types = []
-    if type is not None and type != "":
-        restrict_types.append(type)
+    if type_ is not None and type_ != "":
+        restrict_types.append(type_)
 
     # to get around lack of JSON object parsing in dispatcher, parse
     # args here.
@@ -1509,7 +1498,7 @@ def search_event(collection, document, scope="collection",
 def search_relation(collection, document, scope="collection",
                     concordancing="false", context_length=50,
                     text_match="word", match_case="false",
-                    type=None, arg1=None, arg1type=None,
+                    type_=None, arg1=None, arg1type=None,
                     arg2=None, arg2type=None,
                     show_text=False, show_type=False):
 
@@ -1524,8 +1513,8 @@ def search_relation(collection, document, scope="collection",
     ann_objs = __doc_or_dir_to_annotations(directory, document, scope)
 
     restrict_types = []
-    if type is not None and type != "":
-        restrict_types.append(type)
+    if type_ is not None and type_ != "":
+        restrict_types.append(type_)
 
     matches = search_anns_for_relation(ann_objs, arg1, arg1type,
                                        arg2, arg2type,
@@ -1542,39 +1531,57 @@ def search_relation(collection, document, scope="collection",
 ### filename list interface functions (e.g. command line) ###
 
 
-def search_files_for_text(filenames, text, restrict_types=None, ignore_types=None, nested_types=None):
+def search_files_for_text(filenames, text,
+                          restrict_types=None,
+                          ignore_types=None,
+                          nested_types=None):
     """
     Searches for the given text in the given set of files.
     """
     anns = __filenames_to_annotations(filenames)
-    return search_anns_for_text(anns, text, restrict_types=restrict_types, ignore_types=ignore_types, nested_types=nested_types)
+    return search_anns_for_text(anns, text, restrict_types=restrict_types,
+                                ignore_types=ignore_types,
+                                nested_types=nested_types)
 
 
-def search_files_for_textbound(filenames, text, restrict_types=None, ignore_types=None, nested_types=None, entities_only=False):
+def search_files_for_textbound(filenames, text, restrict_types=None,
+                               ignore_types=None, nested_types=None,
+                               entities_only=False):
     """
     Searches for the given text in textbound annotations in the given
     set of files.
     """
     anns = __filenames_to_annotations(filenames)
-    return search_anns_for_textbound(anns, text, restrict_types=restrict_types, ignore_types=ignore_types, nested_types=nested_types, entities_only=entities_only)
+    return search_anns_for_textbound(anns, text,
+                                     restrict_types=restrict_types,
+                                     ignore_types=ignore_types,
+                                     nested_types=nested_types,
+                                     entities_only=entities_only)
 
 # TODO: filename list interface functions for event and relation search
 
 
-def check_files_type_consistency(filenames, restrict_types=None, ignore_types=None, nested_types=None):
+def check_files_type_consistency(filenames, restrict_types=None,
+                                 ignore_types=None, nested_types=None):
     """
     Searches for inconsistent annotations in the given set of files.
     """
     anns = __filenames_to_annotations(filenames)
-    return check_type_consistency(anns, restrict_types=restrict_types, ignore_types=ignore_types, nested_types=nested_types)
+    return check_type_consistency(anns, restrict_types=restrict_types,
+                                  ignore_types=ignore_types,
+                                  nested_types=nested_types)
 
 
-def check_files_missing_consistency(filenames, restrict_types=None, ignore_types=None, nested_types=None):
+def check_files_missing_consistency(filenames, restrict_types=None,
+                                    ignore_types=None,
+                                    nested_types=None):
     """
     Searches for potentially missing annotations in the given set of files.
     """
     anns = __filenames_to_annotations(filenames)
-    return check_missing_consistency(anns, restrict_types=restrict_types, ignore_types=ignore_types, nested_types=nested_types)
+    return check_missing_consistency(anns, restrict_types=restrict_types,
+                                     ignore_types=ignore_types,
+                                     nested_types=nested_types)
 
 
 def argparser():
@@ -1585,9 +1592,11 @@ def argparser():
     ap.add_argument("-v", "--verbose", default=False,
                     action="store_true", help="Verbose output.")
     ap.add_argument("-ct", "--consistency-types", default=False,
-                    action="store_true", help="Search for inconsistently typed annotations.")
+                    action="store_true", help="Search for inconsistently "
+                                              "typed annotations.")
     ap.add_argument("-cm", "--consistency-missing", default=False,
-                    action="store_true", help="Search for potentially missing annotations.")
+                    action="store_true", help="Search for potentially "
+                                              "missing annotations.")
     ap.add_argument("-t", "--text", metavar="TEXT",
                     help="Search for matching text.")
     ap.add_argument("-b", "--textbound", metavar="TEXT",
@@ -1606,10 +1615,6 @@ def argparser():
 
 
 def main(argv=None):
-    import sys
-    import six.moves.urllib.request  # pylint: disable=import-error
-    import six.moves.urllib.parse  # pylint: disable=import-error
-    import six.moves.urllib.error  # pylint: disable=import-error
 
     # ignore search result number limits on command-line invocations
     global MAX_SEARCH_RESULT_NUMBER
@@ -1671,10 +1676,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    import sys
-
-    # on command-line invocations, don't limit the number of results
-    # as the user has direct control over the system.
-    MAX_SEARCH_RESULT_NUMBER = -1
 
     sys.exit(main(sys.argv))
