@@ -94,7 +94,7 @@ def norm_get_name(database, key, collection=None):
 
     try:
         data = normdb.data_by_id(dbpath, key)
-    except normdb.dbNotFoundError as e:
+    except normdb.DbNotFoundError as e:
         Messager.warning(str(e))
         data = None
 
@@ -129,7 +129,7 @@ def norm_get_data(database, key, collection=None):
 
     try:
         data = normdb.data_by_id(dbpath, key)
-    except normdb.dbNotFoundError as e:
+    except normdb.DbNotFoundError as e:
         Messager.warning(str(e))
         data = None
 
