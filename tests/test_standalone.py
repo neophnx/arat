@@ -12,11 +12,9 @@ from __future__ import print_function
 # standard
 import unittest
 import socket
-from contextlib import closing
 from subprocess import Popen
 import sys
 import os
-from time import sleep
 from shutil import rmtree
 
 # third party
@@ -26,13 +24,14 @@ from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 
 def wait_net_service(server, port, timeout=None):
-    """ Wait for network service to appear 
-        @param timeout: in seconds, if None or 0 wait forever
-        @return: True of False, if timeout is None may return only True or
-                 throw unhandled network exception
+    """
+    Wait for network service to appear
+    @param timeout: in seconds, if None or 0 wait forever
+    @return: True of False, if timeout is None may return only True or
+             throw unhandled network exception
     """
 
-    s = socket.socket()
+    sock = socket.socket()
     if timeout:
         from time import time as now
         # time module is needed to calc timeout shared between two exceptions
@@ -45,9 +44,9 @@ def wait_net_service(server, port, timeout=None):
                 if next_timeout < 0:
                     return False
                 else:
-                    s.settimeout(next_timeout)
+                    sock.settimeout(next_timeout)
 
-            s.connect((server, port))
+            sock.connect((server, port))
 
         except socket.timeout:
             # this exception occurs only if timeout is set
@@ -56,23 +55,28 @@ def wait_net_service(server, port, timeout=None):
 
         except socket.error:
             pass
-            # catch timeout exception from underlying network library
-            # this one is different from socket.timeout
-#            if timeout and err[0] == errno.ETIMEDOUT:
-#                return False
         else:
-            s.close()
+            sock.close()
             return True
 
 
 class TestStandalone(unittest.TestCase):
+    """
+    Integration test, run the standalone server as seperate process
+    then test protocol compliance.
+    """
 
     @classmethod
     def _find_free_port(cls):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('', 0))
-        port = s.getsockname()[1]
-        s.close()
+        """
+        Automatically get a free port
+
+
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(('', 0))
+        port = sock.getsockname()[1]
+        sock.close()
         return port
 
     @classmethod
@@ -93,10 +97,8 @@ class TestStandalone(unittest.TestCase):
         cls.sid = response.cookies.get("sid", "")
 
         # populate a datadir with simple test file
-        try:
+        if not os.path.isdir("data/test-data"):
             os.mkdir("data/test-data")
-        except:
-            pass
 
         with open("data/test-data/test-01.txt", "wb") as fd:
             fd.write(six.u("This is a very simple text.").encode("utf-8"))
@@ -112,6 +114,9 @@ class TestStandalone(unittest.TestCase):
         rmtree("data/test-data", ignore_errors=True)
 
     def test_01_home(self):
+        """
+        test GET index  page
+        """
         response = requests.get(self.url)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
@@ -119,49 +124,49 @@ class TestStandalone(unittest.TestCase):
         self.assertEquals(response.content, open("index.html", "rb").read())
 
     def test_02_cookie(self):
+        """
+        test cookie presence
+        """
         self.assertNotEquals(self.sid, "")
 
     def test_03_whoami(self):
-        #        response = requests.post(self.url+"ajax.cgi", json={"action": "whoami",
-        #                                                 "protocol": "1"},
-        #                                            cookies={"sid": self.sid},
-        #                                            headers={'Connection': 'close'})
-        #        from subprocess import Popen
-        #        proc = Popen(["curl", self.url+"ajax.cgi", "-v",
-        #                      "-H", 'Content-Type: application/json',
-        #                      "-X", "POST",
-        #                      "-d", 'action=whoami&protocol=1'])
-
-        #        print(proc.communicate())
+        """
+        test whoami action
+        """
         response = requests.post(self.url+"ajax.cgi", data="action=whoami&protocol=1",
                                  headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-#        self.assertEquals(response.request.headers, 200)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
             "Content-Type", ""), "application/json")
         self.assertTrue("user" in response.json())
 
     def test_04_login_known_user(self):
-        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "login",
-                                                                      "user": "admin",
-                                                                      "password": "admin",
-                                                                      "protocol": "1"}),
-                                 headers={
-                                     'Content-Type': 'application/x-www-form-urlencoded'},
+        """
+        test to authenticate and login
+        """
+        data = urlencode({"action": "login",
+                          "user": "admin",
+                          "password": "admin",
+                          "protocol": "1"})
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        response = requests.post(self.url+"ajax.cgi",
+                                 data=data,
+                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
             "Content-Type", ""), "application/json")
 
-        self.assertTrue(u"Hello!" in response.json()[
-                        "messages"][0], response.json()["messages"])
+        self.assertTrue(u"Hello!" in response.json()["messages"][0],
+                        response.json()["messages"])
 
         # whoami
-        response = requests.post(self.url+"ajax.cgi", data="action=whoami&protocol=1",
-                                 headers={
-                                     'Content-Type': 'application/x-www-form-urlencoded'},
+
+        response = requests.post(self.url+"ajax.cgi",
+                                 data="action=whoami&protocol=1",
+                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
@@ -170,19 +175,26 @@ class TestStandalone(unittest.TestCase):
 
         self.assertTrue(response.json()[u"user"], u"admin")
 
-    def test_10_getCollectionInformation(self):
-        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
-                                                                      "collection": "/test-data",
-                                                                      "protocol": "1"}),
-                                 headers={
-                                     'Content-Type': 'application/x-www-form-urlencoded'},
+    def test_10_collection_information(self):
+        """
+        test the getCollectionInformation action
+        """
+        data = urlencode({"action": "getCollectionInformation",
+                          "collection": "/test-data",
+                          "protocol": "1"})
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+        response = requests.post(self.url+"ajax.cgi",
+                                 data=data,
+                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
             "Content-Type", ""), "application/json")
 
-        for i in [six.u('normalization_config'), six.u('ner_taggers'), six.u('entity_types'),
+        for i in [six.u('normalization_config'), six.u('ner_taggers'),
+                  six.u('entity_types'),
                   six.u('protocol'), six.u('description'), six.u('parent'),
                   six.u('event_attribute_types'), six.u(
                       'items'), six.u('unconfigured_types'),
@@ -197,50 +209,57 @@ class TestStandalone(unittest.TestCase):
                   six.u('visual_options')]:
             self.assertTrue(i in response.json())
 
-        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()[
+        item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
         self.assertEquals(item_type, six.u('d'))  # document
         self.assertEquals(name, six.u('test-01'))
         self.assertEquals(nb_entities, 0)  # no annotations so far
-        self.assertEquals(nb_relations, 0)
-        self.assertEquals(nb_events, 0)
 
-    def test_11_createSpan(self):
-        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "createSpan",
-                                                                      "collection": "/test-data",
-                                                                      "document": "test-01",
-                                                                      "attributes": "{}",
-                                                                      "normalizations": "[]",
-                                                                      "offsets": "[[15,21]]",
-                                                                      "type": "Protein",
-                                                                      "protocol": "1"}),
-                                 headers={
-                                     'Content-Type': 'application/x-www-form-urlencoded'},
+    def test_11_create_span(self):
+        """
+        test the createSpan action
+        """
+        data = urlencode({"action": "createSpan",
+                          "collection": "/test-data",
+                          "document": "test-01",
+                          "attributes": "{}",
+                          "normalizations": "[]",
+                          "offsets": "[[15,21]]",
+                          "type": "Protein",
+                          "protocol": "1"})
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+        response = requests.post(self.url+"ajax.cgi",
+                                 data=data,
+                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
-            "Content-Type", ""), "application/json")
+        self.assertEquals(response.headers.get("Content-Type", ""),
+                          "application/json")
 
         self.assertEquals(response.json()["edited"], [[six.u("T1")]])
 
         # check numbers on the collection level
-        response = requests.post(self.url+"ajax.cgi", data=urlencode({"action": "getCollectionInformation",
-                                                                      "collection": "/test-data",
-                                                                      "protocol": "1"}),
-                                 headers={
-                                     'Content-Type': 'application/x-www-form-urlencoded'},
+        data = urlencode({"action": "getCollectionInformation",
+                          "collection": "/test-data",
+                          "protocol": "1"})
+        response = requests.post(self.url+"ajax.cgi", data,
+                                 headers=headers,
                                  cookies={"sid": self.sid})
 
-        item_type, _, name, timestamp, nb_entities, nb_relations, nb_events = response.json()[
+        item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
         self.assertEquals(item_type, six.u('d'))  # document
         self.assertEquals(name, six.u('test-01'))
         self.assertEquals(nb_entities, 1)  # this is the one
-        self.assertEquals(nb_relations, 0)
-        self.assertEquals(nb_events, 0)
 
         # check annotation file content
         with open("data/test-data/test-01.ann", "rb") as fd:
             self.assertEquals(fd.read().decode("utf-8").strip(),
                               six.u("T1	Protein 15 21	simple"))
+
+
+if __name__ == "__main__":
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestStandalone)
+    unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(SUITE)
