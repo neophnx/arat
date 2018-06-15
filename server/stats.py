@@ -23,7 +23,7 @@ from os.path import join as path_join
 from server.annotation import Annotations, open_textfile
 from config import DATA_DIR, BASE_DIR
 from server.message import Messager
-from server.projectconfig import get_config_path, options_get_validation
+from server.projectconfig.commons import get_config_path, options_get_validation
 from server import constants
 # Constants
 STATS_CACHE_FILE_NAME = '.stats_cache'

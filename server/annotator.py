@@ -33,8 +33,8 @@ from server.annotation import TextBoundAnnotationWithText
 from server.document import real_directory
 from server.jsonwrap import loads as json_loads, dumps as json_dumps
 from server.message import Messager
-from server.projectconfig import (ProjectConfiguration, ENTITY_CATEGORY,
-                                  EVENT_CATEGORY)
+from server.projectconfig import ProjectConfiguration
+from server.projectconfig.commons import ENTITY_CATEGORY, EVENT_CATEGORY
 
 from config import DEBUG
 

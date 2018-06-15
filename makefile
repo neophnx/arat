@@ -11,7 +11,10 @@ lint2:
 lint-all:
 	autopep8 -j=-1 -ir standalone.py server tests
 	python3 -m pylint --reports=y standalone.py server tests |tee pylint.txt
-
+	
+lint-score:
+	bash lint_score.sh    
+    
 static-test2:
 	python2 -m pylint -j8 --errors-only standalone.py server tests |tee pylint.txt
 

@@ -24,7 +24,7 @@ import six
 # brat
 from server.session import get_session
 from server.message import Messager
-from server.projectconfig import options_get_annlogfile
+from server.projectconfig.commons import options_get_annlogfile
 from config import DATA_DIR
 
 
