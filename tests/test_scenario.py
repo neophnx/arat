@@ -46,18 +46,32 @@ TODO: add test case for the following actions
 'convert': convert,
 
 """
+
+# future
 from __future__ import absolute_import
-import unittest
-from server.dispatch import Dispatcher
-from server import session
-from server.common import BratNotImplementedError
+
+# standard
 import os
+import unittest
+
+
+# brat
+import server
+from server import session
+from server.dispatch import Dispatcher
 from config import DATA_DIR
 
-dispatcher = Dispatcher()
+
+DISPATCHER = Dispatcher()
 
 
 class ScenarioAnnotation(unittest.TestCase):
+    """
+    Test action with for simple valid input.
+
+    Action handler are not stressed here. 
+    """
+
     def setUp(self):
         """
         Create a session and login
@@ -65,7 +79,7 @@ class ScenarioAnnotation(unittest.TestCase):
         session.init_session("127.0.0.1")
 #        self.assertEquals(session.CURRENT_SESSION, "")
 
-        res = dispatcher({"action": "login",
+        res = DISPATCHER({"action": "login",
                           "user": "admin",
                           "password": "admin",
                           "protocol": "1",
@@ -80,20 +94,20 @@ class ScenarioAnnotation(unittest.TestCase):
         session.CURRENT_SESSION = None
         try:
             os.remove(DATA_DIR+"/id01.txt")
-        except:
+        except:  # pylint: disable=W0702
             pass
         try:
             os.remove(DATA_DIR+"/id01.ann")
-        except:
+        except:  # pylint: disable=W0702
             pass
 
-    def test02_getCollectionInformation(self):
+    def test02_get_collection_information(self):
         """
         Walk the collection hierarchy
         """
 
         # list the root content
-        res = dispatcher({"action": "getCollectionInformation",
+        res = DISPATCHER({"action": "getCollectionInformation",
                           "protocol": "1",
                           "collection": u"/"},
                          "127.0.0.1",
@@ -101,7 +115,7 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertEquals(res['items'], [['c', None, 'example-data']])
 
         # list example-data content
-        res = dispatcher({"action": "getCollectionInformation",
+        res = DISPATCHER({"action": "getCollectionInformation",
                           "protocol": "1",
                           "collection": "/example-data/"},
                          "127.0.0.1",
@@ -112,7 +126,7 @@ class ScenarioAnnotation(unittest.TestCase):
                                                  ['c', None, 'tutorials'], ])
 
         # list corpora content
-        res = dispatcher({"action": "getCollectionInformation",
+        res = DISPATCHER({"action": "getCollectionInformation",
                           "protocol": "1",
                           "collection": "/example-data/corpora/"},
                          "127.0.0.1",
@@ -125,7 +139,7 @@ class ScenarioAnnotation(unittest.TestCase):
                                                  ['c', None, 'TDT']])
 
         # list CoNLL-ST_2002 content
-        res = dispatcher({"action": "getCollectionInformation",
+        res = DISPATCHER({"action": "getCollectionInformation",
                           "protocol": "1",
                           "collection": "/example-data/corpora/CoNLL-ST_2002"},
                          "127.0.0.1",
@@ -135,7 +149,7 @@ class ScenarioAnnotation(unittest.TestCase):
                                                  ['c', None, 'ned']])
 
         # list esp content
-        res = dispatcher({"action": "getCollectionInformation",
+        res = DISPATCHER({"action": "getCollectionInformation",
                           "protocol": "1",
                           "collection": "/example-data/corpora/CoNLL-ST_2002/esp"},
                          "127.0.0.1",
@@ -146,44 +160,47 @@ class ScenarioAnnotation(unittest.TestCase):
                                 ['d', None, 'esp.train-doc-100'],
                                 ['d', None, 'esp.train-doc-1400']])
 
-    def test03_getDocument(self):
+    def test03_get_document(self):
         """
         get a document from CoNLL-ST_2002/esp
         """
-        res = dispatcher({"action": "getDocument",
+        res = DISPATCHER({"action": "getDocument",
                           "protocol": "1",
-                          "collection": "/example-data/corpora/CoNLL-ST_2002/esp",
+                          "collection": "/example-data/corpora/"
+                                        "CoNLL-ST_2002/esp",
                           "document": "esp.train-doc-100"},
                          "127.0.0.1",
                          "localhost")
 
         self.assertEquals(res["text"][:40],
                           "Por Viruca Atanes Madrid, 24 may (EFE).\n")
-        self.assertEquals(res["entities"][:2], [
-                          ['T1', 'PER', [(4, 17)]], ['T2', 'LOC', [(18, 24)]]])
+        self.assertEquals(res["entities"][:2],
+                          [['T1', 'PER', [(4, 17)]],
+                           ['T2', 'LOC', [(18, 24)]]])
         self.assertEquals(res["attributes"], [])
         self.assertEquals(res["relations"], [])
         self.assertEquals(res["events"], [])
         self.assertEquals(res["triggers"], [])
 
-    def test04_getDocumentTimestamp(self):
+    def test04_get_document_timestamp(self):
         """
         get document timestamp
         """
-        res = dispatcher({"action": "getDocumentTimestamp",
+        res = DISPATCHER({"action": "getDocumentTimestamp",
                           "protocol": "1",
-                          "collection": "/example-data/corpora/CoNLL-ST_2002/esp",
+                          "collection": "/example-data/corpora/"
+                                        "CoNLL-ST_2002/esp",
                           "document": "esp.train-doc-100"},
                          "127.0.0.1",
                          "localhost")
 
         self.assertGreater(res["mtime"], 1528000000)
 
-    def test04_importDocument(self):
+    def test04_import_document(self):
         """
         add a test document
         """
-        res = dispatcher({"action": "importDocument",
+        res = DISPATCHER({"action": "importDocument",
                           "protocol": "1",
                           "collection": "/",
                           "text": "This is a test file.",
@@ -192,14 +209,16 @@ class ScenarioAnnotation(unittest.TestCase):
                          "127.0.0.1",
                          "localhost")
 
-        self.assertEquals(
-            res, {'document': 'id01', 'action': 'importDocument', 'protocol': 1})
+        self.assertEquals(res,
+                          {'document': 'id01',
+                           'action': 'importDocument',
+                           'protocol': 1})
 
     def test05_whoami(self):
         """
         check user session login
         """
-        res = dispatcher({"action": "whoami",
+        res = DISPATCHER({"action": "whoami",
                           "protocol": "1",
                           "collection": "/"},
                          "127.0.0.1",
@@ -212,7 +231,7 @@ class ScenarioAnnotation(unittest.TestCase):
         """
         logout then login again
         """
-        res = dispatcher({"action": "logout",
+        res = DISPATCHER({"action": "logout",
                           "protocol": "1",
                           "collection": "/"},
                          "127.0.0.1",
@@ -220,7 +239,7 @@ class ScenarioAnnotation(unittest.TestCase):
 
         self.assertEquals(res, {'action': 'logout', 'protocol': 1})
 
-        res = dispatcher({"action": "login",
+        res = DISPATCHER({"action": "login",
                           "user": "admin",
                           "password": "admin",
                           "protocol": "1",
@@ -230,8 +249,11 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertEquals(res, {"action": "login",
                                 'protocol': 1})
 
-    def test07_searchTextInDocument(self):
-        res = dispatcher({"action": "searchTextInDocument",
+    def test07_search_text_in_document(self):
+        """
+        Search a single word in a document
+        """
+        res = DISPATCHER({"action": "searchTextInDocument",
                           "protocol": "1",
                           "text_match": "word",
                           "text": "test",
@@ -250,14 +272,18 @@ class ScenarioAnnotation(unittest.TestCase):
                                            ('Annotation', 'string'),
                                            ('Text', 'string')],
                                 'items': [['a',
-                                           {'match': [], 'matchfocus': [[10, 14]]},
+                                           {'match': [],
+                                            'matchfocus': [[10, 14]]},
                                            'id01',
                                            '10-14',
                                            'test']],
                                 'protocol': 1})
 
-    def test08_searchTextInCollection(self):
-        res = dispatcher({"action": "searchTextInCollection",
+    def test08_search_text_in_collection(self):
+        """
+        Search a single word in a collection
+        """
+        res = DISPATCHER({"action": "searchTextInCollection",
                           "protocol": "1",
                           "text_match": "word",
                           "text": "test",
@@ -276,14 +302,18 @@ class ScenarioAnnotation(unittest.TestCase):
                                            ('Annotation', 'string'),
                                            ('Text', 'string')],
                                 'items': [['a',
-                                           {'match': [], 'matchfocus': [[10, 14]]},
+                                           {'match': [],
+                                            'matchfocus': [[10, 14]]},
                                            'id01',
                                            '10-14',
                                            'test']],
                                 'protocol': 1})
 
-    def test09_createSpan(self):
-        res = dispatcher({"action": "createSpan",
+    def test09_create_span(self):
+        """
+        Create a span annotation
+        """
+        res = DISPATCHER({"action": "createSpan",
                           "protocol": "1",
                           "collection": "/",
                           "offsets": "[[10, 14]]",
@@ -297,8 +327,11 @@ class ScenarioAnnotation(unittest.TestCase):
                          "localhost")
         self.assertEquals(res["edited"], [['T1']])
 
-    def test10_searchEntityInDocument(self):
-        res = dispatcher({"action": "searchEntityInDocument",
+    def test10_search_entity_in_document(self):
+        """
+        search a single word with type constraint in document
+        """
+        res = DISPATCHER({"action": "searchEntityInDocument",
                           "protocol": "1",
                           "type": "Protein",
                           "text_match": "word",
@@ -312,10 +345,12 @@ class ScenarioAnnotation(unittest.TestCase):
                          "127.0.0.1",
                          "localhost")
 
-        self.assertEquals(res["items"], [
-                          ['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+        self.assertEquals(res["items"],
+                          [['a', {'match': [],
+                                  'matchfocus': [['T1']]},
+                            'id01', 'T1', 'Protein', 'test']])
 
-        res = dispatcher({"action": "searchEntityInDocument",
+        res = DISPATCHER({"action": "searchEntityInDocument",
                           "protocol": "1",
                           "type": "dont_exists",
                           "text_match": "word",
@@ -331,8 +366,11 @@ class ScenarioAnnotation(unittest.TestCase):
 
         self.assertEquals(res["items"], [])
 
-    def test10_searchEntityInCollection(self):
-        res = dispatcher({"action": "searchEntityInCollection",
+    def test10_search_entity_in_collection(self):
+        """
+        search a single word with type constraint in collection
+        """
+        res = DISPATCHER({"action": "searchEntityInCollection",
                           "protocol": "1",
                           "type": "Protein",
                           "text_match": "word",
@@ -346,10 +384,12 @@ class ScenarioAnnotation(unittest.TestCase):
                          "127.0.0.1",
                          "localhost")
 
-        self.assertEquals(res["items"], [
-                          ['a', {'match': [], 'matchfocus': [['T1']]}, 'id01', 'T1', 'Protein', 'test']])
+        self.assertEquals(res["items"],
+                          [['a', {'match': [],
+                                  'matchfocus': [['T1']]},
+                            'id01', 'T1', 'Protein', 'test']])
 
-        res = dispatcher({"action": "searchEntityInCollection",
+        res = DISPATCHER({"action": "searchEntityInCollection",
                           "protocol": "1",
                           "type": "dont_exists",
                           "text_match": "word",
@@ -365,8 +405,11 @@ class ScenarioAnnotation(unittest.TestCase):
 
         self.assertEquals(res["items"], [])
 
-    def test20_deleteSpan(self):
-        res = dispatcher({"action": "deleteSpan",
+    def test20_delete_span(self):
+        """
+        Delete previous span annotation
+        """
+        res = DISPATCHER({"action": "deleteSpan",
                           "protocol": "1",
                           "collection": "/",
                           "document": "id01",
@@ -375,92 +418,102 @@ class ScenarioAnnotation(unittest.TestCase):
                          "localhost")
         self.assertEquals(res["edited"], [])
 
-    def test21_storeSVG_retrieveSVG(self):
-        svgData = open("tests/test_data/test.svg", "rb").read().decode("utf-8")
+    def test21_store_retrieve_svg(self):
+        """
+        Store then retrieveSVG
+        """
+        svg_data = open("tests/test_data/test.svg",
+                        "rb").read().decode("utf-8")
 
-        res = dispatcher({"action": "storeSVG",
+        res = DISPATCHER({"action": "storeSVG",
                           "protocol": "1",
                           "collection": "/",
                           "document": "id01",
-                          "svg": svgData},
+                          "svg": svg_data},
                          "127.0.0.1",
                          "localhost")
         self.assertEquals(res["stored"], [{'name': 'svg', 'suffix': 'svg'}])
 
-        self.assertGreater(len(open("work/svg/%s.svg" % session.get_session().get_sid(), "rb").read().decode("utf-8")),
-                           len(svgData))
+        sid = session.get_session().get_sid()
 
-        svgData = open("work/svg/%s.svg" %
-                       session.get_session().get_sid(), "rb").read()
-        import server
+        file_content = open("work/svg/%s.svg" % sid, "rb").read()
+        self.assertGreater(len(file_content.decode("utf-8")),
+                           len(svg_data))
+
+        svg_data = open("work/svg/%s.svg" %
+                        session.get_session().get_sid(), "rb").read()
         with self.assertRaises(server.common.NoPrintJSONError) as context:
-            dispatcher({"action": "retrieveStored",
+            DISPATCHER({"action": "retrieveStored",
                         "protocol": "1",
                         "collection": "/",
                         "document": "id01",
                         "suffix": "svg"},
                        "127.0.0.1",
                        "localhost")
-        self.assertEquals(dict(context.exception.hdrs)[
-                          "Content-Type"], "image/svg+xml")
-        self.assertEquals(context.exception.data, svgData)
+        self.assertEquals(dict(context.exception.hdrs)["Content-Type"],
+                          "image/svg+xml")
+        self.assertEquals(context.exception.data, svg_data)
 
-    def test23_downloadFile(self):
-        import server
+    def test23_download_file(self):
+        """
+        Donwload a document and its annotation file
+        """
 
         for extension in ["txt", "ann"]:
             data = open("data/id01.%s" % extension, "rb").read()
             with self.assertRaises(server.common.NoPrintJSONError) as context:
-                dispatcher({"action": "downloadFile",
+                DISPATCHER({"action": "downloadFile",
                             "protocol": "1",
                             "collection": "/",
                             "document": "id01",
                             "extension": extension},
                            "127.0.0.1",
                            "localhost")
-            self.assertEquals(dict(context.exception.hdrs)[
-                              "Content-Type"], "text/plain; charset=utf-8")
+            self.assertEquals(dict(context.exception.hdrs)["Content-Type"],
+                              "text/plain; charset=utf-8")
             self.assertEquals(context.exception.data, data)
 
-    def test24_downloadCollection(self):
-        import server
+    def test24_download_collection(self):
+        """
+        Donwload a collection
+        """
 
         with self.assertRaises(server.common.NoPrintJSONError) as context:
-            dispatcher({"action": "downloadCollection",
+            DISPATCHER({"action": "downloadCollection",
                         "protocol": "1",
                         "collection": "/",
                         "include_conf": True},
                        "127.0.0.1",
                        "localhost")
-        self.assertEquals(dict(context.exception.hdrs)[
-                          "Content-Type"], "application/octet-stream")
+        self.assertEquals(dict(context.exception.hdrs)["Content-Type"],
+                          "application/octet-stream")
         # TODO: write extra check
 
 # 'downloadCollection': download_collection,
 
-    def test99_deleteDocument(self):
-        """
-        delete the test document
-
-        # TODO: complete this test once deleteDocument has been implemented
-        """
-
-        # remove the document
-        os.remove(DATA_DIR+"/id01.txt")
-        os.remove(DATA_DIR+"/id01.ann")
-
-#        res = dispatcher({"action": "deleteDocument",
+#    def test99_deleteDocument(self):
+#        """
+#        delete the test document
+#
+#        # TODO: complete this test once deleteDocument has been implemented
+#        """
+#
+#        # remove the document
+#        os.remove(DATA_DIR+"/id01.txt")
+#        os.remove(DATA_DIR+"/id01.ann")
+#
+#        res = DISPATCHER({"action": "deleteDocument",
 #                            "protocol": "1",\
 #                            "collection":"/",
 #                            "document":"id01"},\
 #                           "127.0.0.1",\
 #                           "localhost"))
 
-    def test200_logoutDeleteSession(self):
+    def test200_logout_delete_session(self):
         """
         logout and delete session
         """
-        res = dispatcher({"action": "logout",
+        res = DISPATCHER({"action": "logout",
                           "protocol": "1",
                           "collection": "/"},
                          "127.0.0.1",
