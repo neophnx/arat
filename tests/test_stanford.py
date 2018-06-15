@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jun  3 10:58:39 2018
@@ -12,6 +11,9 @@ from server.convert import stanford
 
 
 class TestStanford(unittest.TestCase):
+    """
+    Test stanford adapter
+    """
     STANFORD_XML = '''<?xml version="1.0" encoding="UTF-8"?>
     <?xml-stylesheet href="CoreNLP-to-HTML.xsl" type="text/xsl"?>
     <root>
@@ -271,13 +273,21 @@ class TestStanford(unittest.TestCase):
     '''
 
     def test_xml(self):
+        """
+        test stanford xml text
+        """
 
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals(stanford.text(xml_string).encode(
-            'utf-8'), b"Stanford University is located in California. It is a great university.                                                    ")
+            'utf-8'), b"Stanford University is located in California. "
+                      b"It is a great university.                     "
+                      b"                               ")
 
     def test_pos(self):
+        """
+        test stanford xml POS
+        """
         xml_string = TestStanford.STANFORD_XML
         self.assertEquals([i.type for i in stanford.pos(xml_string)],
                           [u'NNP',
@@ -295,16 +305,25 @@ class TestStanford(unittest.TestCase):
                            u'__DOT__'])
 
     def test_ner(self):
+        """
+        test stanford xml NER
+        """
         xml_string = TestStanford.STANFORD_XML
         self.assertEquals([(i.type, i.spans) for i in stanford.ner(xml_string)],
                           [(u'ORGANIZATION', ((0, 19),)), (u'LOCATION', ((34, 44),))])
 
     def test_coref(self):
+        """
+        test stanford xml coreference
+        """
         xml_string = TestStanford.STANFORD_XML
         self.assertEquals([i.type for i in stanford.coref(xml_string)],
                           ['Mention', 'Mention', 'Mention', 'Coreference'])
 
     def test_basic_dep(self):
+        """
+        test stanford xml basic dep
+        """
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals([i.type for i in stanford.basic_dep(xml_string)],
@@ -332,6 +351,9 @@ class TestStanford(unittest.TestCase):
                            'amod'])
 
     def test_collapsed_dep(self):
+        """
+        test stanford xml collapsed dep
+        """
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals([i.type for i in stanford.collapsed_dep(xml_string)],
@@ -358,6 +380,9 @@ class TestStanford(unittest.TestCase):
                            'amod'])
 
     def test_collapsed_ccproc_dep(self):
+        """
+        test stanford xml collapsed ccproc dep
+        """
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals([i.type for i in stanford.collapsed_ccproc_dep(xml_string)],
@@ -384,6 +409,9 @@ class TestStanford(unittest.TestCase):
                            'amod'])
 
     def test_collapsed_token_offsets(self):
+        """
+        test stanford xml collapsed token offsets
+        """
         xml_string = TestStanford.STANFORD_XML
 
         self.assertEquals([i for i in stanford.token_offsets(xml_string)],
@@ -410,3 +438,9 @@ class TestStanford(unittest.TestCase):
 
         # self.assertEquals([i for i in stanford.collapsed_sentence_offsets(xml_string)],
         #                  [])
+
+
+if __name__ == "__main__":
+    import sys
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestStanford)
+    unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(SUITE)
