@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 '''
 Penn TreeBank escaping.
@@ -7,10 +6,15 @@ Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2011-09-12
 '''
 
+# future
+from __future__ import absolute_import
+from __future__ import print_function
+
+# third party
+import six
+
 # Constants
 # From: To
-from __future__ import absolute_import
-import six
 PTB_ESCAPES = {
     u'(': u'-LRB-',
     u')': u'-RRB-',
@@ -18,42 +22,49 @@ PTB_ESCAPES = {
     u']': u'-RSB-',
     u'{': u'-LCB-',
     u'}': u'-RCB-',
-    u'/': u'\/',
-    u'*': u'\*',
+    u'/': u'\\/',
+    u'*': u'\\*',
 }
 ###
 
 
-def escape(s):
-    r = s
-    for _from, to in six.iteritems(PTB_ESCAPES):
-        r = r.replace(_from, to)
-    return r
+def escape(text):
+    """
+    Escape treebank
+    """
+    for _from, _to in six.iteritems(PTB_ESCAPES):
+        text = text.replace(_from, _to)
+    return text
 
 
-def unescape(s):
-    r = s
-    for _from, to in six.iteritems(PTB_ESCAPES):
-        r = r.replace(to, _from)
-    return r
+def unescape(text):
+    """
+    Unescape treebank
+    """
+    for _from, _to in six.iteritems(PTB_ESCAPES):
+        text = text.replace(_to, _from)
+    return text
 
 
 def main(args):
+    """
+    CLI entry point
+    """
     from argparse import ArgumentParser
-    from sys import stdin, stdout
+    from sys import stdin
 
     # TODO: Doc!
     argparser = ArgumentParser()
     argparser.add_argument('-u', '--unescape', action='store_true')
     argp = argparser.parse_args(args[1:])
 
-    for line in (l.rstrip('\n') for l in stdin):
+    for line in stdin:
+        line = line.rstrip('\n')
         if argp.unescape:
-            r = unescape(line)
+            line = unescape(line)
         else:
-            r = escape(line)
-        stdout.write(r)
-        stdout.write('\n')
+            line = escape(line)
+        print(line)
 
 
 if __name__ == '__main__':
