@@ -17,25 +17,53 @@ Use e.g. as
 from __future__ import print_function
 
 
-class SosMessager:
+class SosMessager(object):
+    """
+    Messager fallback
+    """
+    @staticmethod
     def output_json(json_dict):
+        """
+        JSON output
+        """
         json_dict['messages'] = [
-            ['HELP: messager down! (internal error in message.py, please contact administrator)', 'error', -1]]
+            ['HELP: messager down! (internal error in message.py, please contact administrator)',
+             'error',
+             -1]]
         return json_dict
-    output_json = staticmethod(output_json)
 
-    def output(o):
-        print('HELP: messager down! (internal error in message.py, please contact administrator)', file=o)
-    output = staticmethod(output)
+    @staticmethod
+    def output(file_desc):
+        """
+        screen output
+        """
+        print('HELP: messager down! (internal error in message.py, '
+              'please contact administrator)', file=file_desc)
 
-    def info(msg, duration=3, escaped=False): pass
-    info = staticmethod(info)
+    @staticmethod
+    def info(msg, duration=3, escaped=False):
+        """
+        information level
+        """
+        pass
 
-    def warning(msg, duration=3, escaped=False): pass
-    warning = staticmethod(warning)
+    @staticmethod
+    def warning(msg, duration=3, escaped=False):
+        """
+        warning level
+        """
+        pass
 
-    def error(msg, duration=3, escaped=False): pass
-    error = staticmethod(error)
+    @staticmethod
+    def error(msg, duration=3, escaped=False):
+        """
+        error level
+        """
+        pass
 
-    def debug(msg, duration=3, escaped=False): pass
-    debug = staticmethod(debug)
+    @staticmethod
+    def debug(msg, duration=3, escaped=False):
+        """
+        debug level
+        """
+        pass
