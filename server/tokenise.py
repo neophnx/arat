@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
-from __future__ import absolute_import
-from __future__ import print_function
 
 '''
 Tokenisation related functionality.
@@ -12,14 +8,21 @@ Author:     Pontus Stenetorp <pontus stenetorp se>
 Version:    2011-05-23
 '''
 
-from os.path import join as path_join
-from os.path import dirname
-from subprocess import Popen, PIPE
-from shlex import split as shlex_split
+# furure
+from __future__ import with_statement
+from __future__ import absolute_import
+from __future__ import print_function
+
+
+# brat
 from server.message import Messager
 
 
 def _token_boundaries_by_alignment(tokens, original_text):
+    """
+    Given a list of tokens and the original text,
+    deduce the offsets of tokens
+    """
     curr_pos = 0
     for tok in tokens:
         start_pos = original_text.index(tok, curr_pos)
@@ -30,17 +33,19 @@ def _token_boundaries_by_alignment(tokens, original_text):
 
 
 def jp_token_boundary_gen(text):
+    """
+    Japanese tokenization via mecab
+    """
     try:
         from mecab import token_offsets_gen
-        for o in token_offsets_gen(text):
-            yield o
+        for i in token_offsets_gen(text):
+            yield i
     except ImportError:
-        from server.message import Messager
         Messager.error('Failed to import MeCab, '
                        'falling back on whitespace tokenization. '
                        'Please check configuration and/or server setup.')
-        for o in whitespace_token_boundary_gen(text):
-            yield o
+        for i in whitespace_token_boundary_gen(text):
+            yield i
 
 
 def gtb_token_boundary_gen(text):
@@ -52,8 +57,8 @@ def gtb_token_boundary_gen(text):
     """
     from server.gtbtokenize import tokenize
     tokens = tokenize(text).split()
-    for o in _token_boundaries_by_alignment(tokens, text):
-        yield o
+    for i in _token_boundaries_by_alignment(tokens, text):
+        yield i
 
 
 def whitespace_token_boundary_gen(text):
@@ -64,8 +69,8 @@ def whitespace_token_boundary_gen(text):
     [(0, 1), (2, 8), (9, 13), (14, 16), (17, 25), (26, 27)]
     """
     tokens = text.split()
-    for o in _token_boundaries_by_alignment(tokens, text):
-        yield o
+    for i in _token_boundaries_by_alignment(tokens, text):
+        yield i
 
 
 REGISTERED_TOKENISER = {"mecab": jp_token_boundary_gen,
@@ -74,6 +79,9 @@ REGISTERED_TOKENISER = {"mecab": jp_token_boundary_gen,
 
 
 def tokeniser_by_name(name):
+    """
+    load a tokenizer by name
+    """
     if name in REGISTERED_TOKENISER:
         return REGISTERED_TOKENISER[name]
 
@@ -82,10 +90,11 @@ def tokeniser_by_name(name):
     return whitespace_token_boundary_gen
 
 
-if __name__ == '__main__':
+def _main():
+    """
+    CLI for testing purpose
+    """
     from sys import argv
-
-    from server.annotation import open_textfile
 
     def _text_by_offsets_gen(text, offsets):
         for start, end in offsets:
@@ -116,3 +125,7 @@ if __name__ == '__main__':
                 print('"%s"' % tok)
     except IOError:
         raise
+
+
+if __name__ == '__main__':
+    _main()
