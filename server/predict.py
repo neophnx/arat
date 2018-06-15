@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
-
+# -*- coding: utf-8; -*-
 '''
 Prediction for annotation types.
 
@@ -10,26 +7,36 @@ Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
 Version:    2011-11-17
 '''
 
-# Constants
+# future
 from __future__ import absolute_import
 from __future__ import print_function
-CUT_OFF = 0.95
-# In seconds
-QUERY_TIMEOUT = 30
-from six.moves.urllib.parse import urlencode, quote_plus  # pylint: disable=import-error
-from six.moves.urllib.request import urlopen  # pylint: disable=import-error
-from six.moves.urllib.error import HTTPError, URLError  # pylint: disable=import-error
 
+# third party
+from six.moves.urllib.parse import quote_plus  # pylint: disable=import-error
+from six.moves.urllib.request import urlopen  # pylint: disable=import-error
+from six.moves.urllib.error import URLError  # pylint: disable=import-error
+
+# brat
 from server.annlog import log_annotation
 from server.document import real_directory
 from server.common import ProtocolError
 from server.jsonwrap import loads
 from server.projectconfig import ProjectConfiguration
 
+
+# Constants
+CUT_OFF = 0.95
+# In seconds
+QUERY_TIMEOUT = 30
+
 # TODO: Reduce the SimSem coupling
 
 
 class SimSemConnectionNotConfiguredError(ProtocolError):
+    """
+    Model not configured
+    """
+
     def __str__(self):
         return ('The SimSem connection has not been configured, '
                 'please contact the administrator')
@@ -39,6 +46,10 @@ class SimSemConnectionNotConfiguredError(ProtocolError):
 
 
 class SimSemConnectionError(ProtocolError):
+    """
+    Server connection failure
+    """
+
     def __str__(self):
         return ('The SimSem connection returned an error or timed out, '
                 'please contact the administrator')
@@ -48,15 +59,22 @@ class SimSemConnectionError(ProtocolError):
 
 
 class UnknownModelError(ProtocolError):
+    """
+    Model undefined
+    """
+
     def __str__(self):
-        return ('The client provided model not mentioned in `tools.conf`')
+        return 'The client provided model not mentioned in `tools.conf`'
 
     def json(self, json_dic):
         json_dic['exception'] = 'unknownModelError'
 
 
 def suggest_span_types(collection, document, start, end, text, model):
-
+    """
+    Apply model prediction
+    """
+    model_url = None
     pconf = ProjectConfiguration(real_directory(collection))
     for _, _, model_str, model_url in pconf.get_disambiguator_config():
         if model_str == model:
@@ -94,8 +112,7 @@ def suggest_span_types(collection, document, start, end, text, model):
             'document': document,
             'start': start,
             'end': end,
-            'text': text,
-            }
+            'text': text}
 
 
 if __name__ == '__main__':
