@@ -1,27 +1,27 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jun  2 06:55:31 2018
 
 @author: phnx
 """
+
+# future
 from __future__ import absolute_import
+
+# standard
 import unittest
 
+# third party
 from six.moves import zip
 
-try:  # python2
-    from cStringIO import StringIO
-except ImportError:
-    try:
-        from StringIO import StringIO
-    except:  # python3
-        from io import StringIO
-
-from server import sdistance
+# brat
+from server import sdistance as dist
 
 
 class TestSDistance(unittest.TestCase):
+    """
+    server.sdistance unit tests
+    """
     input_data = [('kitten', 'sitting'),
                   ('Saturday', 'Sunday'),
                   ('Caps', 'caps'),
@@ -31,31 +31,54 @@ class TestSDistance(unittest.TestCase):
                   ('dog', '__d_o_g__')]
 
     def test_levenshtein(self):
+        """
+        test levenshtein
+        """
         expected_values = [3, 3, 1, 3, 0, 5, 6]
-        for (a, b), expected in zip(TestSDistance.input_data, expected_values):
-            self.assertEquals(sdistance.levenshtein(a, b),
+        for (i, j), expected in zip(TestSDistance.input_data, expected_values):
+            msg = 'levenshtein(%r, %r) != %r' % (i,
+                                                 j,
+                                                 dist.levenshtein(i, j))
+            self.assertEquals(dist.levenshtein(i, j),
                               expected,
-                              'levenshtein(%r, %r) != %r' % (a, b, sdistance.levenshtein(a, b)))
+                              msg)
 
     def test_tsuruoka(self):
+        """
+        test tsuroka
+        """
         expected_values = [200, 250, 10, 300, 0, 500, 600]
-        for (a, b), expected in zip(TestSDistance.input_data, expected_values):
-            self.assertEquals(sdistance.tsuruoka(a, b),
+        for (i, j), expected in zip(TestSDistance.input_data, expected_values):
+            msg = 'tsuruoka(%r, %r) != %r' % (i,
+                                              j,
+                                              dist.tsuruoka(i, j))
+            self.assertEquals(dist.tsuruoka(i, j),
                               expected,
-                              'tsuruoka(%r, %r) != %r' % (a, b, sdistance.tsuruoka(a, b)))
+                              msg)
 
     def test_tsuruoka_local(self):
+        """
+        test tsuroka local
+        """
         expected_values = [101, 250, 10, 3, 0, 5, 106]
-        for (a, b), expected in zip(TestSDistance.input_data, expected_values):
-            self.assertEquals(sdistance.tsuruoka_local(a, b),
+        for (i, j), expected in zip(TestSDistance.input_data, expected_values):
+            msg = 'tsuruoka_local(%r, %r) != %r' % (i,
+                                                    j,
+                                                    dist.tsuruoka_local(i, j))
+            self.assertEquals(dist.tsuruoka_local(i, j),
                               expected,
-                              'tsuruoka(%r, %r) != %r' % (a, b, sdistance.tsuruoka_local(a, b)))
+                              msg)
 
     def test_tsuruoka_norm(self):
+        """
+        test tsuroka normalized
+        """
         expected_values = [0.714, 0.687, 0.975, 0.0, 1.0, 0.375, 0.333]
-        for (a, b), expected in zip(TestSDistance.input_data, expected_values):
-            self.assertAlmostEqual(sdistance.tsuruoka_norm(a, b),
+        for (i, j), expected in zip(TestSDistance.input_data, expected_values):
+            msg = 'tsuruoka_norm(%r, %r) != %r' % (i,
+                                                   j,
+                                                   dist.tsuruoka_norm(i, j))
+            self.assertAlmostEqual(dist.tsuruoka_norm(i, j),
                                    expected,
-                                   msg='tsuruoka(%r, %r) != %r' % (
-                                       a, b, sdistance.tsuruoka_norm(a, b)),
+                                   msg=msg,
                                    places=3)
