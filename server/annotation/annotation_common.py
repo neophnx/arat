@@ -95,20 +95,18 @@ def __split_annotation_id(id_):
     return pre, num_str, suf
 
 
-def annotation_id_prefix(id):
-    id_ = id
+def annotation_id_prefix(id_):
     pre = ''.join(c for c in takewhile(lambda x: not x.isdigit(), id_))
     if not pre:
         raise InvalidIdError(id_)
     return pre
 
 
-def annotation_id_number(id):
-    return __split_annotation_id(id)[1]
+def annotation_id_number(id_):
+    return __split_annotation_id(id_)[1]
 
 
-def is_valid_id(id):
-    id_ = id
+def is_valid_id(id_):
     # special case: '*' is acceptable as an "ID"
     if id_ == '*':
         return True
@@ -261,7 +259,7 @@ class Annotations(object):
             # We don't have a single file, just set to epoch for now
             self.ann_mtime = -1
             self.ann_ctime = -1
-        
+
     @property
     def read_only(self):
         return self._read_only
@@ -286,7 +284,7 @@ class Annotations(object):
 
                 # If the annotation is not text-bound or of different type
                 if (not isinstance(tr_ann, TextBoundAnnotation) or
-                        tr_ann.type != e_ann.type):
+                        tr_ann.type_ != e_ann.type_):
                     raise EventWithNonTriggerError(e_ann, tr_ann)
             except AnnotationNotFoundError:
                 raise EventWithoutTriggerError(e_ann)
@@ -352,11 +350,11 @@ class Annotations(object):
         # XXX: The status exception is for the document status protocol
         #       which is yet to be formalised
         return (a for a in self if isinstance(a, OnelineCommentAnnotation)
-                and a.type != 'STATUS')
+                and a.type_ != 'STATUS')
 
     def get_statuses(self):
         return (a for a in self if isinstance(a, OnelineCommentAnnotation)
-                and a.type == 'STATUS')
+                and a.type_ == 'STATUS')
 
     def get_triggers(self):
         # Triggers are text-bounds referenced by events
@@ -534,8 +532,7 @@ class Annotations(object):
         # Update the modification time
         self.ann_mtime = time()
 
-    def get_ann_by_id(self, id):
-        id_ = id
+    def get_ann_by_id(self, id_):
         #TODO: DOC
         try:
             return self._ann_by_id[id_]
@@ -1024,8 +1021,10 @@ class TextAnnotations(Annotations):
                 else:
                     # unanticipated mismatch
                     Messager.error((u'Text-bound annotation text "%s" does not '
-                                    u'match marked span(s) %s text "%s" in document') % (
-                        text, str(spans), reftext.replace('\n', '\\n')))
+                                    u'match marked span(s) %s text '
+                                    u'"%s" in document') % (text,
+                                                            str(spans),
+                                                            reftext.replace('\n', '\\n')))
                     raise IdedAnnotationLineSyntaxError(
                         id_, self.ann_line, self.ann_line_num+1, input_file_path)
 
@@ -1044,7 +1043,6 @@ class TextAnnotations(Annotations):
                                            data_tail,
                                            source_id=input_file_path)
 
-    
     @property
     def document_text(self):
         return self._document_text
@@ -1055,8 +1053,8 @@ class TextAnnotations(Annotations):
         # "PMID.txt", not "PMID.a1.txt"
         textfn = document + '.' + TEXT_FILE_SUFFIX
         try:
-            with open_textfile(textfn, 'r') as fd:
-                return fd.read()
+            with open_textfile(textfn, 'r') as file_desc:
+                return file_desc.read()
         except IOError:
             Messager.error('Error reading document text from %s' % textfn)
         raise AnnotationTextFileNotFoundError(document)
@@ -1104,11 +1102,11 @@ class UnparsedIdedAnnotation(Annotation):
     # duck-type instead of inheriting from IdedAnnotation as
     # that inherits from TypedAnnotation and we have no type
 
-    def __init__(self, id, line, source_id=None):
+    def __init__(self, id_, line, source_id=None):
         # (this actually is the whole line, not just the id tail,
         # although Annotation will assign it to self.tail)
         Annotation.__init__(self, line, source_id=source_id)
-        self.id_ = id
+        self.id_ = id_
 
     @property
     def id(self):
@@ -1124,9 +1122,9 @@ class TypedAnnotation(Annotation):
     Base class for all annotations with a type.
     """
 
-    def __init__(self, type, tail, source_id=None):
+    def __init__(self, type_, tail, source_id=None):
         Annotation.__init__(self, tail, source_id=source_id)
-        self.type_ = type
+        self.type_ = type_
 
     @property
     def type(self):
@@ -1142,9 +1140,9 @@ class IdedAnnotation(TypedAnnotation):
     Base class for all annotations with an ID.
     """
 
-    def __init__(self, id, type, tail, source_id=None):
-        TypedAnnotation.__init__(self, type, tail, source_id=source_id)
-        self.id_ = id
+    def __init__(self, id_, type_, tail, source_id=None):
+        TypedAnnotation.__init__(self, type_, tail, source_id=source_id)
+        self.id_ = id_
 
     @property
     def id(self):
@@ -1196,8 +1194,8 @@ class EventAnnotation(IdedAnnotation):
     ID\tTYPE:TRIGGER [ROLE1:PART1 ROLE2:PART2 ...]
     """
 
-    def __init__(self, trigger, args, id, type, tail, source_id=None):
-        IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
+    def __init__(self, trigger, args, id_, type_, tail, source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.trigger = trigger
         self.args = args
 
@@ -1269,8 +1267,8 @@ class EquivAnnotation(TypedAnnotation):
     Where "*" is the literal asterisk character.
     """
 
-    def __init__(self, type, entities, tail, source_id=None):
-        TypedAnnotation.__init__(self, type, tail, source_id=source_id)
+    def __init__(self, type_, entities, tail, source_id=None):
+        TypedAnnotation.__init__(self, type_, tail, source_id=source_id)
         self.entities = entities
 
     def __in__(self, other):
@@ -1304,8 +1302,8 @@ class EquivAnnotation(TypedAnnotation):
 
 
 class AttributeAnnotation(IdedAnnotation):
-    def __init__(self, target, id, type, tail, value, source_id=None):
-        IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
+    def __init__(self, target, id_, type_, tail, value, source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.target = target
         self.value = value
 
@@ -1331,8 +1329,8 @@ class AttributeAnnotation(IdedAnnotation):
 
 
 class NormalizationAnnotation(IdedAnnotation):
-    def __init__(self, id, _type, target, refdb, refid, tail, source_id=None):
-        IdedAnnotation.__init__(self, id, _type, tail, source_id=source_id)
+    def __init__(self, id_, type_, target, refdb, refid, tail, source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.target = target
         self.refdb = refdb
         self.refid = refid
@@ -1361,8 +1359,8 @@ class NormalizationAnnotation(IdedAnnotation):
 
 
 class OnelineCommentAnnotation(IdedAnnotation):
-    def __init__(self, target, id, type, tail, source_id=None):
-        IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
+    def __init__(self, target, id_, type_, tail, source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.target = target
 
     def __str__(self):
@@ -1404,9 +1402,9 @@ class TextBoundAnnotation(IdedAnnotation):
     with multiple START END pairs separated by semicolons.
     """
 
-    def __init__(self, spans, id, type, tail, source_id=None):
+    def __init__(self, spans, id_, type_, tail, source_id=None):
         # Note: if present, the text goes into tail
-        IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.spans = spans
 
     # TODO: temp hack while building support for discontinuous
@@ -1496,8 +1494,8 @@ class TextBoundAnnotationWithText(TextBoundAnnotation):
     with multiple START END pairs separated by semicolons.
     """
 
-    def __init__(self, spans, id, type, text, text_tail="", source_id=None):
-        IdedAnnotation.__init__(self, id, type, '\t' +
+    def __init__(self, spans, id_, type_, text, text_tail="", source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, '\t' +
                                 text+text_tail, source_id=source_id)
         self.spans = spans
         self.text = text
@@ -1546,8 +1544,8 @@ class BinaryRelationAnnotation(IdedAnnotation):
     Where ARG1 and ARG2 are arbitrary (but not identical) labels.
     """
 
-    def __init__(self, id, type, arg1l, arg1, arg2l, arg2, tail, source_id=None):
-        IdedAnnotation.__init__(self, id, type, tail, source_id=source_id)
+    def __init__(self, id_, type_, arg1l, arg1, arg2l, arg2, tail, source_id=None):
+        IdedAnnotation.__init__(self, id_, type_, tail, source_id=source_id)
         self.arg1l = arg1l
         self.arg1 = arg1
         self.arg2l = arg2l

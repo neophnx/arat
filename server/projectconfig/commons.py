@@ -443,6 +443,7 @@ __MINIMAL_TOOLS = {
     cst.NORMALIZATION_SECTION: [],
 }
 
+
 def get_annotation_configs(directory):
     return get_configs(directory,
                        cst.__ANNOTATION_CONFIG_FILENAME,
@@ -452,9 +453,6 @@ def get_annotation_configs(directory):
                        cst.__OPTIONAL_ANNOTATION_SECTIONS)
 
 
-
-
-
 def get_visual_configs(directory):
     return get_configs(directory,
                        cst.__VISUAL_CONFIG_FILENAME,
@@ -462,8 +460,6 @@ def get_visual_configs(directory):
                        __MINIMAL_VISUAL,
                        cst.__EXPECTED_VISUAL_SECTIONS,
                        cst.__OPTIONAL_VISUAL_SECTIONS)
-
-
 
 
 def get_tools_configs(directory):
@@ -933,5 +929,3 @@ def unique_preserve_order(iterable):
             seen.add(i)
             uniqued.append(i)
     return uniqued
-
-

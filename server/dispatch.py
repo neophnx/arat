@@ -325,11 +325,11 @@ class Dispatcher(object):
 
         # Determine what arguments the action function expects
         args, varargs, keywords, defaults = getargspec(action_function)
-        
+
         # convert python argument names to protocol name
         # i.e.: id_ -> id
         args = [i.strip("_") for i in args]
-        
+
         # We will not allow this for now, there is most likely no need for it
         assert varargs is None, 'no varargs for action functions'
         assert keywords is None, 'no keywords for action functions'

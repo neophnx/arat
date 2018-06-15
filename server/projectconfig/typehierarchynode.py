@@ -25,6 +25,7 @@ _PYTHON3 = (sys.version_info > (3, 0))
 class InvalidProjectConfigException(Exception):
     pass
 
+
 @lru_cache(_CACHE_SIZE)
 def normalize_to_storage_form(token):
     """

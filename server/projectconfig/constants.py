@@ -127,5 +127,3 @@ RESERVED_CONFIG_NAME = ["ANY", "ENTITY", "RELATION", "EVENT", "NONE",
 # TODO: "GLYPH-POS" is no longer used, warn if encountered and
 # recommend to use "position" instead.
 RESERVED_CONFIG_STRING = ["<%s>" % _n for _n in RESERVED_CONFIG_NAME]
-
-

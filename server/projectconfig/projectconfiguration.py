@@ -11,6 +11,7 @@ from server.projectconfig import commons as com
 from server.projectconfig import constants as cst
 from server.message import Messager
 
+
 class ProjectConfiguration(object):
     def __init__(self, directory):
         # debugging (note: latter test for windows paths)
@@ -85,7 +86,7 @@ class ProjectConfiguration(object):
                 in com.get_relations_by_arg1(self.directory,
                                              from_ann,
                                              include_special)]
-                
+
     def relation_types_to(self, to_ann, include_special=False):
         """
         Returns the possible relation types that can have an
@@ -104,8 +105,10 @@ class ProjectConfiguration(object):
         """
         types = []
 
-        t1r = com.get_relations_by_arg1(self.directory, from_ann, include_special)
-        t2r = com.get_relations_by_arg2(self.directory, to_ann, include_special)
+        t1r = com.get_relations_by_arg1(
+            self.directory, from_ann, include_special)
+        t2r = com.get_relations_by_arg2(
+            self.directory, to_ann, include_special)
 
         for r in t1r:
             if r in t2r:
@@ -238,7 +241,8 @@ class ProjectConfiguration(object):
 
             # relations
 
-            rels = com.get_relations_by_arg1(self.directory, t1, include_special)
+            rels = com.get_relations_by_arg1(
+                self.directory, t1, include_special)
 
             for r in rels:
                 a = r.storage_form()
