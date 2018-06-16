@@ -45,8 +45,6 @@ NORM_LOOKUP_DEBUG = True
 REPORT_LOOKUP_TIMINGS = False
 
 
-
-
 def _report_timings(dbname, start, msg=None):
     """
     Debug facilty reports total time spent for processing the queries

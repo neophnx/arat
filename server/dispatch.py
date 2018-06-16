@@ -45,7 +45,9 @@ from server.predict import suggest_span_types
 from server.undo import undo
 from server.tag import tag
 from server.delete import delete_document, delete_collection
-from server.norm import norm_get_name, norm_search, norm_get_data
+
+# unsupported action because of unmaintened dependency
+# from server.norm import norm_get_name, norm_search, norm_get_data
 
 
 def logging_no_op(collection, document, log):
@@ -107,9 +109,10 @@ DISPATCHER = {
     'deleteCollection': delete_collection,
 
     # normalization support
-    'normGetName': norm_get_name,
-    'normSearch': norm_search,
-    'normData': norm_get_data,
+    # deactivated because of unmaintened dependency simstring
+    #'normGetName': norm_get_name,
+    #'normSearch': norm_search,
+    #'normData': norm_get_data,
 
     # Visualisation support
     'getConfiguration': get_configuration,
