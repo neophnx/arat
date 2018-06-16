@@ -1,30 +1,51 @@
-#!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
-
+# -*- coding: utf-8 -*-
 '''
 Main entry for the brat server, ensures integrity, handles dispatch and
 processes potential exceptions before returning them to be sent as responses.
 
-NOTE(S):
-
-* Defer imports until failures can be catched
-* Stay compatible with Python 2.3 until we verify the Python version
 
 Author:     Pontus Stenetorp   <pontus is s u-tokyo ac jp>
 Version:    2011-09-29
 '''
 
-# Standard library version
+# future
 from __future__ import absolute_import
 from __future__ import print_function
-from os.path import abspath
+
+# standard
+from os import access, R_OK, W_OK
 from os.path import join as path_join
+import logging
+from logging import basicConfig as log_basic_config
+import sys
 from sys import version_info, stderr
 from time import time
+from traceback import print_exc
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    try:
+        from StringIO import StringIO
+    except:
+        from io import StringIO
+
+
+# third party
 from six.moves._thread import allocate_lock  # pylint: disable=import-error
 import six
-import sys
+
+# brat
+from server.jsonwrap import dumps
+from server.message import Messager
+from server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
+from server.dispatch import dispatch
+from server.session import get_session, init_session, close_session, NoSessionError, SessionStoreError
+import config
+from config import DATA_DIR, WORK_DIR
+from config import DEBUG
+from config import LOG_LEVEL, ADMIN_CONTACT_EMAIL
+
 
 # Constants
 # This handling of version_info is strictly for backwards compatibility
@@ -49,13 +70,7 @@ class ConfigurationError(Exception):
         json_dic['exception'] = 'configurationError'
 
 
-# TODO: Possibly check configurations too
-# TODO: Extend to check __everything__?
 def _permission_check():
-    from os import access, R_OK, W_OK
-    from config import DATA_DIR, WORK_DIR
-    from server.jsonwrap import dumps
-    from server.message import Messager
 
     if not access(WORK_DIR, R_OK | W_OK):
         Messager.error((('Work dir: "%s" is not read-able and ' % WORK_DIR) +
@@ -85,74 +100,25 @@ def _miss_config_msg():
             ) % (CONF_FNAME, CONF_TEMPLATE_FNAME, CONF_FNAME,
                  CONF_TEMPLATE_FNAME, CONF_FNAME)
 
-# Check for existence and sanity of the configuration
-
-
-def _config_check():
-    from server.message import Messager
-
-    from sys import path
-    from copy import deepcopy
-    from os.path import dirname
-    # Reset the path to force config.py to be in the root (could be hacked
-    #       using __init__.py, but we can be monkey-patched anyway)
-    orig_path = deepcopy(path)
-
-    try:
-        del path[:]
-        path.append(path_join(abspath(dirname(__file__)), '..'))
-        # Check if we have a config, otherwise whine
-        try:
-            import config
-            del config
-        except ImportError as e:
-            path.extend(orig_path)
-            # "Prettiest" way to check specific failure
-            if _PYTHON3 and e.msg == 'No module named config':  # pylint: disable=no-member
-                Messager.error(_miss_config_msg(), duration=-1)
-            elif e.message == 'No module named config':  # pylint: disable= no-member
-                Messager.error(_miss_config_msg(), duration=-1)
-            else:
-                Messager.error(_get_stack_trace(), duration=-1)
-            raise ConfigurationError
-        # Try importing the config entries we need
-        try:
-            from config import DEBUG
-        except ImportError:
-            path.extend(orig_path)
-            Messager.error(_miss_var_msg('DEBUG'), duration=-1)
-            raise ConfigurationError
-        try:
-            from config import ADMIN_CONTACT_EMAIL
-        except ImportError:
-            path.extend(orig_path)
-            Messager.error(_miss_var_msg('ADMIN_CONTACT_EMAIL'), duration=-1)
-            raise ConfigurationError
-    finally:
-        # Remove our entry to the path
-        while path:
-            path.pop()
-        # Then restore it
-        path.extend(orig_path)
 
 # Convert internal log level to `logging` log level
 
 
 def _convert_log_level(log_level):
-    import config
-    import logging
+    res = None
     if log_level == config.LL_DEBUG:
-        return logging.DEBUG
+        res = logging.DEBUG
     elif log_level == config.LL_INFO:
-        return logging.INFO
+        res = logging.INFO
     elif log_level == config.LL_WARNING:
-        return logging.WARNING
+        res = logging.WARNING
     elif log_level == config.LL_ERROR:
-        return logging.ERROR
+        res = logging.ERROR
     elif log_level == config.LL_CRITICAL:
-        return logging.CRITICAL
+        res = logging.CRITICAL
     else:
         assert False, 'Should not happen'
+    return res
 
 
 class DefaultNoneDict(dict):
@@ -162,32 +128,11 @@ class DefaultNoneDict(dict):
 
 def _safe_serve(params, client_ip, client_hostname, cookie_data):
     # Note: Only logging imports here
-    from config import WORK_DIR
-    from logging import basicConfig as log_basic_config
 
     # Enable logging
-    try:
-        from config import LOG_LEVEL
-        log_level = _convert_log_level(LOG_LEVEL)
-    except ImportError:
-        from logging import WARNING as LOG_LEVEL_WARNING
-        log_level = LOG_LEVEL_WARNING
+    log_level = _convert_log_level(LOG_LEVEL)
     log_basic_config(filename=path_join(WORK_DIR, 'server.log'),
                      level=log_level)
-
-    # Do the necessary imports after enabling the logging, order critical
-    try:
-        from server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
-        from server.dispatch import dispatch
-        from server.jsonwrap import dumps
-        from server.message import Messager
-        from server.session import get_session, init_session, close_session, NoSessionError, SessionStoreError
-    except ImportError:
-        # Note: Heisenbug trap for #612, remove after resolved
-        from logging import critical as log_critical
-        from sys import path as sys_path
-        log_critical('Heisenbug trap reports: ' + str(sys_path))
-        raise
 
     init_session(client_ip, cookie_data=cookie_data)
     response_is_JSON = True
@@ -235,20 +180,10 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
         response_data = ((JSON_HDR, ), dumps(Messager.output_json(json_dic)))
 
     return (cookie_hdrs, response_data)
-
 # Programmatically access the stack-trace
 
 
 def _get_stack_trace():
-    from traceback import print_exc
-
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        try:
-            from StringIO import StringIO
-        except:
-            from io import StringIO
 
     # Getting the stack-trace requires a small trick
     buf = StringIO()
@@ -260,9 +195,6 @@ def _get_stack_trace():
 
 
 def _server_crash(cookie_hdrs, e):
-    from config import ADMIN_CONTACT_EMAIL, DEBUG
-    from server.jsonwrap import dumps
-    from server.message import Messager
 
     stack_trace = _get_stack_trace()
 
@@ -295,41 +227,7 @@ def serve(params, client_ip, client_hostname, cookie_data):
     # The session relies on the config, wait-for-it
     cookie_hdrs = None
 
-    # Do we have a Python version compatibly with our libs?
-    if (version_info[0] < REQUIRED_PY_VERSION[0] or
-            version_info < REQUIRED_PY_VERSION):
-        # Bail with hand-written JSON, this is very fragile to protocol changes
-        return cookie_hdrs, ((JSON_HDR, ),
-                             ('''
-{
-  "messages": [
-    [
-      "Incompatible Python version (%s), %s or above is supported",
-      "error",
-      -1
-    ]
-  ]
-}
-                ''' % (PY_VER_STR, REQUIRED_PY_VERSION_STR)).strip())
-
-    # We can now safely use json and Messager
-    from server.jsonwrap import dumps
-    from server.message import Messager
-
-    try:
-        # We need to lock here since flup uses threads for each request and
-        # can thus manipulate each other's global variables
-        try:
-            CONFIG_CHECK_LOCK.acquire()
-            _config_check()
-        finally:
-            CONFIG_CHECK_LOCK.release()
-    except ConfigurationError as e:
-        json_dic = {}
-        e.json(json_dic)
-        return cookie_hdrs, ((JSON_HDR, ), dumps(Messager.output_json(json_dic)))
     # We can now safely read the config
-    from config import DEBUG
 
     try:
         _permission_check()
