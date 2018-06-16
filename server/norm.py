@@ -1,25 +1,29 @@
-#!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
+# -*- coding: utf-8; -*-
 
 '''
 Normalization support.
 '''
 
+# future
 from __future__ import absolute_import
 from __future__ import print_function
+
+# standard
+from datetime import datetime
+from functools import reduce
+import sys
+
+# third party
+from six.moves import range  # pylint disable: import-error
+
 from server import normdb
 from server import simstringdb
 from server import sdistance
-from datetime import datetime
 from server.message import Messager
-
 from server.normdb import string_norm_form
 from server.document import real_directory
 from server.projectconfig import ProjectConfiguration
-from six.moves import range  # pylint disable: import-error
-from functools import reduce
-import sys
+
 
 _PYTHON3 = (sys.version_info > (3, 0))
 # whether to display alignment scores in search result table
@@ -40,15 +44,13 @@ NORM_LOOKUP_DEBUG = True
 
 REPORT_LOOKUP_TIMINGS = False
 
-# debugging
 
-
-def _check_DB_version(database):
-    # TODO; not implemented yet for new-style SQL DBs.
-    pass
 
 
 def _report_timings(dbname, start, msg=None):
+    """
+    Debug facilty reports total time spent for processing the queries
+    """
     delta = datetime.now() - start
     strdelta = str(delta).replace('0:00:0', '')  # take out zero min & hour
     queries = normdb.get_query_count(dbname)
@@ -82,8 +84,6 @@ def _get_db_path(database, collection):
 
 
 def norm_get_name(database, key, collection=None):
-    if NORM_LOOKUP_DEBUG:
-        _check_DB_version(database)
     if REPORT_LOOKUP_TIMINGS:
         lookup_start = datetime.now()
 
@@ -117,8 +117,6 @@ def norm_get_name(database, key, collection=None):
 
 
 def norm_get_data(database, key, collection=None):
-    if NORM_LOOKUP_DEBUG:
-        _check_DB_version(database)
     if REPORT_LOOKUP_TIMINGS:
         lookup_start = datetime.now()
 
@@ -375,8 +373,6 @@ def _norm_search_name_attr(database, name, attr,
 
 
 def _norm_search_impl(database, name, collection=None, exactmatch=False):
-    if NORM_LOOKUP_DEBUG:
-        _check_DB_version(database)
     if REPORT_LOOKUP_TIMINGS:
         lookup_start = datetime.now()
 
