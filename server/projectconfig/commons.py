@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Per-project configuration functionality for
-Brat Rapid Annotation Tool (brat)
+Arat Rapid Annotation Tool (arat)
 
 Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Author:     Sampo Pyysalo       <smp is s u-tokyo ac jp>
@@ -26,7 +26,7 @@ import six.moves.urllib_robotparser   # pylint: disable=import-error
 import six.moves.urllib.parse   # pylint: disable=import-error
 from six.moves import range
 
-# brat
+# arat
 from server.annotation import open_textfile
 from server.message import Messager
 from server.projectconfig import constants as cst

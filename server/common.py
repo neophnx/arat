@@ -76,7 +76,7 @@ class NoPrintJSONError(Exception):
         self.data = data
 
 
-class BratNotImplementedError(ProtocolError):
+class AratNotImplementedError(ProtocolError):
     """
     Indicates a missing implementation, this exception
     should never be encountered during normal operations.
@@ -86,15 +86,15 @@ class BratNotImplementedError(ProtocolError):
         json_dic['exception'] = 'notImplemented'
 
 
-class NotImplementedError(BratNotImplementedError):
+class NotImplementedError(AratNotImplementedError):
     """
-    Deprecated see BratNotImplementedError
+    Deprecated see AratNotImplementedError
     """
 
     def __init__(self):
         deprecation("NotImplementedError is deprecated, "
-                    "use BratNotImplementedError instead")
-        BratNotImplementedError.__init__(self)
+                    "use AratNotImplementedError instead")
+        AratNotImplementedError.__init__(self)
 
 
 class CollectionNotAccessibleError(ProtocolError):

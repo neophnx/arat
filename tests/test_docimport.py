@@ -10,7 +10,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os import mkdir
 from os.path import join as join_path
-# brat
+# arat
 import config
 from server import docimport
 

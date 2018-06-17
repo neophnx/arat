@@ -31,7 +31,7 @@ from logging import info as log_info
 import six  # pylint disable: import-error
 from six.moves import range  # pylint disable: import-error
 
-# brat
+# arat
 from server.annotation import (TextAnnotations, TEXT_FILE_SUFFIX,
                                AnnotationCollectionNotFoundError,
                                JOINED_ANN_FILE_SUFF,

@@ -73,7 +73,7 @@ def _token_by_ids(soup):
                 lemma=tok_lemma,
                 start=tok_start,
                 end=tok_end,
-                # Escape the PoS since brat dislike $ and .
+                # Escape the PoS since arat dislike $ and .
                 pos=_escape_pos_tags(tok_pos),
                 ner=tok_ner
             )

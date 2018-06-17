@@ -101,7 +101,7 @@ class Textbound(Annotation):
 
     def fragment(self, text):
         # Remapping may create spans that extend over newlines, which
-        # brat doesn't handle well. Break any such span into multiple
+        # arat doesn't handle well. Break any such span into multiple
         # fragments that skip newlines.
         fragmented = []
         for start, end in self.offsets:

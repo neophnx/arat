@@ -2,7 +2,7 @@
 
 # Special-purpose script for converting a version of the GENIA
 # Metaknowledge annotation from a standoff variant format into the
-# brat standoff format.
+# arat standoff format.
 
 use warnings;
 use strict;
@@ -60,7 +60,7 @@ for my $fn (@ARGV) {
 	$maxt = $1 > $maxt ? $1 : $maxt;
     }
 
-    # rewrite all "A" and "C" IDs (brat expects "T"), keep mapping
+    # rewrite all "A" and "C" IDs (arat expects "T"), keep mapping
     my %idmap;
     my $tid = $maxt+1;
     for (@l) {

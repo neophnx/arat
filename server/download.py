@@ -25,7 +25,7 @@ except ImportError:
 # third party
 from six.moves import range
 
-# brat
+# arat
 from server.document import real_directory
 from server.annotation import open_textfile
 from server.common import NoPrintJSONError

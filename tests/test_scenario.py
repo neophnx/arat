@@ -55,7 +55,7 @@ import os
 import unittest
 
 
-# brat
+# arat
 import server
 from server import session
 from server.dispatch import Dispatcher

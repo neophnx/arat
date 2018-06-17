@@ -1,10 +1,10 @@
-# Not an ant file for producing a brat servlet WAR.
+# Not an ant file for producing a arat servlet WAR.
 # 
 # Author:	Pontus Stenetorp	<pontus stenetorp se>
 # Version:	2012-07-29
 
-BRAT_WAR=brat.war
-SERVLET_DIR=brat
+BRAT_WAR=arat.war
+SERVLET_DIR=arat
 META_DIR=${SERVLET_DIR}/META-INF
 WEB_DIR=${SERVLET_DIR}/WEB-INF
 

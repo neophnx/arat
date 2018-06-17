@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# "Normalizes" IDs in brat-flavored standoff so that the first "T" ID
+# "Normalizes" IDs in arat-flavored standoff so that the first "T" ID
 # is "T1", the second "T2", and so on, for all ID prefixes.
 
 from __future__ import with_statement

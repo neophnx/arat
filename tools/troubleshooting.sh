@@ -1,19 +1,19 @@
 #!/bin/sh
 
-# Attempt to diagnose problems with the brat server that the server itself
+# Attempt to diagnose problems with the arat server that the server itself
 # can't diagnose (since it might not even be alive in the first place, lacking
 # CGI and so on).
 #
 # Example:
 #
-#    tools/troubleshooting.sh http://localhost/~brat/
+#    tools/troubleshooting.sh http://localhost/~arat/
 #
 # Author:   Pontus Stenetorp    <pontus stenetorp se>
 # Version:  2012-05-22
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: ${0} url_to_brat_installation" 1>&2
+    echo "Usage: ${0} url_to_arat_installation" 1>&2
     exit 1
 fi
 BRAT_URL=$1
@@ -24,7 +24,7 @@ SCRIPT_DIR=`dirname $0`
 if [ $? != 0 ]
 then
     echo 'You do not appear to have Python installed.' 2>&1
-    echo 'Please install Python for the brat server to be able to run.' 2>&1
+    echo 'Please install Python for the arat server to be able to run.' 2>&1
     exit 1
 fi
 

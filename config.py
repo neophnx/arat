@@ -1,13 +1,13 @@
 # -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 """
-This configuration file specifies the global setup of the brat
+This configuration file specifies the global setup of the arat
 server. It is recommended that you use the installation script
 instead of editing this file directly. To do this, run the following
-command in the brat directory:
+command in the arat directory:
 
      ./install.sh
 if you wish to configure the server manually, you will first need to
-make sure that this file appears as config.py in the brat server
+make sure that this file appears as config.py in the arat server
 root directory. If this file is currently named config_template.py,
 you can do this as follows:
 
@@ -25,7 +25,7 @@ from six.moves import range
 # ADMIN_CONTACT_EMAIL = ''
 # Contact email for users to use if the software encounters errors
 ADMIN_CONTACT_EMAIL = ''
-# Directories required by the brat server:
+# Directories required by the arat server:
 #
 #     BASE_DIR: directory in which the server is installed
 #     DATA_DIR: directory containing texts and annotations
@@ -34,7 +34,7 @@ ADMIN_CONTACT_EMAIL = ''
 BASE_DIR = abspath(dirname(__file__))
 DATA_DIR = abspath(join(BASE_DIR, 'data'))
 WORK_DIR = abspath(join(BASE_DIR, 'work'))
-# If you have installed brat as suggested in the installation
+# If you have installed arat as suggested in the installation
 # instructions, you can set up BASE_DIR, DATA_DIR and WORK_DIR by
 # removing the three lines above and deleting the initial '#'
 # character from the following four lines:
@@ -53,12 +53,12 @@ WORK_DIR = abspath(join(BASE_DIR, 'work'))
 # the default password is admin
 USER_PASSWORD = {
     'admin-plaintext': 'admin',
-    'admin': 'sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f',
+    'admin': 'sha512:778589c8204ba29e44f0b2863ddc88751b451ddf38ed9e0c95ddfb12ff8283d43ca0362b4a8527deef0e7ac47f277a51bb235c23c2b6671650ba9f02ac583bf2',
     #     (add USERNAME:PASSWORD pairs below this line.)
 }
 ########## ADVANCED CONFIGURATION OPTIONS ##########
-# The following options control advanced aspects of the brat server
-# setup.  It is not necessary to edit these in a basic brat server
+# The following options control advanced aspects of the arat server
+# setup.  It is not necessary to edit these in a basic arat server
 # installation.
 # MAX_SEARCH_RESULT_NUMBER
 # It may be a good idea to limit the max number of results to a search

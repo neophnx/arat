@@ -14,7 +14,7 @@ from six.moves import range
 try:
     from config import BASE_DIR, WORK_DIR
 except ImportError:
-    # for CLI use; assume we're in brat server/src/ and config is in root
+    # for CLI use; assume we're in arat server/src/ and config is in root
     from sys import path as sys_path
     from os.path import dirname
     sys_path.append(path_join(dirname(__file__), '../..'))
@@ -79,10 +79,10 @@ def __ssdb_path(db):
     Given a simstring DB name/path, returns the path for the file that
     is expected to contain the simstring DB.
     '''
-    # Assume we have a path relative to the brat root if the value
+    # Assume we have a path relative to the arat root if the value
     # contains a separator, name only otherwise.
     # TODO: better treatment of name / path ambiguity, this doesn't
-    # allow e.g. DBs to be located in brat root
+    # allow e.g. DBs to be located in arat root
     if path_sep in db:
         base = BASE_DIR
     else:

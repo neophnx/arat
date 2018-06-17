@@ -23,7 +23,7 @@ from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 from server.jsonwrap import dumps
 
-# use the brat sentence splitter
+# use the arat sentence splitter
 from tools.sentencesplit import sentencebreaks_to_newlines
 
 # use this MetaMap output converter

@@ -66,10 +66,10 @@ def __db_path(database):
     Given a DB name/path, returns the path for the file that is
     expected to contain the DB.
     '''
-    # Assume we have a path relative to the brat root if the value
+    # Assume we have a path relative to the arat root if the value
     # contains a separator, name only otherwise.
     # TODO: better treatment of name / path ambiguity, this doesn't
-    # allow e.g. DBs to be located in brat root
+    # allow e.g. DBs to be located in arat root
     if path_sep in database:
         base = BASE_DIR
     else:

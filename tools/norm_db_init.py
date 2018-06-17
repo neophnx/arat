@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Creates SQL and simstring DBs for brat normalization support.
+# Creates SQL and simstring DBs for arat normalization support.
 
 # Each line in the input file should have the following format:
 
@@ -176,15 +176,15 @@ def string_norm_form(s):
 
 def default_db_dir():
     # Returns the default directory into which to store the created DBs.
-    # This is taken from the brat configuration, config.py.
+    # This is taken from the arat configuration, config.py.
 
-    # (Guessing we're in the brat tools/ directory...)
+    # (Guessing we're in the arat tools/ directory...)
     sys.path.append(join(dirname(__file__), '..'))
     try:
         from config import WORK_DIR
         return WORK_DIR
     except ImportError:
-        print("Warning: failed to determine brat work directory, using current instead.", file=sys.stderr)
+        print("Warning: failed to determine arat work directory, using current instead.", file=sys.stderr)
         return "."
 
 
@@ -196,7 +196,7 @@ def argparser():
     ap.add_argument("-v", "--verbose", default=False,
                     action="store_true", help="Verbose output")
     ap.add_argument("-d", "--database", default=None,
-                    help="Base name of databases to create (default by input file name in brat work directory)")
+                    help="Base name of databases to create (default by input file name in arat work directory)")
     ap.add_argument("-e", "--encoding", default=DEFAULT_INPUT_ENCODING,
                     help="Input text encoding (default "+DEFAULT_INPUT_ENCODING+")")
     ap.add_argument("file", metavar="FILE", help="Normalization data")

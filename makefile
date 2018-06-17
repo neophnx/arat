@@ -31,12 +31,15 @@ requirements:
 build:
 	python3 setup.py sdist
 	
+publish: build
+	python3 -m twine upload  dist/*
+	
 clean:
 	find . -name "*.pyc" | xargs rm -f
 	find data -name ".stats_cache" |xargs rm -f
 	rm -rf work/*
 	rm -rf pylint.txt .coverage
-	rm -rf brat.egg-info
+	rm -rf arat.egg-info
 	rm -rf work/sessions/
 	
 test-platform:

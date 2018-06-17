@@ -29,7 +29,7 @@ OUTPUT_ENCODING = "UTF-8"
 output_directory = None
 
 # rewrites for characters appearing in CoNLL-X types that cannot be
-# directly used in identifiers in brat-flavored standoff
+# directly used in identifiers in arat-flavored standoff
 charmap = {
     '<': '_lt_',
     '>': '_gt_',

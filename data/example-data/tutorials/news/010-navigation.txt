@@ -1,4 +1,4 @@
-In brat, documents are organized into COLLECTIONS, like files are organized into directories (or folders) on your computer.
+In arat, documents are organized into COLLECTIONS, like files are organized into directories (or folders) on your computer.
 
 Within a single collection, you can move between different documents using the forward and backward arrows on your keyboard, or by clicking on the arrow buttons on the blue bar at the top left corner of the page, as you did just now.
 

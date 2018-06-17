@@ -1,6 +1,6 @@
 Event annotation
 
-For capturing associations of arbitrary numbers of annotations, brat implements a number of features supporting EVENT ANNOTATION: text-bound, n-ary associations of annotations. As this is a bit of a mouthful, let's us use some examples.
+For capturing associations of arbitrary numbers of annotations, arat implements a number of features supporting EVENT ANNOTATION: text-bound, n-ary associations of annotations. As this is a bit of a mouthful, let's us use some examples.
 
 
 1 ) The merger involved YouTube.
@@ -10,7 +10,7 @@ For capturing associations of arbitrary numbers of annotations, brat implements 
 3 ) Would you believe Amazon, Apple, Google, and Facebook merged?
 
 
-Each of the above sentences contains a single event annotation, with different numbers of participants. It may be helpful to think of a brat event annotation as a text span annotation together with binary relations identifying the participants in the event (this is a reasonable approximation of the actual representation). In many event annotation efforts, the text span annotation is termed the "event trigger" and the relation types "participant roles".
+Each of the above sentences contains a single event annotation, with different numbers of participants. It may be helpful to think of a arat event annotation as a text span annotation together with binary relations identifying the participants in the event (this is a reasonable approximation of the actual representation). In many event annotation efforts, the text span annotation is termed the "event trigger" and the relation types "participant roles".
 
 It is straightforward to create event annotations: first create a text span annotation and assign it an event type; then annotate the participants by dragging and dropping, just as for binary relations. Try to recreate the above event structures below.
 

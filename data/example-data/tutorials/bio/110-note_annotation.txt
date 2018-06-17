@@ -1,6 +1,6 @@
 Annotation notes
 
-Although brat is primarily oriented toward structured annotation that can be automatically interpreted, it also supports free-text NOTES that can be attached to annotations. Annotations with notes are emphasized with a visual highlight, and notes can be read either by hovering the mouse cursor over the annotation or by opening the Edit Annotation dialog. Some examples are shown below.
+Although arat is primarily oriented toward structured annotation that can be automatically interpreted, it also supports free-text NOTES that can be attached to annotations. Annotations with notes are emphasized with a visual highlight, and notes can be read either by hovering the mouse cursor over the annotation or by opening the Edit Annotation dialog. Some examples are shown below.
 
 
 1 ) We study IgG.

@@ -1,7 +1,7 @@
 #!/usr/bin/evn python
 
-# Script for converting Entrez Gene data into the brat normalization
-# DB input format (http://brat.nlplab.org/normalization.html).
+# Script for converting Entrez Gene data into the arat normalization
+# DB input format (http://arat.nlplab.org/normalization.html).
 
 # The script expects as input the gene_info file available from the
 # NCBI FTP site (ftp://ftp.ncbi.nih.gov/gene/DATA/).

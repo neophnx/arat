@@ -24,7 +24,7 @@ Dataset descriptions from the CoNLL 2002 shared task website:
     University of Antwerp.
 
 Converted into standoff using the script conll02tostandoff.py
-distributed with brat.
+distributed with arat.
 
 Note that this is a subset of the training sets only. To access the full
 data, please download it from the shared task website:

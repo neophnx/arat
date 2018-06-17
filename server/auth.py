@@ -19,14 +19,14 @@ from __future__ import absolute_import
 from os.path import dirname, join as path_join, isdir, relpath
 from hashlib import sha512
 
-# brat
+# arat
 from server.common import ProtocolError, deprecation
 from config import USER_PASSWORD, DATA_DIR
 from server.message import Messager
 from server.session import get_session
 from server.projectconfig import ProjectConfiguration
 
-SALT = b"brat"
+SALT = b"arat"
 
 
 # To raise if the authority to carry out an operation is lacking
@@ -70,7 +70,7 @@ def _is_authenticated(user, password):
     """
     Default authentication method is now sha512
 
-    >>> _is_authenticated("admin", 'sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f')
+    >>> _is_authenticated("admin", 'sha512:778589c8204ba29e44f0b2863ddc88751b451ddf38ed9e0c95ddfb12ff8283d43ca0362b4a8527deef0e7ac47f277a51bb235c23c2b6671650ba9f02ac583bf2')
     True
 
     For backward compatibility plain-text password is accepted but deprecated
@@ -81,7 +81,7 @@ def _is_authenticated(user, password):
 
     Password types can be mixed until the removal of plain text support
 
-    >>> _is_authenticated("admin-plaintext", "sha512:15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f")
+    >>> _is_authenticated("admin-plaintext", "sha512:778589c8204ba29e44f0b2863ddc88751b451ddf38ed9e0c95ddfb12ff8283d43ca0362b4a8527deef0e7ac47f277a51bb235c23c2b6671650ba9f02ac583bf2")
     True
 
     >>> _is_authenticated("admin", "admin")
@@ -116,7 +116,7 @@ def _is_authenticated(user, password):
 def _password_hash(password):
     """
     >>> _password_hash("admin")
-    '15735439ac46f80864aa2ef64de141b5b7cc5f2c49696afcd3f188387189f8d4469f6f00e1168467d4f2db19d3f53329f7e80af5635e11a6e8d59883026a822f'
+    '778589c8204ba29e44f0b2863ddc88751b451ddf38ed9e0c95ddfb12ff8283d43ca0362b4a8527deef0e7ac47f277a51bb235c23c2b6671650ba9f02ac583bf2'
     """
     password = password.encode("ascii")
     return sha512(SALT+password).hexdigest()

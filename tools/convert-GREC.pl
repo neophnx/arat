@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # Special-purpose script for converting the GREC standoff variant into
-# a format recognized by brat.
+# a format recognized by arat.
 
 # The GREC corpus (http://www.nactem.ac.uk/GREC/) is distributed in a
 # standoff format that allows multi-valued arguments to be specified
@@ -11,7 +11,7 @@
 #
 # (see http://www.nactem.ac.uk/GREC/standoff.html for specification.)
 # This is not compatible with the BioNLP shared task-flavored standoff
-# used in brat. This script rewrites such annotations so that separate
+# used in arat. This script rewrites such annotations so that separate
 # arguments are used:
 #
 #    E8	GRE:T20 Theme1:T11, Theme2:T12

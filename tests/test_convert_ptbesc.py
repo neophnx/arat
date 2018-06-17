@@ -11,7 +11,7 @@ from __future__ import absolute_import
 # standard
 import unittest
 
-# brat
+# arat
 from server.convert.ptbesc import escape, unescape
 
 

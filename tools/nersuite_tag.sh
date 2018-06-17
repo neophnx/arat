@@ -7,7 +7,7 @@
 
 OUTPUT_FORMAT=conll
 # This didn't work out, NERsuite can't guarantee that offsets match
-#OUTPUT_FORMAT=brat
+#OUTPUT_FORMAT=arat
 
 # Model locations
 

@@ -12,8 +12,8 @@ from __future__ import absolute_import
 import unittest
 import json
 
-# brat
-from server import brat_server
+# arat
+from server import arat_server
 from server import session
 import config
 
@@ -43,7 +43,7 @@ class TestServer(unittest.TestCase):
         """
         test empty input
         """
-        _, response_data = brat_server.serve(
+        _, response_data = arat_server.serve(
             Params({}), '127.0.0.1', "me", None)
         self.assertEquals(json.loads(response_data[1])["exception"],
                           ["protocolVersionMismatch"])
@@ -52,7 +52,7 @@ class TestServer(unittest.TestCase):
         """
         test higher protocol
         """
-        _, response_data = brat_server.serve(
+        _, response_data = arat_server.serve(
             Params({"protocol": 3}), '127.0.0.1', "me", None)
         self.assertEquals(json.loads(response_data[1])["exception"],
                           ["protocolVersionMismatch"])
@@ -61,7 +61,7 @@ class TestServer(unittest.TestCase):
         """
         test lower protocol
         """
-        _, response_data = brat_server.serve(Params({"protocol": -1}),
+        _, response_data = arat_server.serve(Params({"protocol": -1}),
                                              '127.0.0.1',
                                              "me",
                                              None)
@@ -72,7 +72,7 @@ class TestServer(unittest.TestCase):
         """
         test no action
         """
-        _, response_data = brat_server.serve(Params({"protocol": 1}),
+        _, response_data = arat_server.serve(Params({"protocol": 1}),
                                              '127.0.0.1',
                                              "me",
                                              None)
@@ -83,7 +83,7 @@ class TestServer(unittest.TestCase):
         """
         test invalid action
         """
-        _, response_data = brat_server.serve(Params({"protocol": 1,
+        _, response_data = arat_server.serve(Params({"protocol": 1,
                                                      "action": "bye"}),
                                              '127.0.0.1',
                                              "me",
@@ -95,18 +95,18 @@ class TestServer(unittest.TestCase):
         """
         test crash
         """
-        serve_save = brat_server._safe_serve
+        serve_save = arat_server._safe_serve
 
         def crash_serve(*_):
             """
             Mock an unhandled exception during serve
             """
             raise BaseException
-        brat_server._safe_serve = crash_serve
+        arat_server._safe_serve = crash_serve
 
         # test in DEBUG mode
         config.DEBUG = True
-        _, response_data = brat_server.serve(Params({"protocol": 1,
+        _, response_data = arat_server.serve(Params({"protocol": 1,
                                                      "action": "bye"}),
                                              '127.0.0.1',
                                              "me",
@@ -116,7 +116,7 @@ class TestServer(unittest.TestCase):
 
         # test in production mode
         config.DEBUG = False
-        _, response_data = brat_server.serve(Params({"protocol": 1,
+        _, response_data = arat_server.serve(Params({"protocol": 1,
                                                      "action": "bye"}),
                                              '127.0.0.1',
                                              "me",
@@ -124,7 +124,7 @@ class TestServer(unittest.TestCase):
         self.assertEquals(json.loads(response_data[1])["exception"],
                           'serverCrash')
 
-        brat_server._safe_serve = serve_save
+        arat_server._safe_serve = serve_save
 
 
 if __name__ == "__main__":

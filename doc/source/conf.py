@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Brat documentation build configuration file, created by
+# Arat documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  8 23:01:32 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -50,9 +50,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Brat'
-copyright = u'2018, Brat contributors'
-author = u'Brat contributors'
+project = u'Arat'
+copyright = u'2018, Arat contributors'
+author = u'Arat contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -130,7 +130,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Bratdoc'
+htmlhelp_basename = 'Aratdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -157,8 +157,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Brat.tex', u'Brat Documentation',
-     u'Brat contributors', 'manual'),
+    (master_doc, 'Arat.tex', u'Arat Documentation',
+     u'Arat contributors', 'manual'),
 ]
 
 
@@ -167,7 +167,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'brat', u'Brat Documentation',
+    (master_doc, 'arat', u'Arat Documentation',
      [author], 1)
 ]
 
@@ -178,8 +178,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Brat', u'Brat Documentation',
-     author, 'Brat', 'One line description of project.',
+    (master_doc, 'Arat', u'Arat Documentation',
+     author, 'Arat', 'One line description of project.',
      'Miscellaneous'),
 ]
 

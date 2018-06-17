@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Main entry for the brat server, ensures integrity, handles dispatch and
+Main entry for the arat server, ensures integrity, handles dispatch and
 processes potential exceptions before returning them to be sent as responses.
 
 
@@ -35,7 +35,7 @@ except ImportError:
 from six.moves._thread import allocate_lock  # pylint: disable=import-error
 import six
 
-# brat
+# arat
 from server.jsonwrap import dumps
 from server.message import Messager
 from server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
@@ -172,7 +172,7 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
         close_session()
     except SessionStoreError:
         Messager.error(
-            "Failed to store cookie (missing write permission to brat work directory)?", -1)
+            "Failed to store cookie (missing write permission to arat work directory)?", -1)
     except NoSessionError:
         cookie_hdrs = None
 

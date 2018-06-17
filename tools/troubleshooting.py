@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Attempt to diagnose common problems with the brat server by using HTTP.
+Attempt to diagnose common problems with the arat server by using HTTP.
 
 Author:     Pontus Stenetorp    <pontus stenetorp se>
 Version:    2012-05-22
@@ -52,10 +52,10 @@ def _request_wrap(conn, method, url, body=None,
 def main(args):
     # Old-style argument handling for portability
     if len(args) != 2:
-        print('Usage: %s url_to_brat_installation' % (args[0], ), file=stderr)
+        print('Usage: %s url_to_arat_installation' % (args[0], ), file=stderr)
         return -1
-    brat_url = args[1]
-    url_soup = urlparse(brat_url)
+    arat_url = args[1]
+    url_soup = urlparse(arat_url)
 
     if url_soup.scheme:
         try:
@@ -81,8 +81,8 @@ def main(args):
     res = _request_wrap(conn, 'HEAD', url_soup.path)
     if res.status != OK:
         print(('Unable to load "%s", please check the url.'
-               ) % (brat_url, ), file=stderr)
-        print(('Does the url you provdide point to your brat '
+               ) % (arat_url, ), file=stderr)
+        print(('Does the url you provdide point to your arat '
                'installation?'), file=stderr)
         return -1
     res.read()  # Dump the data so that we can make another request
@@ -99,7 +99,7 @@ def main(args):
         return -1
     elif res.status != OK:
         print(('Unable to load "%s", please check your url. Does '
-               'it point to your brat installation?') % (ajax_cgi_url, ), file=stderr)
+               'it point to your arat installation?') % (ajax_cgi_url, ), file=stderr)
         return -1
     # Verify that we actually got json data back
     res_headers = dict(res.getheaders())
@@ -118,7 +118,7 @@ def main(args):
         return -1
 
     # Doctor says, this seems okay
-    print('Congratulations! Your brat server appears to be ready to run.')
+    print('Congratulations! Your arat server appears to be ready to run.')
     print('However, there is the possibility that there are further errors, '
           'but at least the server should be capable of communicating '
           'these errors to the client.')

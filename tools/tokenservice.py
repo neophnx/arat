@@ -14,7 +14,7 @@ from cgi import FieldStorage
 try:
     from json import dumps
 except ImportError:
-    # likely old Python; try to fall back on ujson in brat distrib
+    # likely old Python; try to fall back on ujson in arat distrib
     from sys import path as sys_path
     from os.path import join as path_join
     from os.path import dirname

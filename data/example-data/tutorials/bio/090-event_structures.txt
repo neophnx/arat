@@ -12,7 +12,7 @@ Here, one event is marked as participating in another. For a more involved examp
 2 ) Expression of IkB-alpha inhibited the upregulation of VCAM-1 expression.
 
 
-These annotations can be created using the brat functionality you are already familiar with: simply first create event annotations that do not involve other event annotations as participants, and then create the "upper layers" of annotation to make the full structure. Try this to reconstruct the examples above, and make sure you have all the details right!
+These annotations can be created using the arat functionality you are already familiar with: simply first create event annotations that do not involve other event annotations as participants, and then create the "upper layers" of annotation to make the full structure. Try this to reconstruct the examples above, and make sure you have all the details right!
 
 
 3 ) LMP1 upregulates IL-10 expression.

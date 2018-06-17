@@ -1,10 +1,10 @@
 # Licenses #
 
-This file contains licenses for all software and resources included in brat.
+This file contains licenses for all software and resources included in arat.
 
-## brat, jQuery, sprintf ##
+## arat, jQuery, sprintf ##
 
-Copyright (C) 2010-2012 The brat contributors, all rights reserved.
+Copyright (C) 2010-2018 The arat contributors, all rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

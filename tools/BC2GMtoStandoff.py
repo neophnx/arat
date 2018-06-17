@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Converts the BioCreative 2 Gene Mention task data into brat-flavored
+# Converts the BioCreative 2 Gene Mention task data into arat-flavored
 # standoff format.
 
 from __future__ import with_statement
@@ -18,7 +18,7 @@ def char_offsets(text, start, end, ttext):
     # character-based offsets for the marked span. This is necessary
     # as BC2 data has offsets that ignore space. Note also that input
     # offsets are assumed inclusive of last char (ala BC2), but return
-    # offsets are exclusive of last (ala BioNLP ST/brat).
+    # offsets are exclusive of last (ala BioNLP ST/arat).
 
     # scan to start offset
     idx, nospcidx = 0, 0

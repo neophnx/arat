@@ -21,7 +21,7 @@ from os.path import join as path_join
 # third party
 import six
 
-# brat
+# arat
 from server.session import get_session
 from server.message import Messager
 from server.projectconfig.commons import options_get_annlogfile

@@ -22,7 +22,7 @@ import six.moves.urllib.request  # pylint: disable=import-error
 import six.moves.urllib.parse  # pylint: disable=import-error
 import six.moves.urllib.error  # pylint: disable=import-error
 
-# brat
+# arat
 from server.message import Messager
 from server import annotation
 
@@ -252,7 +252,7 @@ def __doc_or_dir_to_annotations(directory, document, scope):
     if scope == "collection":
         return __directory_to_annotations(directory)
     elif scope == "document":
-        # NOTE: "/NO-DOCUMENT/" is a workaround for a brat
+        # NOTE: "/NO-DOCUMENT/" is a workaround for a arat
         # client-server comm issue (issue #513).
         if document == "" or document == "/NO-DOCUMENT/":
             Messager.warning('No document selected for search in document.')
@@ -1363,7 +1363,7 @@ def format_results(matches, concordancing=False, context_length=50,
     response['items'] = items
     return response
 
-### brat interface functions ###
+### arat interface functions ###
 
 
 def _to_bool(s):
@@ -1663,7 +1663,7 @@ def main(argv=None):
         print(m.criterion)
         for ann_obj, ann in m.get_matches():
             # TODO: get rid of specific URL hack and similar
-            baseurl = 'http://127.0.0.1/~%s/brat/#/' % username
+            baseurl = 'http://127.0.0.1/~%s/arat/#/' % username
             # sorry about this
             if isinstance(ann, TextMatch):
                 annp = "%s~%s" % (ann.reference_id()[0], ann.reference_id()[1])

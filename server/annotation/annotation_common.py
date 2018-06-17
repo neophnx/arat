@@ -37,7 +37,7 @@ from six.moves import map
 from six.moves import range
 import six
 
-# brat
+# arat
 from server.filelock import file_lock
 from server.message import Messager
 from server.annotation.annotation_exceptions import (AnnotationFileNotFoundError,
@@ -67,7 +67,7 @@ DISCONT_SEP = ' '
 
 # If True, use BioNLP Shared Task 2013 compatibilty mode, allowing
 # normalization annotations to be parsed using the BioNLP Shared Task
-# 2013 format in addition to the brat format and allowing relations to
+# 2013 format in addition to the arat format and allowing relations to
 # reference event triggers. NOTE: Alternate format supported only for
 # reading normalization annotations, not for creating new ones. Don't
 # change this setting unless you are sure you know what you are doing.
@@ -363,7 +363,7 @@ class Annotations(object):
     def get_triggers(self):
         # Triggers are text-bounds referenced by events
         # TODO: this omits entity triggers that lack a referencing event
-        # (for one reason or another -- brat shouldn't define any.)
+        # (for one reason or another -- arat shouldn't define any.)
         return (self.get_ann_by_id(e.trigger) for e in self.get_events())
 
     # TODO: getters for other categories of annotations

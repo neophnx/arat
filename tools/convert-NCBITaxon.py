@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Special-purpose script for converting the NCBI taxonomy data dump
-# into the brat normalization DB input format
-# (http://brat.nlplab.org/normalization.html).
+# into the arat normalization DB input format
+# (http://arat.nlplab.org/normalization.html).
 
 # The script expects as input the names.dmp file available from
 # the NCBI FTP site (ftp://ftp.ncbi.nih.gov/pub/taxonomy/).

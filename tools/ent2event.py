@@ -24,7 +24,7 @@ try:
 except ImportError:
     import os.path
     from sys import path as sys_path
-    # Guessing that we might be in the brat tools/ directory ...
+    # Guessing that we might be in the arat tools/ directory ...
     sys_path.append(os.path.join(os.path.dirname(__file__), '../server/src'))
     import annotation
 

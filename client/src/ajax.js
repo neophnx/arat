@@ -54,7 +54,7 @@ var Ajax = (function($, window, undefined) {
                   // If we had a protocol mismatch, prompt the user for a reload
                   if (response.exception == 'protocolVersionMismatch') {
                     if(confirm('The server is running a different version ' +
-                        'from brat than your client, possibly due to a ' +
+                        'from arat than your client, possibly due to a ' +
                         'server upgrade. Would you like to reload the ' +
                         'current page to update your client to the latest ' +
                         'version?')) {

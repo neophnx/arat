@@ -14,7 +14,7 @@ import unittest
 # third party
 from six.moves import zip
 
-# brat
+# arat
 from server import sdistance as dist
 
 

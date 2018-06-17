@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Install script for brat server
+# Install script for arat server
 #
 # Author:   Sampo Pyysalo       <smp is s u tokyo ac jp>
 # Author:   Pontus Stenetorp    <pontus is s u tokyo ac jp>
@@ -52,14 +52,14 @@ if [ "$QUICK" = true ]; then
 else
     # not quick; ask details for config
     while true; do
-	echo 'Please enter the user name that you want to use when logging into brat:'
+	echo 'Please enter the user name that you want to use when logging into arat:'
 	read user_name
 	if [ -n "$user_name" ]; then
 	    break
 	fi
     done
     while true; do
-	echo "Please enter a brat password (this shows on screen):"
+	echo "Please enter a arat password (this shows on screen):"
 	read password
 	if [ -n "$password" ]; then
 	    break
@@ -146,7 +146,7 @@ fi
 
 if [ "$QUICK" = true ]; then
     cat << EOF
-Quick install: finished. To test brat, run the standalone server as
+Quick install: finished. To test arat, run the standalone server as
 
     python standalone.py
 
@@ -156,12 +156,12 @@ else
     cat << EOF
 The installation has finished, you are almost done.
 
-1.) If you are installing brat on a webserver, make sure you have 
-    followed the steps described in the brat manual to enable CGI:
+1.) If you are installing arat on a webserver, make sure you have 
+    followed the steps described in the arat manual to enable CGI:
 
-    http://brat.nlplab.org/installation.html
+    http://arat.nlplab.org/installation.html
 
-2.) Please verify that brat is running by accessing your installation
+2.) Please verify that arat is running by accessing your installation
     using a web browser.
 
 You can automatically diagnose some common installation issues using:
@@ -169,11 +169,11 @@ You can automatically diagnose some common installation issues using:
     tools/troubleshooting.sh URL_TO_BRAT_INSTALLATION
 
 If there are issues not detected by the above script, please contact the
-brat developers and/or file a bug to the brat bug tracker:
+arat developers and/or file a bug to the arat bug tracker:
 
-    https://github.com/nlplab/brat/issues'
+    https://github.com/nlplab/arat/issues'
 
-3.) Once brat is running, put your data in the data directory. Or use
+3.) Once arat is running, put your data in the data directory. Or use
     the example data placed there by the installation:
 
     ${data_dir_abs}

@@ -37,7 +37,7 @@ Hints
 
 * The type selection in the New Annotation dialog for relation annotations can be configured to use keyboard shortcuts similarly to that for text span annotations.
 
-* Details on different categories of relations (symmetric, transitive) can be found in the brat documentation.
+* Details on different categories of relations (symmetric, transitive) can be found in the arat documentation.
 
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Minimal standalone brat server based on SimpleHTTPRequestHandler.
+# Minimal standalone arat server based on SimpleHTTPRequestHandler.
 
 # Run as apache, e.g. as
 #
@@ -24,8 +24,8 @@ from six.moves.socketserver import ForkingMixIn  # pylint: disable=import-error
 from six.moves.urllib.parse import unquote  # pylint: disable=import-error
 import six  # pylint: disable=import-error
 
-# brat imports
-from server.brat_server import serve
+# arat imports
+from server.arat_server import serve
 
 _PYTHON3 = (sys.version_info > (3, 0))
 
@@ -140,8 +140,8 @@ class PathPermissions(object):
         return self
 
 
-class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
-    """Minimal handler for brat server."""
+class AratHTTPRequestHandler(SimpleHTTPRequestHandler):
+    """Minimal handler for arat server."""
 
     permissions = PathPermissions().parse(_PERMISSIONS.split('\n'))
 
@@ -152,7 +152,7 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
             # just ignore logging
             pass
 
-    def is_brat(self):
+    def is_arat(self):
         # minimal cleanup
         path = self.path
         path = path.split('?', 1)[0]
@@ -160,8 +160,8 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         return path == '/ajax.cgi'
 
-    def run_brat_direct(self):
-        """Execute brat server directly."""
+    def run_arat_direct(self):
+        """Execute arat server directly."""
 
         remote_addr = self.client_address[0]
         remote_host = self.address_string()
@@ -231,19 +231,19 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_error(403)
 
     def do_POST(self):
-        """Serve a POST request. Only implemented for brat server."""
+        """Serve a POST request. Only implemented for arat server."""
 
-        if self.is_brat():
-            self.run_brat_direct()
+        if self.is_arat():
+            self.run_arat_direct()
         else:
-            self.send_error(501, "Can only POST to brat")
+            self.send_error(501, "Can only POST to arat")
 
     def do_GET(self):
         """Serve a GET request."""
         if not self.allow_path():
             self.send_error(403)
-        elif self.is_brat():
-            self.run_brat_direct()
+        elif self.is_arat():
+            self.run_arat_direct()
         else:
             SimpleHTTPRequestHandler.do_GET(self)
 
@@ -255,9 +255,9 @@ class BratHTTPRequestHandler(SimpleHTTPRequestHandler):
             SimpleHTTPRequestHandler.do_HEAD(self)
 
 
-class BratServer(ForkingMixIn, HTTPServer):
+class AratServer(ForkingMixIn, HTTPServer):
     def __init__(self, server_address):
-        HTTPServer.__init__(self, server_address, BratHTTPRequestHandler)
+        HTTPServer.__init__(self, server_address, AratHTTPRequestHandler)
 
 
 def main(argv):
@@ -265,16 +265,16 @@ def main(argv):
     try:
         if os.getuid() == 0:
             print("""
-! WARNING: running as root. The brat standalone server is experimental   !
+! WARNING: running as root. The arat standalone server is experimental   !
 ! and may be a security risk. It is recommend to run the standalone      !
-! server as a non-root user with write permissions to the brat work/ and !
-! data/ directories (e.g. apache if brat is set up using standard        !
+! server as a non-root user with write permissions to the arat work/ and !
+! data/ directories (e.g. apache if arat is set up using standard        !
 ! installation).                                                         !
 """, file=sys.stderr)
     except AttributeError:
         # not on UNIX
         print("""
-Warning: could not determine user. Note that the brat standalone
+Warning: could not determine user. Note that the arat standalone
 server is experimental and should not be run as administrator.
 """, file=sys.stderr)
 
@@ -289,8 +289,8 @@ server is experimental and should not be run as administrator.
         port = _DEFAULT_SERVER_PORT
 
     try:
-        server = BratServer((_DEFAULT_SERVER_ADDR, port))
-        print("Serving brat at http://%s:%d" %
+        server = AratServer((_DEFAULT_SERVER_ADDR, port))
+        print("Serving arat at http://%s:%d" %
               server.server_address, file=sys.stderr)
         server.serve_forever()
     except KeyboardInterrupt:

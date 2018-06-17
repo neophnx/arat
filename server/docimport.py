@@ -17,7 +17,7 @@ from os.path import join as join_path
 from os.path import isdir, isfile
 from os import access, W_OK
 
-# brat
+# arat
 from server.annotation import open_textfile
 from server.annotation import JOINED_ANN_FILE_SUFF, TEXT_FILE_SUFFIX
 from server.common import ProtocolError

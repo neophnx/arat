@@ -20,7 +20,7 @@ import six  # pylint disable: import-error
 from six.moves import range  # pylint disable: import-error
 
 
-# brat
+# arat
 from server.annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
                                TextAnnotations, DependingAnnotationDeleteError,
                                TextBoundAnnotation,

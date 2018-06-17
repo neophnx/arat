@@ -1,4 +1,4 @@
-brat
+arat
 ====
 
 .. toctree::

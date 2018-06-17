@@ -19,7 +19,7 @@ def argparser():
     import argparse
 
     ap = argparse.ArgumentParser(description='Convert BioContext data ' +
-                                 'into brat-flavored standoff.')
+                                 'into arat-flavored standoff.')
     ap.add_argument('-d', '--directory', default=None,
                     help='Output directory (default output to STDOUT)')
     ap.add_argument('-e', '--entitytype', default='Anatomical_entity',

@@ -4,7 +4,7 @@
 
 '''
 Server-to-client messaging-related functionality
-for Brat Rapid Annotation Tool (brat)
+for Arat Rapid Annotation Tool (arat)
 
 
 Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>

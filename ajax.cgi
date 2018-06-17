@@ -3,8 +3,8 @@
 # vim:set ft=python ts=4 sw=4 sts=4 autoindent:
 
 '''
-Entry for CGI calls to brat. A simple wrapper around the CGI handling that then
-delegates the work to the CGI-agnostic brat server.
+Entry for CGI calls to arat. A simple wrapper around the CGI handling that then
+delegates the work to the CGI-agnostic arat server.
 
 Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-02-07
@@ -19,7 +19,7 @@ from sys import path as sys_path, stdout
 
 # Local imports
 
-from server.brat_server import serve
+from server.arat_server import serve
 
 def main(args):
     # Get data required for server call

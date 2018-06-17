@@ -9,7 +9,7 @@ TODO: implement deletion facilties
 '''
 
 from __future__ import absolute_import
-from server.common import BratNotImplementedError
+from server.common import AratNotImplementedError
 
 
 def delete_document(collection, document):
@@ -18,7 +18,7 @@ def delete_document(collection, document):
     """
     assert collection is not None
     assert document is not None
-    raise BratNotImplementedError()
+    raise AratNotImplementedError()
 
 
 def delete_collection(collection):
@@ -26,4 +26,4 @@ def delete_collection(collection):
     Collection deletion, not implemented
     """
     assert collection is not None
-    raise BratNotImplementedError()
+    raise AratNotImplementedError()

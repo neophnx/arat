@@ -16,7 +16,7 @@ from six.moves.urllib.parse import quote_plus  # pylint: disable=import-error
 from six.moves.urllib.request import urlopen  # pylint: disable=import-error
 from six.moves.urllib.error import URLError  # pylint: disable=import-error
 
-# brat
+# arat
 from server.annlog import log_annotation
 from server.document import real_directory
 from server.common import ProtocolError

@@ -1,6 +1,6 @@
 Attribute annotation
 
-To support the annotation of properties in more detail than just annotation type, brat supports ATTRIBUTE ANNOTATION. Attributes are either binary (on/off) flags or values selected from a set of possible alternatives.
+To support the annotation of properties in more detail than just annotation type, arat supports ATTRIBUTE ANNOTATION. Attributes are either binary (on/off) flags or values selected from a set of possible alternatives.
 
 Some examples are shown in the following sentence. Take a moment to study these settings by hovering over the annotations with the mouse cursor to see the information display, and then double-click to open the Edit Annotation dialog to see how the attributes are set.
 

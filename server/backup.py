@@ -26,7 +26,7 @@ from shlex import split as split_shlex
 from datetime import datetime, timedelta
 from subprocess import Popen
 
-# brat
+# arat
 from server.filelock import file_lock, PID_WARN
 from config import BACKUP_DIR, DATA_DIR
 

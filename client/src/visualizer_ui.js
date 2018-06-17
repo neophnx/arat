@@ -590,7 +590,7 @@ var VisualizerUI = (function($, window, undefined) {
         // does not restrict tab key to the dialog
         // does not set the focus, nor change position
         // but is much faster than dialog('open') for large dialogs, see
-        // https://github.com/nlplab/brat/issues/934
+        // https://github.com/nlplab/arat/issues/934
 
         var self = $dialog.dialog('instance');
         
@@ -1706,7 +1706,7 @@ var VisualizerUI = (function($, window, undefined) {
         var $sourceFiles = $('#source_files').empty();
         /* Add download links for all available extensions */
         $.each(sourceData.source_files, function(extNo, ext) {
-          var $link = $('<a target="brat_search"/>').
+          var $link = $('<a target="arat_search"/>').
               text(ext).
               attr('href',
                   'ajax.cgi?action=downloadFile&collection=' + encodeURIComponent(coll) +
@@ -1749,7 +1749,7 @@ var VisualizerUI = (function($, window, undefined) {
         // "side-by-side comparison" buttons
         if (oldColl != coll) {
           var $sourceCollection = $('#source_collection').empty();
-          var $collectionDownloadLink = $('<a target="brat_search"/>')
+          var $collectionDownloadLink = $('<a target="arat_search"/>')
             .text('Download tar.gz')
             .attr('href', 'ajax.cgi?action=downloadCollection&collection=' + encodeURIComponent(coll)
             + '&include_conf=' + ($('#source_collection_conf_on').is(':checked') ? 1 : 0)
@@ -1949,7 +1949,7 @@ var VisualizerUI = (function($, window, undefined) {
       var authFormSubmit = function(evt) {
         dispatcher.post('hideForm');
         var _user = $('#auth_user').val();
-        var password = "sha512:"+SHA512("brat"+$('#auth_pass').val());
+        var password = "sha512:"+SHA512("arat"+$('#auth_pass').val());
         dispatcher.post('ajax', [{
             action: 'login',
             user: _user,

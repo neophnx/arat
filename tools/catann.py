@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Given a set of brat-flavored standoff .ann files, catenates them
+# Given a set of arat-flavored standoff .ann files, catenates them
 # into a single .ann file (with reference to the corresponding .txt
 # files) so that the resulting .ann applies for the simple catenation
 # of the .txt files.
@@ -123,7 +123,7 @@ def main(argv):
         # first, revise textbound annotation offsets by the base
         for j in range(len(anns[i])):
             l = anns[i][j]
-            # see http://brat.nlplab.org/standoff.html for format
+            # see http://arat.nlplab.org/standoff.html for format
             if not l or l[0] != 'T':
                 continue
             m = re.match(r'^(T\d+\t\S+) (\d+ \d+(?:;\d+ \d+)*)(\t.*\n?)', l)

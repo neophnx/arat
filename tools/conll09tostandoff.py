@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Convert CoNLL 2009 format file into brat-flavored standoff and a
+# Convert CoNLL 2009 format file into arat-flavored standoff and a
 # reconstruction of the original text.
 
 from __future__ import with_statement
@@ -38,7 +38,7 @@ F_ID, F_FORM, F_LEMMA, F_POS, F_FEAT, F_HEAD, F_DEPREL, F_FILLPRED, F_PRED, F_AP
 output_directory = None
 
 # rewrites for characters appearing in CoNLL-X types that cannot be
-# directly used in identifiers in brat-flavored standoff
+# directly used in identifiers in arat-flavored standoff
 charmap = {
     '<': '_lt_',
     '>': '_gt_',

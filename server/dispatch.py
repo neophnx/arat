@@ -24,7 +24,7 @@ from logging import info as log_info
 # third party
 from six.moves import zip
 
-# brat
+# arat
 from server.annotator import create_arc, delete_arc, reverse_arc
 from server.annotator import create_span, delete_span
 from server.annotator import split_span

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Basic sentence splitter using brat segmentation to add newlines to
+Basic sentence splitter using arat segmentation to add newlines to
 input text at likely sentence boundaries.
 '''
 
@@ -10,11 +10,11 @@ import sys
 from os.path import join as path_join
 from os.path import dirname
 
-# Assuming this script is found in the brat tools/ directory ...
+# Assuming this script is found in the arat tools/ directory ...
 from sys import path as sys_path
 from six.moves import range
 sys_path.append(path_join(dirname(__file__), '../server/src'))
-# import brat sentence boundary generator
+# import arat sentence boundary generator
 from server.ssplit import regex_sentence_boundary_gen
 
 

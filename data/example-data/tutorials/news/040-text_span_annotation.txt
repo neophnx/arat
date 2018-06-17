@@ -1,12 +1,12 @@
 Text span annotation
 
-Annotations marking a text span are a basic building block for most brat annotations. Examples of TEXT SPAN ANNOTATION are shown in the following sentence.
+Annotations marking a text span are a basic building block for most arat annotations. Examples of TEXT SPAN ANNOTATION are shown in the following sentence.
 
 
 1 ) Google was founded by Larry Page and Sergey Brin in California.
 
 
-Note that in addition to identifying a span of text, each of these annotations also has a type. All brat annotations have some type, and the specific types used can be separately configured for each annotation project.
+Note that in addition to identifying a span of text, each of these annotations also has a type. All arat annotations have some type, and the specific types used can be separately configured for each annotation project.
 
 Text span annotations can be created simply by selecting text using the mouse, as in most text editors and similar software, selecting a type from the NEW ANNOTATION DIALOG that pops up after selection, and pressing OK (the dialog may look a bit complex, but you only need the "Entity type" selection and the "OK" button now). Try this now to create text span annotations for the following sentence!
 
@@ -21,7 +21,7 @@ If you succeded in creating annotations so that above sentence looks like the fi
 
 Hints
 
-Some documents in this tutorial have a "hints" section like this. These sections provide additional information on how to use brat effectively. If you're only looking to understand basic usage, you can skip these sections.
+Some documents in this tutorial have a "hints" section like this. These sections provide additional information on how to use arat effectively. If you're only looking to understand basic usage, you can skip these sections.
 
 * Single words can be quickly selected for annotation by double-clicking.
 
@@ -39,4 +39,4 @@ Troubleshooting
 
 * If nothing happens when selecting text: it may be that you are not logged in. Try clicking the rightmost button ("Login" button) in the menu.
 
-* If you get an error message like "This document is read-only and can't be edited": there is an issue with your brat installation. Please ask your administrator to check file permissions.
+* If you get an error message like "This document is read-only and can't be edited": there is an issue with your arat installation. Please ask your administrator to check file permissions.

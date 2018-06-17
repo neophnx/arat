@@ -23,7 +23,7 @@ from six.moves.cPickle import dump as pickle_dump  # pylint: disable=import-erro
 from six.moves.cPickle import load as pickle_load  # pylint: disable=import-error, no-name-in-module
 
 
-# brat
+# arat
 import config
 from server import constants
 from server.annotation import Annotations

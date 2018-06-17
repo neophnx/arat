@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Special-purpose script for converting the NCBI disease corpus into a
-# format recognized by brat.
+# format recognized by arat.
 
 # The NCBI disease corpus is distributed in a line-oriented format, each
 # consisting of tab-separated triples (PMID, title, text). Annotations

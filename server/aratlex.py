@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 '''
-Tokenisation for the brat stand-off format.
+Tokenisation for the arat stand-off format.
 
 Example, test tokenisation on a collection:
 
-    find . -name '*.ann' | parallel cat | ./bratlex.py
+    find . -name '*.ann' | parallel cat | ./aratlex.py
 
 Author:  Pontus Stenetorp    <pontus stenetorp se>
 Version: 2011-07-11

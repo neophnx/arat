@@ -13,7 +13,7 @@ import os
 from re import match as re_match
 import argparse
 
-# brat
+# arat
 from server import annotation
 from server.projectconfig import ProjectConfiguration
 

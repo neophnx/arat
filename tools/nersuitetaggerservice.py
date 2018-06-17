@@ -26,7 +26,7 @@ import re
 from tools.BIOtoStandoff import BIO_lines_to_standoff
 
 
-# use the brat sentence splitter
+# use the arat sentence splitter
 from tools.sentencesplit import sentencebreaks_to_newlines
 from server.jsonwrap import dumps
 

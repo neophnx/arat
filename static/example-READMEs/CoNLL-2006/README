@@ -8,6 +8,6 @@ A detailed description and the full source data is freely available from the sha
 
     http://ilk.uvt.nl/conll/
 
-The examples contained in this directory have been converted with the script conll02tostandoff.py distributed with brat.
+The examples contained in this directory have been converted with the script conll02tostandoff.py distributed with arat.
 
 For copyright and license information, please see the original source of the data.

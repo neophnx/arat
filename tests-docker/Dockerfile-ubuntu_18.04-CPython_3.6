@@ -9,8 +9,8 @@ RUN apt-get -y install python3-pip
 RUN ln -fs /usr/bin/python3.6 /usr/bin/python3
 
 
-COPY . /opt/brat
-WORKDIR /opt/brat
+COPY . /opt/arat
+WORKDIR /opt/arat
 
 RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install -r requirements_test.txt

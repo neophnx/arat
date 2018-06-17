@@ -2836,7 +2836,7 @@ Util.profileStart('chunkFinish');
           var nextSpace = nextChunk ? nextChunk.space : '';
           if (rtlmode) {
             // Render every text chunk as a SVG text so we maintain control over the layout. When 
-            // rendering as a SVG span (as brat does), then the browser changes the layout on the 
+            // rendering as a SVG span (as arat does), then the browser changes the layout on the 
             // X-axis as it likes in RTL mode.
             svg.text(textGroup, chunk.textX, chunk.row.textY, chunk.text + nextSpace, {
               'data-chunk-id': chunk.index

@@ -54,7 +54,7 @@ def build_data(text):
     return json.dumps({'text': text}).encode('utf-8')
 
 
-def convert_for_brat(pubdic_result, text):
+def convert_for_arat(pubdic_result, text):
     anns = {}
     for idx, entity in enumerate(pubdic_result):
         ann_id = 'T%d' % idx
@@ -97,7 +97,7 @@ class RandomTaggerHandler(BaseHTTPRequestHandler):
             f.close()
 
             # Format the result for BRAT
-            json_dic = convert_for_brat(json.loads(res), text)
+            json_dic = convert_for_arat(json.loads(res), text)
 
         except KeyError:
             # We weren't given any text to tag, such is life, return nothing
