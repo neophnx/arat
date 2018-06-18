@@ -45,12 +45,9 @@ class TestVerifyAnnotations(unittest.TestCase):
         """
         test BioNLP-ST_2011 collection with issues
         """
-        directory = config.DATA_DIR+"/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_ID/"
-        for filename in os.listdir(directory):
-            if filename.endswith(".txt"):
-                filename = directory+filename[:-4]
-                retcode = main([None, "-q", filename])
-                self.assertEquals(retcode, FOUND_ISSUES, filename)
+        filename = config.DATA_DIR+"/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_ID/PMC2639726-02-Results-04"
+        retcode = main([None, "-q", filename])
+        self.assertEquals(retcode, FOUND_ISSUES, filename)
 
 
 if __name__ == "__main__":

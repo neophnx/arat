@@ -27,7 +27,7 @@ try:
 except ImportError:
     try:
         from StringIO import StringIO
-    except:
+    except ImportError:
         from io import StringIO
 
 

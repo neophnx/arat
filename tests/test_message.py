@@ -71,12 +71,12 @@ class TestMessage(unittest.TestCase):
         Messager.warning(u'Hello warning')
         Messager.info(u'Hello info')
         Messager.debug(u'Hello debug')
-        
+
         Messager.error(u'Hello error')
         output = NamedTemporaryFile("w", delete=False)
         try:
             Messager.output(output)
-            
+
             output.close()
             with open(output.name, "r") as output:
                 self.assertEquals(output.read(),
@@ -85,17 +85,15 @@ class TestMessage(unittest.TestCase):
                                   u'debug : Hello debug\n'
                                   u'error : Hello error\n')
             Messager.clear()
-            
+
             with open(output.name, "w") as output:
                 Messager.output(output)
             with open(output.name, "r") as output:
                 self.assertEquals(output.read(), "")
         finally:
             os.unlink(output.name)
-            
-            
-        
-        
+
+
 if __name__ == "__main__":
     import sys
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMessage)

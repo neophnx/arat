@@ -11,7 +11,7 @@ import re
 import six
 try:
     from functools import lru_cache
-except:
+except ImportError:
     from functools32 import lru_cache
 
 

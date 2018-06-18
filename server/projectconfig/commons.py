@@ -17,7 +17,7 @@ import re
 import sys
 try:
     from functools import lru_cache
-except:
+except ImportError:
     from functools32 import lru_cache
 
 # third party
@@ -101,7 +101,7 @@ def __read_term_hierarchy(input_, section=None):
                     "Cannot redefine <%s> in configuration, "
                     "it is a reserved name." % name)
                 # TODO: proper exception
-                assert False
+                raise InvalidProjectConfigException("Reserved name: "+name)
             else:
                 macros["<%s>" % name] = value
             continue
@@ -113,8 +113,8 @@ def __read_term_hierarchy(input_, section=None):
         # check for undefined macros
         for match_obj in re.finditer(r'(<.*?>)', line):
             token = match_obj.group(1)
-            assert token in cst.RESERVED_CONFIG_STRING, "Error: undefined macro %s "
-            "in configuration. (Note that macros are section-specific.)" % token
+            assert token in cst.RESERVED_CONFIG_STRING, ("Error: undefined macro %s "
+            "in configuration. (Note that macros are section-specific.)") % token
 
         # choose strict tab-only separator or looser any-space
         # separator matching depending on section
@@ -211,39 +211,25 @@ def __read_or_default(filename, default):
 
 
 def __parse_kb_shortcuts(shortcutstr, default, source):
-    try:
-        shortcuts = {}
-        for l in shortcutstr.split("\n"):
-            l = l.strip()
-            if l == "" or l[:1] == "#":
-                continue
-            key, type_ = re.split(r'[ \t]+', l)
-            if key in shortcuts:
-                Messager.warning("Project configuration: keyboard shortcut "
-                                 "for '%s' defined multiple times. Ignoring "
-                                 "all but first ('%s')" % (
-                                     key, shortcuts[key]))
-            else:
-                shortcuts[key] = type_
-    except:
-        # TODO: specific exception handling
-        Messager.warning(
-            "Project configuration: error parsing keyboard shortcuts "
-            "from %s. Configuration may be wrong." % source, 5)
-        shortcuts = default
+    shortcuts = {}
+    for l in shortcutstr.split("\n"):
+        l = l.strip()
+        if l == "" or l[:1] == "#":
+            continue
+        key, type_ = re.split(r'[ \t]+', l)
+        if key in shortcuts:
+            Messager.warning("Project configuration: keyboard shortcut "
+                             "for '%s' defined multiple times. Ignoring "
+                             "all but first ('%s')" % (
+                                 key, shortcuts[key]))
+        else:
+            shortcuts[key] = type_
     return shortcuts
 
 
 def __parse_access_control(acstr, source):
-    try:
-        parser = six.moves.urllib_robotparser.RobotFileParser()
-        parser.parse(acstr.split("\n"))
-    except:
-        # TODO: specific exception handling
-        Messager.warning(
-            "Project configuration: error parsing access control rules "
-            "from %s. Configuration may be wrong." % source, "warning", 5)
-        parser = None
+    parser = six.moves.urllib_robotparser.RobotFileParser()
+    parser.parse(acstr.split("\n"))
     return parser
 
 
@@ -346,7 +332,7 @@ def get_configs(directory, filename, defaultstr, minconf, sections, optional_sec
         try:
             configs, section_labels = __parse_configs(
                 configstr, source, sections, optional_sections)
-        except:
+        except InvalidProjectConfigException:
             Messager.warning(
                 "Project configuration: Falling back to minimal default. "
                 "Configuration is likely wrong.", 5)

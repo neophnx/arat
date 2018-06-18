@@ -14,7 +14,7 @@ from __future__ import absolute_import
 import warnings
 try:  # python2
     from exceptions import NotImplementedError as NotImplementedErrorBultin
-except:
+except ImportError:
     from builtins import NotImplementedError as NotImplementedErrorBultin
 
 

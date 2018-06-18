@@ -15,6 +15,7 @@ import re
 import sys
 from sys import stderr
 from datetime import datetime
+from os.path import basename
 
 # third party
 from six.moves import range
@@ -477,14 +478,9 @@ def eq_text_partially_marked(ann_objs, restrict_types=None,
         # TODO: proper tokenization.
         # NOTE: this will include space.
         #tokens = re.split(r'(\s+)', doctext)
-        try:
-            tokens = _split_and_tokenize(doctext)
-            tokens = _split_tokens_more(tokens)
-        except:
-            # TODO: proper error handling
-            print("ERROR: failed tokenization in %s, skipping" %
-                  ann_obj.input_files[0], file=sys.stderr)
-            continue
+#        try:
+        tokens = _split_and_tokenize(doctext)
+        tokens = _split_tokens_more(tokens)
 
         # document-specific map
         offset_ann_map = _get_offset_ann_map([ann_obj])
@@ -635,7 +631,7 @@ def _get_match_regex(text, text_match="word", match_case=False,
     elif text_match == "regex":
         try:
             return re.compile(text, regex_flags)
-        except:  # whatever (sre_constants.error, other?)
+        except re.error:
             Messager.warning(
                 'Given string "%s" is not a valid regular expression.' % text)
             return None
@@ -976,8 +972,7 @@ def search_anns_for_event(ann_objs, trigger_text, args,
 
             try:
                 t_ann = ann_obj.get_ann_by_id(e.trigger)
-            except:
-                # TODO: specific exception
+            except annotation.AnnotationNotFoundError:
                 Messager.error(
                     'Failed to retrieve trigger annotation %s, '
                     'skipping event %s in search' % (e.trigger, e.id))
@@ -1191,18 +1186,13 @@ def format_results(matches, concordancing=False, context_length=50,
     # decided to give filename only, remove this bit if the decision
     # sticks
 #     from document import relative_directory
-    from os.path import basename
 
     # sanity
     if concordancing:
-        try:
-            context_length = int(context_length)
-            assert context_length > 0, "format_results: invalid context length ('%s')" % str(
-                context_length)
-        except:
-            # whatever goes wrong ...
-            Messager.warning(
-                'Context length should be an integer larger than zero.')
+        context_length = int(context_length)
+        if context_length <= 0:
+            Messager.warning('Context length should be an integer larger '
+                             'than zero.')
             return {}
 
     # the search response format is built similarly to that of the
@@ -1217,7 +1207,6 @@ def format_results(matches, concordancing=False, context_length=50,
     # determine which additional fields can be shown; depends on the
     # type of the results
 
-    # TODO: this is much uglier than necessary, revise
     include_type = True
     include_text = True
     include_trigger_text = True
@@ -1339,11 +1328,7 @@ def format_results(matches, concordancing=False, context_length=50,
             items[-1].append(ann.text)
 
         if include_trigger_text:
-            try:
-                items[-1].append(ann_obj.get_ann_by_id(ann.trigger).text)
-            except:
-                # TODO: specific exception
-                items[-1].append("(ERROR)")
+            items[-1].append(ann_obj.get_ann_by_id(ann.trigger).text)
 
         if context_ann is not None:
             # right context

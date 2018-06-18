@@ -23,7 +23,7 @@ try:
 except ImportError:
     try:
         from StringIO import StringIO
-    except:  # python3
+    except ImportError:  # python3
         from io import StringIO
 
 

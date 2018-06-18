@@ -48,6 +48,7 @@ SVG_STORE = False
 
 class UnknownSVGVersionError(ProtocolError):
     def __init__(self, unknown_version):
+        ProtocolError.__init__(self)
         self.unknown_version = unknown_version
 
     def __str__(self):
@@ -60,6 +61,7 @@ class UnknownSVGVersionError(ProtocolError):
 
 class NoSVGError(ProtocolError):
     def __init__(self, version):
+        ProtocolError.__init__(self)
         self.version = version
 
     def __str__(self):
@@ -71,8 +73,6 @@ class NoSVGError(ProtocolError):
 
 
 class CorruptSVGError(ProtocolError):
-    def __init__(self):
-        pass
 
     def __str__(self):
         return 'Corrupt SVG'
@@ -143,19 +143,19 @@ def store_svg(collection, document, svg):
     except ImportError:
         SVG_CONVERSION_COMMANDS = []
 
-    for format, command in SVG_CONVERSION_COMMANDS:
+    for format_, command in SVG_CONVERSION_COMMANDS:
         try:
             from os import system
 
             svgfn = _svg_path()
             # TODO: assuming format name matches suffix; generalize
-            outfn = svgfn.replace('.'+SVG_SUFFIX, '.'+format)
+            outfn = svgfn.replace('.'+SVG_SUFFIX, '.'+format_)
             cmd = command % (svgfn, outfn)
 
             import logging
             logging.error(cmd)
 
-            retval = system(cmd)
+            system(cmd)
 
             # TODO: this check may not work on all architectures.
             # consider rather checking is the intended output file
@@ -170,10 +170,8 @@ def store_svg(collection, document, svg):
             # TODO: check return value, react appropriately
             stored.append({'name': format, 'suffix': format})
 
-        except:  # whatever
+        except:  # pylint: disable=W0702
             Messager.warning("Failed conversion to %s" % format)
-            # no luck, but doesn't matter
-            pass
 
     return {'stored': stored}
 

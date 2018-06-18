@@ -64,31 +64,22 @@ def _generate_stats(directory, base_names, stat_types, cache_file_path):
     log_info('generating statistics for "%s"' % directory)
     docstats = []
     for docname in base_names:
-        try:
-            with Annotations(path_join(directory, docname),
-                             read_only=True) as ann_obj:
-                tb_count = len([a for a in ann_obj.get_entities()])
-                rel_count = (len([a for a in ann_obj.get_relations()]) +
-                             len([a for a in ann_obj.get_equivs()]))
-                event_count = len([a for a in ann_obj.get_events()])
+        with Annotations(path_join(directory, docname),
+                         read_only=True) as ann_obj:
+            tb_count = len([a for a in ann_obj.get_entities()])
+            rel_count = (len([a for a in ann_obj.get_relations()]) +
+                         len([a for a in ann_obj.get_equivs()]))
+            event_count = len([a for a in ann_obj.get_events()])
 
-                if options_get_validation(directory) == 'none':
-                    docstats.append([tb_count, rel_count, event_count])
-                else:
-                    # verify and include verification issue count
-                    try:
-                        projectconf = ProjectConfiguration(directory)
-                        issues = verify_annotation(ann_obj, projectconf)
-                        issue_count = len(issues)
-                    except:
-                        # TODO: error reporting
-                        issue_count = -1
-                    docstats.append(
-                        [tb_count, rel_count, event_count, issue_count])
-        except Exception as exception:
-            log_info('Received "%s" when trying to generate stats' % exception)
-            # Pass exceptions silently, just marking stats missing
-            docstats.append([-1] * len(stat_types))
+            if options_get_validation(directory) == 'none':
+                docstats.append([tb_count, rel_count, event_count])
+            else:
+                # verify and include verification issue count
+                projectconf = ProjectConfiguration(directory)
+                issues = verify_annotation(ann_obj, projectconf)
+                issue_count = len(issues)
+                docstats.append(
+                    [tb_count, rel_count, event_count, issue_count])
 
     _store_cache_stat(docstats, cache_file_path, directory)
 
@@ -97,7 +88,7 @@ def _generate_stats(directory, base_names, stat_types, cache_file_path):
 
 def _need_regeneration(directory, cache_file_path, cache_mtime):
     """
-    Check if cache is invalig and regeneration required
+    Check if cache is invalid and regeneration required
     """
     return (not isfile(cache_file_path)
             # Has config.py been changed?

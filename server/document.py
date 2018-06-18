@@ -18,13 +18,13 @@ from __future__ import with_statement
 from __future__ import absolute_import
 
 # standard
+import os
 from os import listdir
 from os.path import abspath, dirname, isabs, isdir, normpath, getmtime
 from os.path import join as path_join
 from os.path import splitext
 from errno import ENOENT, EACCES
 from itertools import chain
-from logging import info as log_info
 
 
 # third party
@@ -59,6 +59,7 @@ from server.message import Messager
 from server.auth import allowed_to_read, AccessDeniedError
 from server.annlog import annotation_logging_active
 from server.tokenise import tokeniser_by_name
+from server.verify_annotations import verify_annotation
 
 
 def _fill_type_configuration(nodes, project_conf, hotkey_by_type, all_connections=None):
@@ -281,7 +282,6 @@ def _fill_attribute_configuration(nodes, project_conf):
                 except IndexError:
                     Messager.warning(
                         "Config error: empty <DEFAULT> for %s" % item['name'])
-                    pass
 
             # Each item's 'values' entry is a list of dictionaries, one
             # dictionary per value option.
@@ -587,10 +587,10 @@ def get_directory_information(collection):
     doclist = [doclist[i] + doc_stats[i] for i in range(len(doclist))]
     doclist_header += stats_types
 
-    dirlist = [dir for dir in _listdir(real_dir)
-               if isdir(path_join(real_dir, dir))]
+    dirlist = [i for i in _listdir(real_dir)
+               if isdir(path_join(real_dir, i))]
     # just in case, and for generality
-    dirlist = [[dir] for dir in dirlist]
+    dirlist = [[i] for i in dirlist]
 
     # check whether at root, ignoring e.g. possible trailing slashes
     if normpath(real_dir) != normpath(DATA_DIR):
@@ -784,10 +784,9 @@ def _enrich_json_with_data(j_dic, ann_obj):
     for com_ann in ann_obj.get_oneline_comments():
         comment = [six.text_type(com_ann.target), six.text_type(com_ann.type),
                    com_ann.tail.strip()]
-        try:
-            j_dic['comments'].append(comment)
-        except KeyError:
-            j_dic['comments'] = [comment, ]
+        tmp = j_dic.get('comments', [])
+        tmp.append(comment)
+        j_dic['comments'] = tmp
 
     if ann_obj.failed_lines:
         # The line number is off by one
@@ -805,10 +804,8 @@ def _enrich_json_with_data(j_dic, ann_obj):
 
     try:
         # XXX avoid digging the directory from the ann_obj
-        import os
         docdir = os.path.dirname(ann_obj._document)
         if options_get_validation(docdir) in ('all', 'full', ):
-            from server.verify_annotations import verify_annotation
             projectconf = ProjectConfiguration(docdir)
             issues = verify_annotation(ann_obj, projectconf)
         else:
@@ -820,10 +817,9 @@ def _enrich_json_with_data(j_dic, ann_obj):
 
     for i in issues:
         issue = (six.text_type(i.ann_id), i.type, i.description)
-        try:
-            j_dic['comments'].append(issue)
-        except:
-            j_dic['comments'] = [issue, ]
+        tmp = j_dic.get('comments', [])
+        tmp.append(issue)
+        j_dic['comments'] = tmp
 
     # Attach the source files for the annotations and text
     ann_files = [splitext(p)[1][1:] for p in ann_obj.input_files]
