@@ -40,9 +40,8 @@ from server.download import download_file, download_collection
 from server.annlog import log_annotation
 from server.svg import store_svg, retrieve_stored
 from server.session import get_session, load_conf, save_conf
-from server.search import search_text, search_entity, search_event, search_relation, search_note
+#from server.search import search_text, search_entity, search_event, search_relation, search_note
 from server.delete import delete_document, delete_collection
-
 
 
 # unsupported action because of unmaintened dependency
@@ -88,16 +87,19 @@ DISPATCHER = {
 
     # NOTE: search actions are redundant to allow different
     # permissions for single-document and whole-collection search.
-    'searchTextInDocument': search_text,
-    'searchEntityInDocument': search_entity,
-    'searchEventInDocument': search_event,
-    'searchRelationInDocument': search_relation,
-    'searchNoteInDocument': search_note,
-    'searchTextInCollection': search_text,
-    'searchEntityInCollection': search_entity,
-    'searchEventInCollection': search_event,
-    'searchRelationInCollection': search_relation,
-    'searchNoteInCollection': search_note,
+    # search facilitie are deactivated, needs major refactoring
+    # and major protocol cleaning (10 nactions associated to search seems very
+    # high)
+    #    'searchTextInDocument': search_text,
+    #    'searchEntityInDocument': search_entity,
+    #    'searchEventInDocument': search_event,
+    #    'searchRelationInDocument': search_relation,
+    #    'searchNoteInDocument': search_note,
+    #    'searchTextInCollection': search_text,
+    #    'searchEntityInCollection': search_entity,
+    #    'searchEventInCollection': search_event,
+    #    'searchRelationInCollection': search_relation,
+    #    'searchNoteInCollection': search_note,
 
     # deactivated until refactoring done
     #'suggestSpanTypes': suggest_span_types,
@@ -107,7 +109,7 @@ DISPATCHER = {
     'saveConf': save_conf,
     'loadConf': load_conf,
 
-    # deactivated until refactoring done 
+    # deactivated until refactoring done
     #'undo': undo,
     #'tag': tag,
 
@@ -132,8 +134,8 @@ ANNOTATION_ACTION = set((
     'createSpan',
     'deleteSpan',
     'splitSpan',
-#    'suggestSpanTypes',
-#    'undo',
+    #    'suggestSpanTypes',
+    #    'undo',
 ))
 
 # Actions that will be logged as annotator actions (if so configured)
@@ -148,13 +150,13 @@ REQUIRES_AUTHENTICATION = ANNOTATION_ACTION | set((
     'importDocument',
 
     # Search functionality in whole collection (heavy on the CPU/disk ATM)
-    'searchTextInCollection',
-    'searchEntityInCollection',
-    'searchEventInCollection',
-    'searchRelationInCollection',
-    'searchNoteInCollection',
+    #    'searchTextInCollection',
+    #    'searchEntityInCollection',
+    #    'searchEventInCollection',
+    #    'searchRelationInCollection',
+    #    'searchNoteInCollection',
 
-#    'tag',
+    #    'tag',
 ))
 
 # Sanity check

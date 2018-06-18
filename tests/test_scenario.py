@@ -245,65 +245,66 @@ class TestScenario(unittest.TestCase):
         self.assertEquals(res, {"action": "login",
                                 'protocol': 1})
 
-    def test07_search_text_in_document(self):
-        """
-        Search a single word in a document
-        """
-        res = DISPATCHER({"action": "searchTextInDocument",
-                          "protocol": "1",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "document",
-                          'concordancing': False,
-                          'context_length': 10,
-                          'match_case': False,
-                          "document": "id01"},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res, {'action': 'searchTextInDocument',
-                                'collection': '/',
-                                'header': [('Document', 'string'),
-                                           ('Annotation', 'string'),
-                                           ('Text', 'string')],
-                                'items': [['a',
-                                           {'match': [],
-                                            'matchfocus': [[10, 14]]},
-                                           'id01',
-                                           '10-14',
-                                           'test']],
-                                'protocol': 1})
-
-    def test08_search_text_in_collection(self):
-        """
-        Search a single word in a collection
-        """
-        res = DISPATCHER({"action": "searchTextInCollection",
-                          "protocol": "1",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "collection",
-                          'concordancing': False,
-                          'context_length': 10,
-                          'match_case': False,
-                          "document": "id01"},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res, {'action': 'searchTextInCollection',
-                                'collection': '/',
-                                'header': [('Document', 'string'),
-                                           ('Annotation', 'string'),
-                                           ('Text', 'string')],
-                                'items': [['a',
-                                           {'match': [],
-                                            'matchfocus': [[10, 14]]},
-                                           'id01',
-                                           '10-14',
-                                           'test']],
-                                'protocol': 1})
+# TODO: rewrite when search protocol becomes stable
+#    def test07_search_text_in_document(self):
+#        """
+#        Search a single word in a document
+#        """
+#        res = DISPATCHER({"action": "searchTextInDocument",
+#                          "protocol": "1",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "document",
+#                          'concordancing': False,
+#                          'context_length': 10,
+#                          'match_case': False,
+#                          "document": "id01"},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res, {'action': 'searchTextInDocument',
+#                                'collection': '/',
+#                                'header': [('Document', 'string'),
+#                                           ('Annotation', 'string'),
+#                                           ('Text', 'string')],
+#                                'items': [['a',
+#                                           {'match': [],
+#                                            'matchfocus': [[10, 14]]},
+#                                           'id01',
+#                                           '10-14',
+#                                           'test']],
+#                                'protocol': 1})
+#
+#    def test08_search_text_in_collection(self):
+#        """
+#        Search a single word in a collection
+#        """
+#        res = DISPATCHER({"action": "searchTextInCollection",
+#                          "protocol": "1",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "collection",
+#                          'concordancing': False,
+#                          'context_length': 10,
+#                          'match_case': False,
+#                          "document": "id01"},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res, {'action': 'searchTextInCollection',
+#                                'collection': '/',
+#                                'header': [('Document', 'string'),
+#                                           ('Annotation', 'string'),
+#                                           ('Text', 'string')],
+#                                'items': [['a',
+#                                           {'match': [],
+#                                            'matchfocus': [[10, 14]]},
+#                                           'id01',
+#                                           '10-14',
+#                                           'test']],
+#                                'protocol': 1})
 
     def test09_create_span(self):
         """
@@ -390,83 +391,83 @@ class TestScenario(unittest.TestCase):
                          "localhost")
         self.assertEquals(res["edited"], [['equiv', u'Equiv', []]])
 
-    def test20_search_entity_in_document(self):
-        """
-        search a single word with type constraint in document
-        """
-        res = DISPATCHER({"action": "searchEntityInDocument",
-                          "protocol": "1",
-                          "type": "Protein",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "document",
-                          'concordancing': "false",
-                          'context_length': 10,
-                          'match_case': "false",
-                          "document": "id01"},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res["items"],
-                          [['a', {'match': [],
-                                  'matchfocus': [['T1']]},
-                            'id01', 'T1', 'Protein', 'test']])
-
-        res = DISPATCHER({"action": "searchEntityInDocument",
-                          "protocol": "1",
-                          "type": "dont_exists",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "document",
-                          'concordancing': "false",
-                          'context_length': 10,
-                          'match_case': "false",
-                          "document": "id01"},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res["items"], [])
-
-    def test20_search_entity_in_collection(self):
-        """
-        search a single word with type constraint in collection
-        """
-        res = DISPATCHER({"action": "searchEntityInCollection",
-                          "protocol": "1",
-                          "type": "Protein",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "collection",
-                          'concordancing': "false",
-                          'context_length': 10,
-                          'match_case': "false",
-                          'document': 'id01'},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res["items"],
-                          [['a', {'match': [],
-                                  'matchfocus': [['T1']]},
-                            'id01', 'T1', 'Protein', 'test']])
-
-        res = DISPATCHER({"action": "searchEntityInCollection",
-                          "protocol": "1",
-                          "type": "dont_exists",
-                          "text_match": "word",
-                          "text": "test",
-                          "collection": "/",
-                          "scope": "collection",
-                          'concordancing': "false",
-                          'context_length': 10,
-                          'match_case': "false",
-                          'document': 'id01'},
-                         "127.0.0.1",
-                         "localhost")
-
-        self.assertEquals(res["items"], [])
+#    def test20_search_entity_in_document(self):
+#        """
+#        search a single word with type constraint in document
+#        """
+#        res = DISPATCHER({"action": "searchEntityInDocument",
+#                          "protocol": "1",
+#                          "type": "Protein",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "document",
+#                          'concordancing': "false",
+#                          'context_length': 10,
+#                          'match_case': "false",
+#                          "document": "id01"},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res["items"],
+#                          [['a', {'match': [],
+#                                  'matchfocus': [['T1']]},
+#                            'id01', 'T1', 'Protein', 'test']])
+#
+#        res = DISPATCHER({"action": "searchEntityInDocument",
+#                          "protocol": "1",
+#                          "type": "dont_exists",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "document",
+#                          'concordancing': "false",
+#                          'context_length': 10,
+#                          'match_case': "false",
+#                          "document": "id01"},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res["items"], [])
+#
+#    def test20_search_entity_in_collection(self):
+#        """
+#        search a single word with type constraint in collection
+#        """
+#        res = DISPATCHER({"action": "searchEntityInCollection",
+#                          "protocol": "1",
+#                          "type": "Protein",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "collection",
+#                          'concordancing': "false",
+#                          'context_length': 10,
+#                          'match_case': "false",
+#                          'document': 'id01'},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res["items"],
+#                          [['a', {'match': [],
+#                                  'matchfocus': [['T1']]},
+#                            'id01', 'T1', 'Protein', 'test']])
+#
+#        res = DISPATCHER({"action": "searchEntityInCollection",
+#                          "protocol": "1",
+#                          "type": "dont_exists",
+#                          "text_match": "word",
+#                          "text": "test",
+#                          "collection": "/",
+#                          "scope": "collection",
+#                          'concordancing': "false",
+#                          'context_length': 10,
+#                          'match_case': "false",
+#                          'document': 'id01'},
+#                         "127.0.0.1",
+#                         "localhost")
+#
+#        self.assertEquals(res["items"], [])
 
     def test30_delete_span(self):
         """
