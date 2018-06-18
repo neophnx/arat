@@ -11,10 +11,6 @@ TODO: add test case for the following actions
 "splitSpan"
 
 
-'createArc': create_arc,
-'reverseArc': reverse_arc,
-'deleteArc': delete_arc,
-
 # NOTE: search actions are redundant to allow different
 # permissions for single-document and whole-collection search.
 'searchEventInDocument': search_event,
@@ -65,11 +61,11 @@ from config import DATA_DIR
 DISPATCHER = Dispatcher()
 
 
-class ScenarioAnnotation(unittest.TestCase):
+class TestScenario(unittest.TestCase):
     """
     Test action with for simple valid input.
 
-    Action handler are not stressed here. 
+    Action handler are not stressed here.
     """
 
     def setUp(self):
@@ -311,7 +307,7 @@ class ScenarioAnnotation(unittest.TestCase):
 
     def test09_create_span(self):
         """
-        Create a span annotation
+        Create span annotations
         """
         res = DISPATCHER({"action": "createSpan",
                           "protocol": "1",
@@ -327,7 +323,74 @@ class ScenarioAnnotation(unittest.TestCase):
                          "localhost")
         self.assertEquals(res["edited"], [['T1']])
 
-    def test10_search_entity_in_document(self):
+        res = DISPATCHER({"action": "createSpan",
+                          "protocol": "1",
+                          "collection": "/",
+                          "offsets": "[[15, 19]]",
+                          "type": "Protein",
+                          "attributes": "{}",
+                          "normalizations": "",
+                          "document": "id01",
+                          "id": None,
+                          "comment": ""},
+                         "127.0.0.1",
+                         "localhost")
+        self.assertEquals(res["edited"], [['T2']])
+
+    def test10_create_arc(self):
+        """
+        Create arc between span annotations
+        """
+        res = DISPATCHER({"action": "createArc",
+                          "collection": "/",
+                          "comment": "",
+                          "document": "id01",
+                          "origin": "T1",
+                          "protocol": "1",
+                          "type": "Equiv",
+                          "target": "T2",
+                          "attributes": None,
+                          "old_type": None,
+                          "old_target": None},
+                         "127.0.0.1",
+
+                         "localhost")
+        self.assertEquals(res["edited"], [['equiv', 'Equiv', u'T1']])
+
+    def test11_reverse_arc(self):
+        """
+        Reverse arc between span annotations
+        """
+        res = DISPATCHER({"action": "reverseArc",
+                          "collection": "/",
+                          "document": "id01",
+                          "origin": "T1",
+                          "protocol": "1",
+                          "type": "Equiv",
+                          "target": "T2",
+                          "attributes": None},
+                         "127.0.0.1",
+
+                         "localhost")
+        self.assertTrue("edited" not in res)
+
+    def test12_delete_arc(self):
+        """
+        Delete arc between span annotations
+        """
+        res = DISPATCHER({"action": "deleteArc",
+                          "collection": "/",
+                          "document": "id01",
+                          "origin": "T2",
+                          "protocol": "1",
+                          "type": "Equiv",
+                          "target": "T1"},
+                         "127.0.0.1",
+
+                         "localhost")
+        self.assertEquals(res["edited"], [['equiv', u'Equiv', []]])
+
+    def test20_search_entity_in_document(self):
         """
         search a single word with type constraint in document
         """
@@ -366,7 +429,7 @@ class ScenarioAnnotation(unittest.TestCase):
 
         self.assertEquals(res["items"], [])
 
-    def test10_search_entity_in_collection(self):
+    def test20_search_entity_in_collection(self):
         """
         search a single word with type constraint in collection
         """
@@ -405,7 +468,7 @@ class ScenarioAnnotation(unittest.TestCase):
 
         self.assertEquals(res["items"], [])
 
-    def test20_delete_span(self):
+    def test30_delete_span(self):
         """
         Delete previous span annotation
         """
@@ -418,7 +481,7 @@ class ScenarioAnnotation(unittest.TestCase):
                          "localhost")
         self.assertEquals(res["edited"], [])
 
-    def test21_store_retrieve_svg(self):
+    def test31_store_retrieve_svg(self):
         """
         Store then retrieveSVG
         """
@@ -454,7 +517,7 @@ class ScenarioAnnotation(unittest.TestCase):
                           "image/svg+xml")
         self.assertEquals(context.exception.data, svg_data)
 
-    def test23_download_file(self):
+    def test33_download_file(self):
         """
         Donwload a document and its annotation file
         """
@@ -473,7 +536,7 @@ class ScenarioAnnotation(unittest.TestCase):
                               "text/plain; charset=utf-8")
             self.assertEquals(context.exception.data, data)
 
-    def test24_download_collection(self):
+    def test34_download_collection(self):
         """
         Donwload a collection
         """
@@ -489,7 +552,6 @@ class ScenarioAnnotation(unittest.TestCase):
                           "application/octet-stream")
         # TODO: write extra check
 
-# 'downloadCollection': download_collection,
 
 #    def test99_deleteDocument(self):
 #        """
@@ -522,3 +584,9 @@ class ScenarioAnnotation(unittest.TestCase):
         self.assertEquals(res, {'action': 'logout', 'protocol': 1})
 
         session.CURRENT_SESSION = None
+
+
+if __name__ == "__main__":
+    import sys
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestScenario)
+    unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(SUITE)
