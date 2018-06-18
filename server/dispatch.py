@@ -41,13 +41,17 @@ from server.annlog import log_annotation
 from server.svg import store_svg, retrieve_stored
 from server.session import get_session, load_conf, save_conf
 from server.search import search_text, search_entity, search_event, search_relation, search_note
-from server.predict import suggest_span_types
-from server.undo import undo
-from server.tag import tag
 from server.delete import delete_document, delete_collection
+
+
 
 # unsupported action because of unmaintened dependency
 # from server.norm import norm_get_name, norm_search, norm_get_data
+
+# unsupported feature until major refactoring done
+#from server.predict import suggest_span_types
+#from server.undo import undo
+#from server.tag import tag
 
 
 def logging_no_op(collection, document, log):
@@ -95,15 +99,17 @@ DISPATCHER = {
     'searchRelationInCollection': search_relation,
     'searchNoteInCollection': search_note,
 
-    'suggestSpanTypes': suggest_span_types,
+    # deactivated until refactoring done
+    #'suggestSpanTypes': suggest_span_types,
 
     'logAnnotatorAction': logging_no_op,
 
     'saveConf': save_conf,
     'loadConf': load_conf,
 
-    'undo': undo,
-    'tag': tag,
+    # deactivated until refactoring done 
+    #'undo': undo,
+    #'tag': tag,
 
     'deleteDocument': delete_document,
     'deleteCollection': delete_collection,
@@ -126,8 +132,8 @@ ANNOTATION_ACTION = set((
     'createSpan',
     'deleteSpan',
     'splitSpan',
-    'suggestSpanTypes',
-    'undo',
+#    'suggestSpanTypes',
+#    'undo',
 ))
 
 # Actions that will be logged as annotator actions (if so configured)
@@ -148,7 +154,7 @@ REQUIRES_AUTHENTICATION = ANNOTATION_ACTION | set((
     'searchRelationInCollection',
     'searchNoteInCollection',
 
-    'tag',
+#    'tag',
 ))
 
 # Sanity check
