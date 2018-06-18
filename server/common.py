@@ -12,10 +12,6 @@ Version:    2011-04-21
 
 from __future__ import absolute_import
 import warnings
-try:  # python2
-    from exceptions import NotImplementedError as NotImplementedErrorBultin
-except ImportError:
-    from builtins import NotImplementedError as NotImplementedErrorBultin
 
 
 def deprecation(message):
@@ -32,22 +28,21 @@ class ProtocolError(Exception):
     """
 
     def __str__(self):
-        # TODO: just adding __str__ to ProtocolError, not all
-        # currently support it, so falling back on this assumption
-        # about how to make a (nearly) human-readable string. Once
-        # __str__ added to all ProtocolErrors, raise
-        # NotImplementedError instead.
-        deprecation("Relying on ProtocolError.__str__ is deprecated, "
-                    "subclass must implement it")
-        return 'ProtocolError: %s (TODO: __str__() method)' % self.__class__
+        raise NotImplementedError
 
-    @classmethod
-    def json(cls, json_dic):
+    def json(self, json_dic):
         """
-        Overide json in order to provide a message to the client
+        This method don't need to be overidden
         """
         assert isinstance(json_dic, dict)
-        raise NotImplementedErrorBultin('abstract method')
+        name = self.__class__.__name__
+
+        name = name[0].lower() + name[1:]
+        if name.endswith("Error"):
+            name = name[:-5]
+        json_dic['exception'] = name
+
+        return json_dic
 
 
 class ProtocolArgumentError(ProtocolError):
@@ -81,20 +76,9 @@ class AratNotImplementedError(ProtocolError):
     Indicates a missing implementation, this exception
     should never be encountered during normal operations.
     """
-    @classmethod
-    def json(cls, json_dic):
-        json_dic['exception'] = 'notImplemented'
 
-
-class NotImplementedError(AratNotImplementedError):
-    """
-    Deprecated see AratNotImplementedError
-    """
-
-    def __init__(self):
-        deprecation("NotImplementedError is deprecated, "
-                    "use AratNotImplementedError instead")
-        AratNotImplementedError.__init__(self)
+    def __str__(self):
+        return u'Not implemented'
 
 
 class CollectionNotAccessibleError(ProtocolError):

@@ -55,16 +55,16 @@ class AnnotationNotFoundError(Exception):
 
 
 class AnnotationFileNotFoundError(ProtocolError):
+    """
+    AnnotationCollectionNotFoundError: collection of annotations can't be found
+    """
+
     def __init__(self, filename):
         ProtocolError.__init__(self)
         self.filename = filename
 
     def __str__(self):
         return u'Could not find any annotations for %s' % (self.filename, )
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'annotationFileNotFound'
-        return json_dic
 
 
 class AnnotationCollectionNotFoundError(ProtocolError):
@@ -79,13 +79,12 @@ class AnnotationCollectionNotFoundError(ProtocolError):
     def __str__(self):
         return u'Error accessing collection %s' % (self.collection, )
 
-    def json(self, json_dic):
-        # TODO: more specific error?
-        json_dic['exception'] = 'annotationCollectionNotFound'
-        return json_dic
-
 
 class EventWithoutTriggerError(ProtocolError):
+    """
+    Event missing a trigger
+    """
+
     def __init__(self, event):
         ProtocolError.__init__(self)
         self.event = event
@@ -93,12 +92,12 @@ class EventWithoutTriggerError(ProtocolError):
     def __str__(self):
         return u'Event "%s" lacks a trigger' % (self.event, )
 
-    def json(self, json_dic):
-        json_dic['exception'] = 'eventWithoutTrigger'
-        return json_dic
-
 
 class EventWithNonTriggerError(ProtocolError):
+    """
+    Wrong type used as trigger
+    """
+
     def __init__(self, event, non_trigger):
         ProtocolError.__init__(self)
         self.event = event
@@ -107,10 +106,6 @@ class EventWithNonTriggerError(ProtocolError):
     def __str__(self):
         return u'Non-trigger "%s" used by "%s" as trigger' % (self.non_trigger,
                                                               self.event)
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'eventWithNonTrigger'
-        return json_dic
 
 
 class TriggerReferenceError(ProtocolError):
@@ -122,10 +117,6 @@ class TriggerReferenceError(ProtocolError):
     def __str__(self):
         return u'Trigger "%s" referenced by non-event "%s"' % (self.trigger,
                                                                self.referencer)
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'triggerReference'
-        return json_dic
 
 
 class AnnotationTextFileNotFoundError(AnnotationFileNotFoundError):
@@ -140,12 +131,8 @@ class AnnotationsIsReadOnlyError(ProtocolError):
 
     def __str__(self):
         # No extra message; the client is doing a fine job of reporting this
-        # return u'Annotations read-only for %s' % (self.fn, )
+        # return
         return ''
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'annotationIsReadOnly'
-        return json_dic
 
 
 class DuplicateAnnotationIdError(AnnotationLineSyntaxError):
@@ -170,6 +157,10 @@ class InvalidIdError(Exception):
 
 
 class DependingAnnotationDeleteError(Exception):
+    """
+    Can't delete this annotation, other annotations still depends on it
+    """
+
     def __init__(self, target, dependants):
         Exception.__init__(self)
         self.target = target
@@ -197,10 +188,6 @@ class SpanOffsetOverlapError(ProtocolError):
     def __str__(self):
         arg = ', '.join(six.text_type(e) for e in [self.offsets])
         return u'The offsets [%s] overlap' % arg
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'spanOffsetOverlapError'
-        return json_dic
 
 
 def deprecation(message):
