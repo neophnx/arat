@@ -45,7 +45,8 @@ class TestVerifyAnnotations(unittest.TestCase):
         """
         test BioNLP-ST_2011 collection with issues
         """
-        filename = config.DATA_DIR+"/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_ID/PMC2639726-02-Results-04"
+        filename = config.DATA_DIR + \
+            "/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_ID/PMC2639726-02-Results-04"
         retcode = main([None, "-q", filename])
         self.assertEquals(retcode, FOUND_ISSUES, filename)
 

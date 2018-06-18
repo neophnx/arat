@@ -114,7 +114,7 @@ def __read_term_hierarchy(input_, section=None):
         for match_obj in re.finditer(r'(<.*?>)', line):
             token = match_obj.group(1)
             assert token in cst.RESERVED_CONFIG_STRING, ("Error: undefined macro %s "
-            "in configuration. (Note that macros are section-specific.)") % token
+                                                         "in configuration. (Note that macros are section-specific.)") % token
 
         # choose strict tab-only separator or looser any-space
         # separator matching depending on section

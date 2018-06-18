@@ -23,6 +23,10 @@ class TestMessage(unittest.TestCase):
     """
     Test Messager facilty
     """
+    @classmethod
+    def setUpClass(cls):
+        # this test suite assumes Messager heap is empty
+        Messager.clear()
 
     def test_01_warning(self):
         """

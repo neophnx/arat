@@ -167,19 +167,54 @@ def _json_from_ann(ann_obj):
     return j_dic
 
 
-def _offsets_equal(o1, o2):
+def _canonical_offset_list(offsets):
+    """
+    Given a list of (start, end) offsets, output the simplest equivalent
+    unique form.
+
+    :param list offsets: list of offsets
+    :returns list: canonical form of input
+
+    >>> _canonical_offset_list([(1, 2), (2, 4)])
+    [(1, 4)]
+
+    """
+
+    offsets = sorted(set(offsets))
+
+    if not offsets:  # empty
+        return offsets
+
+    res = []
+    # removes overlap
+    start0, end0 = offsets.pop(0)
+    while offsets:
+        start1, end1 = offsets.pop(0)
+        if start1 <= end0:  # overlap
+            end0 = end1
+        else:
+            res.append((start0, end0))
+            start0, end0 = start1, end1
+
+    res.append((start0, end0))
+
+    return res
+
+
+def _offsets_equal(offsets1, offsets2):
     """
     Given two lists of (start, end) integer offset sets, returns
     whether they identify the same sets of characters.
+
+    :param list offsets1: list of offsets
+    :param list offsets2: list of offsets
+    :returns bool:
     """
-    # TODO: full implementation; current doesn't check for special
-    # cases such as dup or overlapping (start, end) pairs in a single
-    # set.
 
     # short-circuit (expected to be the most common case)
-    if o1 == o2:
+    if offsets1 == offsets2:
         return True
-    return sorted(o1) == sorted(o2)
+    return _canonical_offset_list(offsets1) == _canonical_offset_list(offsets2)
 
 
 def _text_for_offsets(text, offsets):
@@ -187,13 +222,24 @@ def _text_for_offsets(text, offsets):
     Given a text and a list of (start, end) integer offsets, returns
     the (catenated) text corresponding to those offsets, joined
     appropriately for use in a TextBoundAnnotation(WithText).
+
+
+
+    :param str text:
+    :param list offsets: list of offsets
+
+
+    >>> _text_for_offsets("Welcome home!", [(0, 2), (8, 10)])
+    'We ho'
     """
-    try:
-        return DISCONT_SEP.join(text[s:e] for s, e in offsets)
-    except Exception:
+    # this makes sense only in canonical form
+    offsets = _canonical_offset_list(offsets)
+    if offsets and (offsets[0][0] < 0 or offsets[-1][1] >= len(text)):
         Messager.error(
             '_text_for_offsets: failed to get text for given offsets (%s)' % str(offsets))
         raise ProtocolArgumentError
+
+    return DISCONT_SEP.join(text[i:j] for i, j in offsets)
 
 
 def _edit_span(ann_obj, mods, id_, offsets, projectconf, attributes, type_,
@@ -445,8 +491,6 @@ def _json_offsets_to_list(offsets):
             'create_span: protocol argument error: expected offsets as list of int pairs, received "%s"' % str(offsets))
         raise ProtocolArgumentError
     return offsets
-
-# TODO: unshadow Python internals like "type" and "id"
 
 
 def create_span(collection, document, offsets, type_, attributes=None,
