@@ -4,8 +4,8 @@
 '''
 Provides a stylish pythonic file-lock:
 
->>>    with('file.lock'):
-...        pass
+>>> with file_lock('file.lock'):
+...     pass
 
 Inspired by: http://code.activestate.com/recipes/576572/
 

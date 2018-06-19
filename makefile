@@ -1,9 +1,9 @@
 tests2: clean
-	python2 -m nose -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+	python2 -m nose -vv --exe --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
 
 tests3: clean
-	python3 -m nose -v --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
-
+	python3 -m nose -vv --exe --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+ 
 lint2:
 	autopep8 -i $(DOC)
 	python2 -m pylint $(DOC)
