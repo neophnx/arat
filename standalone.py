@@ -46,7 +46,12 @@ Allow: /
 
 
 class PermissionParseError(Exception):
+    """
+    Permission file parse error
+    """
+
     def __init__(self, linenum, line, message=None):
+        Exception.__init__(self)
         self.linenum = linenum
         self.line = line
         self.message = ' (%s)' % message if message is not None else ''
@@ -70,6 +75,12 @@ class PathPattern(object):
                        path[self.plen] == '/')
         return res
 
+    def __repr__(self):
+        return "PathPattern(%r)" % self.path
+
+    def __eq__(self, other):
+        return isinstance(other, PathPattern) and self.path == other.path
+
 
 class ExtensionPattern(object):
     def __init__(self, ext):
@@ -78,18 +89,43 @@ class ExtensionPattern(object):
     def match(self, path):
         return os.path.splitext(path)[1] == self.ext
 
+    def __repr__(self):
+        return "ExtensionPattern(%r)" % self.ext
+
+    def __eq__(self, other):
+        return isinstance(other, ExtensionPattern) and self.ext == other.ext
+
 
 class PathPermissions(object):
-    """Implements path permission checking with a robots.txt-like syntax.
+    """
+    Implements path permission checking with a robots.txt-like syntax.
 
     TODO: issue #8 use robotparser instead of reimplementing the logic
+    Syntax: "DIRECTIVE : PATTERN" where
+        DIRECTIVE is either "Disallow:" or "Allow:" and
+        PATTERN either has the form "*.EXT" or "/PATH".
+        Strings starting with "#" and empty lines are ignored.
+
+    Note that only the first matching rule is applied
+
     """
 
     def __init__(self, default_allow=False):
+        """
+        :param bool default_allow: if no rule match the entry, use this value
+        """
         self._entries = []
         self.default_allow = default_allow
 
+    @property
+    def entries(self):
+        return self._entries
+
     def allow(self, path):
+        """
+        :param str path: chek permission for this path
+        :returns bool: True iff path is allowed
+        """
         # First match wins
         for pattern, allow in self._entries:
             if pattern.match(path):
@@ -97,10 +133,10 @@ class PathPermissions(object):
         return self.default_allow
 
     def parse(self, lines):
-        # Syntax: "DIRECTIVE : PATTERN" where
-        # DIRECTIVE is either "Disallow:" or "Allow:" and
-        # PATTERN either has the form "*.EXT" or "/PATH".
-        # Strings starting with "#" and empty lines are ignored.
+        """
+        :param list lines: list of lines defining rules
+        :raises PermissionParseError: in case of Syntax error
+        """
 
         for lineno, line in enumerate(lines):
             i = line.find('#')
