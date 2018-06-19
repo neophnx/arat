@@ -88,6 +88,15 @@ def open_textfile(filename, mode='rU'):
 
 
 def __split_annotation_id(id_):
+    """
+    >>> __split_annotation_id("T1_")
+    ('T', '1', '_')
+
+    >>> __split_annotation_id("101")
+    Traceback (most recent call last):
+        ...
+    server.annotation.annotation_exceptions.InvalidIdError: Invalid id: 101
+    """
     match_obj = re_match(r'^([A-Za-z]+|#[A-Za-z]*)([0-9]+)(.*?)$', id_)
     if match_obj is None:
         raise InvalidIdError(id_)
@@ -96,6 +105,16 @@ def __split_annotation_id(id_):
 
 
 def annotation_id_prefix(id_):
+    """
+
+    >>> annotation_id_prefix("T1_")
+    'T'
+
+    >>> annotation_id_prefix("101")
+    Traceback (most recent call last):
+        ...
+    server.annotation.annotation_exceptions.InvalidIdError: Invalid id: 101
+    """
     pre = ''.join(c for c in takewhile(lambda x: not x.isdigit(), id_))
     if not pre:
         raise InvalidIdError(id_)
@@ -103,10 +122,28 @@ def annotation_id_prefix(id_):
 
 
 def annotation_id_number(id_):
+    """
+
+    >>> annotation_id_number("T1_")
+    '1'
+
+    >>> annotation_id_number("101")
+    Traceback (most recent call last):
+        ...
+    server.annotation.annotation_exceptions.InvalidIdError: Invalid id: 101
+    """
     return __split_annotation_id(id_)[1]
 
 
 def is_valid_id(id_):
+    """
+
+    >>> is_valid_id("T1_")
+    True
+
+    >>> is_valid_id("101")
+    False
+    """
     # special case: '*' is acceptable as an "ID"
     if id_ == '*':
         return True
