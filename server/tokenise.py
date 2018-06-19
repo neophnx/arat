@@ -16,6 +16,7 @@ from __future__ import print_function
 
 # arat
 from server.message import Messager
+from server.gtbtokenize import tokenize
 
 
 def _token_boundaries_by_alignment(tokens, original_text):
@@ -32,30 +33,31 @@ def _token_boundaries_by_alignment(tokens, original_text):
         curr_pos = end_pos
 
 
-def jp_token_boundary_gen(text):
-    """
-    Japanese tokenization via mecab
-    """
-    try:
-        from mecab import token_offsets_gen
-        for i in token_offsets_gen(text):
-            yield i
-    except ImportError:
-        Messager.error('Failed to import MeCab, '
-                       'falling back on whitespace tokenization. '
-                       'Please check configuration and/or server setup.')
-        for i in whitespace_token_boundary_gen(text):
-            yield i
+# TODO: should be added with a plugin system since it relies on a fragile
+#      third party lib
+# def jp_token_boundary_gen(text):
+#    """
+#    Japanese tokenization via mecab
+#    """
+#    try:
+#        from mecab import token_offsets_gen
+#        for i in token_offsets_gen(text):
+#            yield i
+#    except ImportError:
+#        Messager.error('Failed to import MeCab, '
+#                       'falling back on whitespace tokenization. '
+#                       'Please check configuration and/or server setup.')
+#        for i in whitespace_token_boundary_gen(text):
+#            yield i
 
 
 def gtb_token_boundary_gen(text):
     """
     >>> text = u"Specialized tokenizer for this p65(RelA)/p50 and that E. coli"
 
-    >>> list(whitespace_token_boundary_gen(text))
+    >>> list(gtb_token_boundary_gen(text))
     [(0, 11), (12, 21), (22, 25), (26, 30), (31, 44), (45, 48), (49, 53), (54, 56), (57, 61)]
     """
-    from server.gtbtokenize import tokenize
     tokens = tokenize(text).split()
     for i in _token_boundaries_by_alignment(tokens, text):
         yield i
@@ -73,14 +75,27 @@ def whitespace_token_boundary_gen(text):
         yield i
 
 
-REGISTERED_TOKENISER = {"mecab": jp_token_boundary_gen,
-                        'whitespace': whitespace_token_boundary_gen,
+# "mecab": jp_token_boundary_gen,
+REGISTERED_TOKENISER = {'whitespace': whitespace_token_boundary_gen,
                         'ptblike': gtb_token_boundary_gen}
 
 
 def tokeniser_by_name(name):
     """
     load a tokenizer by name
+
+    Available tokenizers:
+
+    >>> tokeniser_by_name('whitespace') == whitespace_token_boundary_gen
+    True
+
+    >>> tokeniser_by_name('ptblike') == gtb_token_boundary_gen
+    True
+
+    Any other name will returns default whitespace
+
+    >>> tokeniser_by_name('unknown') == whitespace_token_boundary_gen
+    True
     """
     if name in REGISTERED_TOKENISER:
         return REGISTERED_TOKENISER[name]
@@ -90,42 +105,42 @@ def tokeniser_by_name(name):
     return whitespace_token_boundary_gen
 
 
-def _main():
-    """
-    CLI for testing purpose
-    """
-    from sys import argv
-
-    def _text_by_offsets_gen(text, offsets):
-        for start, end in offsets:
-            yield text[start:end]
-
-    if len(argv) == 1:
-        argv.append('/dev/stdin')
-
-    try:
-        for txt_file_path in argv[1:]:
-            print()
-            print('### Tokenising:', txt_file_path)
-            with open(txt_file_path, 'r') as txt_file:
-                text = txt_file.read()
-                print(text)
-            print('# Original text:')
-            print(text.replace('\n', '\\n'))
-            #offsets = [o for o in jp_token_boundary_gen(text)]
-            #offsets = [o for o in whitespace_token_boundary_gen(text)]
-            offsets = [o for o in gtb_token_boundary_gen(text)]
-            print('# Offsets:')
-            print(offsets)
-            print('# Tokens:')
-            for tok in _text_by_offsets_gen(text, offsets):
-                assert tok, 'blank tokens disallowed'
-                assert not tok[0].isspace() and not tok[-1].isspace(), (
-                    'tokens may not start or end with white-space "%s"' % tok)
-                print('"%s"' % tok)
-    except IOError:
-        raise
-
-
-if __name__ == '__main__':
-    _main()
+# def _main():
+#    """
+#    CLI for testing purpose
+#    """
+#    from sys import argv
+#
+#    def _text_by_offsets_gen(text, offsets):
+#        for start, end in offsets:
+#            yield text[start:end]
+#
+#    if len(argv) == 1:
+#        argv.append('/dev/stdin')
+#
+#    try:
+#        for txt_file_path in argv[1:]:
+#            print()
+#            print('### Tokenising:', txt_file_path)
+#            with open(txt_file_path, 'r') as txt_file:
+#                text = txt_file.read()
+#                print(text)
+#            print('# Original text:')
+#            print(text.replace('\n', '\\n'))
+#            #offsets = [o for o in jp_token_boundary_gen(text)]
+#            #offsets = [o for o in whitespace_token_boundary_gen(text)]
+#            offsets = [o for o in gtb_token_boundary_gen(text)]
+#            print('# Offsets:')
+#            print(offsets)
+#            print('# Tokens:')
+#            for tok in _text_by_offsets_gen(text, offsets):
+#                assert tok, 'blank tokens disallowed'
+#                assert not tok[0].isspace() and not tok[-1].isspace(), (
+#                    'tokens may not start or end with white-space "%s"' % tok)
+#                print('"%s"' % tok)
+#    except IOError:
+#        raise
+#
+#
+# if __name__ == '__main__':
+#    _main()
