@@ -46,7 +46,6 @@ class BackupTest(unittest.TestCase):
 
     def test_02_no_change(self):
         backup.backup(backup_dir=self.tmp_dir, data_dir=self.data_dir)
-        sleep(3)
         backup.backup(min_interval=timedelta(seconds=60),
                       backup_dir=self.tmp_dir, data_dir=self.data_dir)
         self.assertTrue(_backups(self.tmp_dir) == 1,
@@ -61,11 +60,10 @@ class BackupTest(unittest.TestCase):
 
     def test_04_expired_delay(self):
         backup.backup(backup_dir=self.tmp_dir, data_dir=self.data_dir)
-        sleep(1.5)
         with open(self.dummy_path, 'w') as dummy_file:
             dummy_file.write('This is a change for a change')
-        sleep(3)
-        backup.backup(min_interval=timedelta(seconds=1),
+        sleep(0.5)
+        backup.backup(min_interval=timedelta(seconds=0),
                       backup_dir=self.tmp_dir, data_dir=self.data_dir)
         self.assertTrue(_backups(self.tmp_dir) == 2,
                         'no additional back-up was created after delay expired')

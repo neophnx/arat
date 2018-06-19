@@ -1,8 +1,16 @@
+NOSE_ARGS = -vv --exe --with-timer --timer-top-n 10 --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+
 tests2: clean
-	python2 -m nose -vv --exe --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+	python2 -m nose $(NOSE_ARGS) --ignore-files=test_pylint_errors.py
 
 tests3: clean
-	python3 -m nose -vv --exe --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+	python3 -m nose $(NOSE_ARGS) --ignore-files=test_pylint_errors.py
+
+full-tests2: clean
+	python2 -m nose $(NOSE_ARGS)
+
+full-tests3: clean
+	python3 -m nose $(NOSE_ARGS)
  
 lint2:
 	autopep8 -i $(DOC)

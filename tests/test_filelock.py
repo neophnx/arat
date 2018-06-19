@@ -44,7 +44,7 @@ class TestFileLock(unittest.TestCase):
         Tests do-with functionallity
         '''
         with filelock.file_lock(self._lock_file_path):
-            sleep(1)
+            sleep(0.1)
         sleep(0.1)  # Make sure the remove is in effect
         self.assertFalse(isfile(self._lock_file_path))
 
@@ -86,7 +86,6 @@ class TestFileLock(unittest.TestCase):
         process.start()
         sleep(0.5)  # Make sure it reaches the disk
         self.assertTrue(isfile(self._lock_file_path))
-        sleep(1)
 
     def _fake_crash_other_process(self):
         '''
@@ -127,7 +126,9 @@ class TestFileLock(unittest.TestCase):
         '''
         self._fake_crash_other_process()
         try:
-            with filelock.file_lock(self._lock_file_path, pid_policy=filelock.PID_DISALLOW):
+            with filelock.file_lock(self._lock_file_path,
+                                    pid_policy=filelock.PID_DISALLOW,
+                                    timeout=0.1):
                 self.assertTrue(False, 'Should not reach this point')
         except filelock.FileLockTimeoutError:
             pass
