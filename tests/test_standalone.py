@@ -12,7 +12,7 @@ from __future__ import print_function
 # standard
 import unittest
 import socket
-from subprocess import Popen
+from threading import Thread
 import sys
 import os
 from shutil import rmtree
@@ -87,10 +87,13 @@ class TestStandalone(unittest.TestCase):
         # run server
         free_port = cls._find_free_port()
         cls.url = "http://localhost:%i/" % free_port
-        cls.proc = Popen([sys.executable, "standalone.py", str(free_port)])
+
+        cls.thread = Thread(target=standalone.main,
+                            args=([standalone.__file__, str(free_port)],))
+        cls.thread.setDaemon(True)
+        cls.thread.start()
 
         if not wait_net_service("localhost", free_port, 5):
-            cls.proc.kill()
             raise OSError
 
         # get a session id
@@ -111,7 +114,6 @@ class TestStandalone(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.proc.kill()
 
         # remove test directory recursively
         rmtree("data/test-data", ignore_errors=True)
@@ -377,5 +379,6 @@ class TestStandalone(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.dirname(__file__)))
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestStandalone)
     unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(SUITE)
