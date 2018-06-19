@@ -12,10 +12,10 @@ from os.path import join as path_join
 from shutil import rmtree
 from tempfile import mkdtemp
 
-from server.annotation import open_textfile, Annotations
-from server.common import ProtocolError
-from server.document import _document_json_dict
-from server.convert.stanford import (
+from arat.server.annotation import open_textfile, Annotations
+from arat.server.common import ProtocolError
+from arat.server.document import _document_json_dict
+from arat.server.convert.stanford import (
     basic_dep as stanford_basic_dep,
     collapsed_ccproc_dep as stanford_collapsed_ccproc_dep,
     collapsed_dep as stanford_collapsed_dep,

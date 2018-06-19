@@ -70,7 +70,7 @@ def _refine_split(offsets, original_text):
     new_text = '\n'.join((original_text[o[0]:o[1]].replace('\n', ' ')
                           for o in offsets))
 
-    from server.sspostproc import refine_split
+    from arat.server.sspostproc import refine_split
     output = refine_split(new_text)
 
     # Align the texts and see where our offsets don't match
@@ -149,7 +149,7 @@ jp_sentence_boundary_gen = regex_sentence_boundary_gen
 if __name__ == '__main__':
     from sys import argv
 
-    from server.annotation import open_textfile
+    from arat.server.annotation import open_textfile
 
     def _text_by_offsets_gen(text, offsets):
         for start, end in offsets:

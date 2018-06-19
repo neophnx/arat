@@ -1,4 +1,4 @@
-NOSE_ARGS = -vv --exe --with-timer --timer-top-n 10 --with-coverage --with-doctest --cover-package server,standalone tests standalone.py server
+NOSE_ARGS = -vv --exe --with-timer --timer-top-n 10 --with-coverage --with-doctest --cover-package arat tests
 
 tests2: clean
 	python2 -m nose $(NOSE_ARGS) --ignore-files=test_pylint_errors.py
@@ -17,8 +17,8 @@ lint2:
 	python2 -m pylint $(DOC)
 	
 lint-all:
-	autopep8 -j=-1 -ir standalone.py server tests
-	python3 -m pylint --reports=y standalone.py server tests |tee pylint.txt
+	autopep8 -j=-1 -ir arat tests
+	python3 -m pylint --reports=y arat tests |tee pylint.txt
 	
 lint-score:
 	bash lint_score.sh    

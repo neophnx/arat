@@ -15,7 +15,7 @@ setup(name='arat',
       author='neophnx',
       author_email='',
       license='MIT',
-      packages=['.'],
+      packages=['arat'],
       zip_safe=False,
       classifiers=[
         "Programming Language :: Python",

@@ -25,32 +25,32 @@ from logging import info as log_info
 from six.moves import zip
 
 # arat
-from server.annotator import create_arc, delete_arc, reverse_arc
-from server.annotator import create_span, delete_span
-from server.annotator import split_span
-from server.auth import login, logout, whoami, NotAuthorisedError
-from server.common import ProtocolError
+from arat.server.annotator import create_arc, delete_arc, reverse_arc
+from arat.server.annotator import create_span, delete_span
+from arat.server.annotator import split_span
+from arat.server.auth import login, logout, whoami, NotAuthorisedError
+from arat.server.common import ProtocolError
 from config import DATA_DIR
-from server.convert.convert import convert
-from server.docimport import save_import
-from server.document import (get_directory_information, get_document,
-                             get_document_timestamp, get_configuration)
-from server.download import download_file, download_collection
+from arat.server.convert.convert import convert
+from arat.server.docimport import save_import
+from arat.server.document import (get_directory_information, get_document,
+                                  get_document_timestamp, get_configuration)
+from arat.server.download import download_file, download_collection
 
-from server.annlog import log_annotation
-from server.svg import store_svg, retrieve_stored
-from server.session import get_session, load_conf, save_conf
-#from server.search import search_text, search_entity, search_event, search_relation, search_note
-from server.delete import delete_document, delete_collection
+from arat.server.annlog import log_annotation
+from arat.server.svg import store_svg, retrieve_stored
+from arat.server.session import get_session, load_conf, save_conf
+#from arat.server.search import search_text, search_entity, search_event, search_relation, search_note
+from arat.server.delete import delete_document, delete_collection
 
 
 # unsupported action because of unmaintened dependency
-# from server.norm import norm_get_name, norm_search, norm_get_data
+# from arat.server.norm import norm_get_name, norm_search, norm_get_data
 
 # unsupported feature until major refactoring done
-#from server.predict import suggest_span_types
-#from server.undo import undo
-#from server.tag import tag
+#from arat.server.predict import suggest_span_types
+#from arat.server.undo import undo
+#from arat.server.tag import tag
 
 
 def logging_no_op(collection, document, log):

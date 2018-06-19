@@ -9,7 +9,7 @@ Created on Mon Jun  4 15:03:18 2018
 import warnings
 import six
 
-from server.common import ProtocolError
+from arat.server.common import ProtocolError
 
 
 class AnnotationLineSyntaxError(Exception):

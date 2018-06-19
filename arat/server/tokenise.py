@@ -15,8 +15,8 @@ from __future__ import print_function
 
 
 # arat
-from server.message import Messager
-from server.gtbtokenize import tokenize
+from arat.server.message import Messager
+from arat.server.gtbtokenize import tokenize
 
 
 def _token_boundaries_by_alignment(tokens, original_text):

@@ -15,8 +15,8 @@ except ImportError:
     from functools32 import lru_cache
 
 
-from server.message import Messager
-from server.projectconfig import constants as cst
+from arat.server.message import Messager
+from arat.server.projectconfig import constants as cst
 
 _CACHE_SIZE = 1000
 _PYTHON3 = (sys.version_info > (3, 0))

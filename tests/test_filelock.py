@@ -15,7 +15,7 @@ from os import (remove, read, fsync, open, close, write, getpid,
                 O_CREAT, O_EXCL, O_RDWR, O_RDONLY)
 from time import sleep
 
-from server import filelock
+from arat.server import filelock
 
 
 try:

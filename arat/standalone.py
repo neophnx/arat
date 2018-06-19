@@ -25,7 +25,7 @@ from six.moves.urllib.parse import unquote  # pylint: disable=import-error
 import six  # pylint: disable=import-error
 
 # arat imports
-from server.arat_server import serve
+from arat.server.arat_server import serve
 
 _PYTHON3 = (sys.version_info > (3, 0))
 

@@ -14,8 +14,8 @@ from re import match as re_match
 import argparse
 
 # arat
-from server import annotation
-from server.projectconfig import ProjectConfiguration
+from arat.server import annotation
+from arat.server.projectconfig import ProjectConfiguration
 
 # Issue types. Values should match with annotation interface.
 ANNOTATION_ERROR = "ANNOTATION_ERROR"

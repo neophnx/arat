@@ -9,7 +9,7 @@ TODO: implement deletion facilties
 '''
 
 from __future__ import absolute_import
-from server.common import AratNotImplementedError
+from arat.server.common import AratNotImplementedError
 
 
 def delete_document(collection, document):

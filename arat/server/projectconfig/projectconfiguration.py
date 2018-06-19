@@ -7,9 +7,9 @@ Created on Thu Jun 14 00:34:42 2018
 
 import re
 
-from server.projectconfig import commons as com
-from server.projectconfig import constants as cst
-from server.message import Messager
+from arat.server.projectconfig import commons as com
+from arat.server.projectconfig import constants as cst
+from arat.server.message import Messager
 
 
 class ProjectConfiguration(object):

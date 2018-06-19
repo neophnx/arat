@@ -7,7 +7,7 @@ Created on Sun Jun  3 10:58:39 2018
 from __future__ import absolute_import
 import unittest
 
-from server.convert import stanford
+from arat.server.convert import stanford
 
 
 class TestStanford(unittest.TestCase):

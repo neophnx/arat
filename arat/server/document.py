@@ -32,34 +32,34 @@ import six  # pylint disable: import-error
 from six.moves import range  # pylint disable: import-error
 
 # arat
-from server.annotation import (TextAnnotations, TEXT_FILE_SUFFIX,
-                               AnnotationCollectionNotFoundError,
-                               JOINED_ANN_FILE_SUFF,
-                               open_textfile,
-                               BIONLP_ST_2013_COMPATIBILITY)
-from server.common import ProtocolError, CollectionNotAccessibleError
+from arat.server.annotation import (TextAnnotations, TEXT_FILE_SUFFIX,
+                                    AnnotationCollectionNotFoundError,
+                                    JOINED_ANN_FILE_SUFF,
+                                    open_textfile,
+                                    BIONLP_ST_2013_COMPATIBILITY)
+from arat.server.common import ProtocolError, CollectionNotAccessibleError
 from config import BASE_DIR, DATA_DIR
-from server.projectconfig import ProjectConfiguration
-from server.projectconfig.constants import (SEPARATOR_STR,
-                                            SPAN_DRAWING_ATTRIBUTES,
-                                            ARC_DRAWING_ATTRIBUTES,
-                                            VISUAL_SPAN_DEFAULT,
-                                            VISUAL_ARC_DEFAULT,
-                                            ATTR_DRAWING_ATTRIBUTES,
-                                            VISUAL_ATTR_DEFAULT,
-                                            SPECIAL_RELATION_TYPES)
-from server.projectconfig.commons import (options_get_validation,
-                                          options_get_tokenization,
-                                          options_get_ssplitter,
-                                          get_annotation_config_section_labels,
-                                          visual_options_get_arc_bundle,
-                                          visual_options_get_text_direction)
-from server.stats import get_statistics
-from server.message import Messager
-from server.auth import allowed_to_read, AccessDeniedError
-from server.annlog import annotation_logging_active
-from server.tokenise import tokeniser_by_name
-from server.verify_annotations import verify_annotation
+from arat.server.projectconfig import ProjectConfiguration
+from arat.server.projectconfig.constants import (SEPARATOR_STR,
+                                                 SPAN_DRAWING_ATTRIBUTES,
+                                                 ARC_DRAWING_ATTRIBUTES,
+                                                 VISUAL_SPAN_DEFAULT,
+                                                 VISUAL_ARC_DEFAULT,
+                                                 ATTR_DRAWING_ATTRIBUTES,
+                                                 VISUAL_ATTR_DEFAULT,
+                                                 SPECIAL_RELATION_TYPES)
+from arat.server.projectconfig.commons import (options_get_validation,
+                                               options_get_tokenization,
+                                               options_get_ssplitter,
+                                               get_annotation_config_section_labels,
+                                               visual_options_get_arc_bundle,
+                                               visual_options_get_text_direction)
+from arat.server.stats import get_statistics
+from arat.server.message import Messager
+from arat.server.auth import allowed_to_read, AccessDeniedError
+from arat.server.annlog import annotation_logging_active
+from arat.server.tokenise import tokeniser_by_name
+from arat.server.verify_annotations import verify_annotation
 
 
 def _fill_type_configuration(nodes, project_conf, hotkey_by_type, all_connections=None):
@@ -701,15 +701,15 @@ def _enrich_json_with_text(j_dic, txt_file_path, raw_text=None):
 
     ssplitter = options_get_ssplitter(dirname(txt_file_path))
     if ssplitter == 'newline':
-        from server.ssplit import newline_sentence_boundary_gen
+        from arat.server.ssplit import newline_sentence_boundary_gen
         ss_offset_gen = newline_sentence_boundary_gen
     elif ssplitter == 'regex':
-        from server.ssplit import regex_sentence_boundary_gen
+        from arat.server.ssplit import regex_sentence_boundary_gen
         ss_offset_gen = regex_sentence_boundary_gen
     else:
         Messager.warning('Unrecognized sentence splitting option '
                          ', reverting to newline sentence splitting.')
-        from server.ssplit import newline_sentence_boundary_gen
+        from arat.server.ssplit import newline_sentence_boundary_gen
         ss_offset_gen = newline_sentence_boundary_gen
     j_dic['sentence_offsets'] = [o for o in ss_offset_gen(text)]
 

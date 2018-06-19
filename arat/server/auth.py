@@ -20,11 +20,11 @@ from os.path import dirname, join as path_join, isdir, relpath
 from hashlib import sha512
 
 # arat
-from server.common import ProtocolError, deprecation
+from arat.server.common import ProtocolError, deprecation
 from config import USER_PASSWORD, DATA_DIR
-from server.message import Messager
-from server.session import get_session
-from server.projectconfig import ProjectConfiguration
+from arat.server.message import Messager
+from arat.server.session import get_session
+from arat.server.projectconfig import ProjectConfiguration
 
 SALT = b"arat"
 

@@ -25,12 +25,12 @@ from six.moves.cPickle import load as pickle_load  # pylint: disable=import-erro
 
 # arat
 import config
-from server import constants
-from server.annotation import Annotations
-from server.message import Messager
-from server.projectconfig.commons import get_config_path, options_get_validation
-from server.projectconfig import ProjectConfiguration
-from server.verify_annotations import verify_annotation
+from arat.server import constants
+from arat.server.annotation import Annotations
+from arat.server.message import Messager
+from arat.server.projectconfig.commons import get_config_path, options_get_validation
+from arat.server.projectconfig import ProjectConfiguration
+from arat.server.verify_annotations import verify_annotation
 
 
 # Constants

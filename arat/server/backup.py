@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 from subprocess import Popen
 
 # arat
-from server.filelock import file_lock, PID_WARN
+from arat.server.filelock import file_lock, PID_WARN
 from config import BACKUP_DIR, DATA_DIR
 
 # Constants

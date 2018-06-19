@@ -12,7 +12,7 @@ from __future__ import absolute_import
 import unittest
 
 # arat
-from server.convert.ptbesc import escape, unescape
+from arat.server.convert.ptbesc import escape, unescape
 
 
 class TestPTBesc(unittest.TestCase):

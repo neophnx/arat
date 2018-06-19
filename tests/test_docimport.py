@@ -12,7 +12,7 @@ from os import mkdir
 from os.path import join as join_path
 # arat
 import config
-from server import docimport
+from arat.server import docimport
 
 
 class SaveImportTest(unittest.TestCase):

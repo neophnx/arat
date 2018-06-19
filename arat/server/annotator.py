@@ -21,20 +21,20 @@ from six.moves import range  # pylint disable: import-error
 
 
 # arat
-from server.annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
-                               TextAnnotations, DependingAnnotationDeleteError,
-                               TextBoundAnnotation,
-                               EventAnnotation, EquivAnnotation, open_textfile,
-                               AnnotationsIsReadOnlyError, AttributeAnnotation,
-                               NormalizationAnnotation, SpanOffsetOverlapError,
-                               DISCONT_SEP)
-from server.common import ProtocolError, ProtocolArgumentError
-from server.annotation import TextBoundAnnotationWithText
-from server.document import real_directory
-from server.jsonwrap import loads as json_loads, dumps as json_dumps
-from server.message import Messager
-from server.projectconfig import ProjectConfiguration
-from server.projectconfig.commons import ENTITY_CATEGORY, EVENT_CATEGORY
+from arat.server.annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
+                                    TextAnnotations, DependingAnnotationDeleteError,
+                                    TextBoundAnnotation,
+                                    EventAnnotation, EquivAnnotation, open_textfile,
+                                    AnnotationsIsReadOnlyError, AttributeAnnotation,
+                                    NormalizationAnnotation, SpanOffsetOverlapError,
+                                    DISCONT_SEP)
+from arat.server.common import ProtocolError, ProtocolArgumentError
+from arat.server.annotation import TextBoundAnnotationWithText
+from arat.server.document import real_directory
+from arat.server.jsonwrap import loads as json_loads, dumps as json_dumps
+from arat.server.message import Messager
+from arat.server.projectconfig import ProjectConfiguration
+from arat.server.projectconfig.commons import ENTITY_CATEGORY, EVENT_CATEGORY
 
 from config import DEBUG
 
@@ -153,8 +153,8 @@ def _json_from_ann(ann_obj):
     # request.
     j_dic = {}
     txt_file_path = ann_obj.get_document() + '.' + TEXT_FILE_SUFFIX
-    from server.document import (_enrich_json_with_data, _enrich_json_with_base,
-                                 _enrich_json_with_text)
+    from arat.server.document import (_enrich_json_with_data, _enrich_json_with_base,
+                                      _enrich_json_with_text)
     _enrich_json_with_base(j_dic)
     # avoid reading text file if the given ann_obj already holds it
     try:
@@ -735,7 +735,7 @@ def _create_span(collection, document, offsets, type_, attributes=None,
         return mods_json
 
 
-from server.annotation import BinaryRelationAnnotation
+from arat.server.annotation import BinaryRelationAnnotation
 
 
 def _create_equiv(ann_obj, projectconf, mods, origin, target, type_, attributes,

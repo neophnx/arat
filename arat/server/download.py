@@ -26,9 +26,9 @@ except ImportError:
 from six.moves import range
 
 # arat
-from server.document import real_directory
-from server.annotation import open_textfile
-from server.common import NoPrintJSONError
+from arat.server.document import real_directory
+from arat.server.annotation import open_textfile
+from arat.server.common import NoPrintJSONError
 from subprocess import Popen
 
 

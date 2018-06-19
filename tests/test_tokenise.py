@@ -7,8 +7,8 @@ Created on Sun Jun  3 10:58:39 2018
 from __future__ import absolute_import
 import unittest
 
-from server import tokenise
-from server.message import Messager
+from arat.server import tokenise
+from arat.server.message import Messager
 
 
 class TestTokenise(unittest.TestCase):

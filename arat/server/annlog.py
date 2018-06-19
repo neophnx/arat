@@ -22,9 +22,9 @@ from os.path import join as path_join
 import six
 
 # arat
-from server.session import get_session
-from server.message import Messager
-from server.projectconfig.commons import options_get_annlogfile
+from arat.server.session import get_session
+from arat.server.message import Messager
+from arat.server.projectconfig.commons import options_get_annlogfile
 from config import DATA_DIR
 
 

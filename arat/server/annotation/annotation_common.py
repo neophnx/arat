@@ -38,21 +38,21 @@ from six.moves import range
 import six
 
 # arat
-from server.filelock import file_lock
-from server.message import Messager
-from server.annotation.annotation_exceptions import (AnnotationFileNotFoundError,
-                                                     AnnotationNotFoundError,
-                                                     EventWithNonTriggerError,
-                                                     EventWithoutTriggerError,
-                                                     AnnotationsIsReadOnlyError,
-                                                     DependingAnnotationDeleteError,
-                                                     IdedAnnotationLineSyntaxError,
-                                                     AnnotationLineSyntaxError,
-                                                     DuplicateAnnotationIdError,
-                                                     TriggerReferenceError,
-                                                     InvalidIdError,
-                                                     AnnotationTextFileNotFoundError,
-                                                     deprecation)
+from arat.server.filelock import file_lock
+from arat.server.message import Messager
+from arat.server.annotation.annotation_exceptions import (AnnotationFileNotFoundError,
+                                                          AnnotationNotFoundError,
+                                                          EventWithNonTriggerError,
+                                                          EventWithoutTriggerError,
+                                                          AnnotationsIsReadOnlyError,
+                                                          DependingAnnotationDeleteError,
+                                                          IdedAnnotationLineSyntaxError,
+                                                          AnnotationLineSyntaxError,
+                                                          DuplicateAnnotationIdError,
+                                                          TriggerReferenceError,
+                                                          InvalidIdError,
+                                                          AnnotationTextFileNotFoundError,
+                                                          deprecation)
 # Constants
 # The only suffix we allow to write to, which is the joined annotation file
 # Drop support to PARTIAL_ANN_FILE_SUFF, since no samples are provided along the code

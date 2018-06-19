@@ -8,8 +8,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 import unittest
 
-from server import session
-from server import constants
+from arat.server import session
+from arat.server import constants
 
 
 class TestSentenceSplit(unittest.TestCase):

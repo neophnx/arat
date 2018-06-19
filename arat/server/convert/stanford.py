@@ -29,12 +29,12 @@ except ImportError:
     from altnamedtuple import namedtuple
 
 try:
-    from server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
-                                   TextBoundAnnotation)
+    from arat.server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
+                                        TextBoundAnnotation)
 except ImportError:
     sys_path.append(path_join(dirname(__file__), '..'))
-    from server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
-                                   TextBoundAnnotation)
+    from arat.server.annotation import (BinaryRelationAnnotation, EquivAnnotation,
+                                        TextBoundAnnotation)
 
 Token = namedtuple('Token', ('word', 'lemma', 'start', 'end', 'pos', 'ner', ))
 

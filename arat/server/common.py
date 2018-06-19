@@ -106,7 +106,7 @@ def deprecated_action(func):
     except ImportError:
         DEBUG = False
     from functools import wraps
-    from server.message import Messager
+    from arat.server.message import Messager
 
     @wraps(func)
     def wrapper(*args, **kwds):

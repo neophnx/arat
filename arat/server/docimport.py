@@ -18,11 +18,11 @@ from os.path import isdir, isfile
 from os import access, W_OK
 
 # arat
-from server.annotation import open_textfile
-from server.annotation import JOINED_ANN_FILE_SUFF, TEXT_FILE_SUFFIX
-from server.common import ProtocolError
+from arat.server.annotation import open_textfile
+from arat.server.annotation import JOINED_ANN_FILE_SUFF, TEXT_FILE_SUFFIX
+from arat.server.common import ProtocolError
 from config import DATA_DIR
-from server.document import real_directory
+from arat.server.document import real_directory
 
 # Constants
 DEFAULT_IMPORT_DIR = 'import'

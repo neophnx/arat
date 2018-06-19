@@ -36,11 +36,11 @@ from six.moves._thread import allocate_lock  # pylint: disable=import-error
 import six
 
 # arat
-from server.jsonwrap import dumps
-from server.message import Messager
-from server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
-from server.dispatch import dispatch
-from server.session import get_session, init_session, close_session, NoSessionError, SessionStoreError
+from arat.server.jsonwrap import dumps
+from arat.server.message import Messager
+from arat.server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
+from arat.server.dispatch import dispatch
+from arat.server.session import get_session, init_session, close_session, NoSessionError, SessionStoreError
 import config
 from config import DATA_DIR, WORK_DIR
 from config import DEBUG

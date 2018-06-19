@@ -7,7 +7,7 @@ Created on Sun Jun  3 10:58:39 2018
 from __future__ import absolute_import
 import unittest
 
-from server.convert import convert
+from arat.server.convert import convert
 from tests.test_stanford import TestStanford
 
 

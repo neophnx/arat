@@ -10,7 +10,7 @@ from __future__ import absolute_import
 import unittest
 import os
 
-from server.verify_annotations import main, FOUND_ISSUES, CHECK_PASSED, FILE_NOT_FOUND
+from arat.server.verify_annotations import main, FOUND_ISSUES, CHECK_PASSED, FILE_NOT_FOUND
 import config
 
 

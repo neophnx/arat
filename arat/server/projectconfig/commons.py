@@ -27,10 +27,10 @@ import six.moves.urllib.parse   # pylint: disable=import-error
 from six.moves import range
 
 # arat
-from server.annotation import open_textfile
-from server.message import Messager
-from server.projectconfig import constants as cst
-from server.projectconfig.typehierarchynode import TypeHierarchyNode
+from arat.server.annotation import open_textfile
+from arat.server.message import Messager
+from arat.server.projectconfig import constants as cst
+from arat.server.projectconfig.typehierarchynode import TypeHierarchyNode
 
 ENTITY_CATEGORY, EVENT_CATEGORY, RELATION_CATEGORY, UNKNOWN_CATEGORY = range(4)
 

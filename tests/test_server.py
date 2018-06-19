@@ -13,8 +13,8 @@ import unittest
 import json
 
 # arat
-from server import arat_server
-from server import session
+from arat.server import arat_server
+from arat.server import session
 import config
 
 

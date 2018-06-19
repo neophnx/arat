@@ -16,7 +16,7 @@ try:
 except ImportError:
     from io import StringIO
 
-from server.message import Messager
+from arat.server.message import Messager
 
 
 class TestMessage(unittest.TestCase):

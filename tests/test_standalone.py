@@ -23,7 +23,7 @@ import six
 from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 # arat
-import standalone
+from arat import standalone
 
 
 def wait_net_service(server, port, timeout=None):

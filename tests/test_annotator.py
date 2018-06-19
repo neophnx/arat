@@ -7,11 +7,11 @@ Created on Sun Jun  3 10:58:39 2018
 from __future__ import absolute_import
 import unittest
 
-from server import annotator as ant
-from server.common import ProtocolArgumentError
-from server.annotation.annotation_common import TextAnnotations
-from server.annotation.annotation_exceptions import AnnotationNotFoundError
-from server.projectconfig.projectconfiguration import ProjectConfiguration
+from arat.server import annotator as ant
+from arat.server.common import ProtocolArgumentError
+from arat.server.annotation.annotation_common import TextAnnotations
+from arat.server.annotation.annotation_exceptions import AnnotationNotFoundError
+from arat.server.projectconfig.projectconfiguration import ProjectConfiguration
 import config
 
 

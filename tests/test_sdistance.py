@@ -15,7 +15,7 @@ import unittest
 from six.moves import zip
 
 # arat
-from server import sdistance as dist
+from arat.server import sdistance as dist
 
 
 class TestSDistance(unittest.TestCase):

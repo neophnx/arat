@@ -52,9 +52,9 @@ import unittest
 
 
 # arat
-import server
-from server import session
-from server.dispatch import Dispatcher
+from arat import server
+from arat.server import session
+from arat.server.dispatch import Dispatcher
 from config import DATA_DIR
 
 

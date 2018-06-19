@@ -24,7 +24,7 @@ from os.path import exists, dirname, join as path_join, isfile
 from shutil import copy
 from shutil import move
 from tempfile import mkstemp
-from server import constants
+from arat.server import constants
 
 try:
     from six.moves.cPickle import dump as pickle_dump, load as pickle_load

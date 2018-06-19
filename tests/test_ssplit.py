@@ -7,7 +7,7 @@ Created on Fri Jun  1 23:01:02 2018
 """
 import unittest
 
-from server import ssplit
+from arat.server import ssplit
 
 
 class TestSentenceSplit(unittest.TestCase):

@@ -20,12 +20,12 @@ from os.path import join as path_join
 from os.path import isfile, exists
 from os import makedirs, mkdir
 
-from server.annotator import open_textfile
-from server.common import ProtocolError, NoPrintJSONError
+from arat.server.annotator import open_textfile
+from arat.server.common import ProtocolError, NoPrintJSONError
 from config import BASE_DIR, WORK_DIR
-from server.document import real_directory
-from server.message import Messager
-from server.session import get_session
+from arat.server.document import real_directory
+from arat.server.message import Messager
+from arat.server.session import get_session
 
 # Constants
 SVG_DIR = path_join(WORK_DIR, 'svg')
