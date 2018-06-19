@@ -55,14 +55,15 @@ from server.annotation.annotation_exceptions import (AnnotationFileNotFoundError
                                                      deprecation)
 # Constants
 # The only suffix we allow to write to, which is the joined annotation file
+# Drop support to PARTIAL_ANN_FILE_SUFF, since no samples are provided along the code
+
 JOINED_ANN_FILE_SUFF = 'ann'
-# These file suffixes indicate partial annotations that can not be written to
-# since they depend on multiple files for completeness
-PARTIAL_ANN_FILE_SUFF = ['a1', 'a2', 'co', 'rel']
-KNOWN_FILE_SUFF = [JOINED_ANN_FILE_SUFF]+PARTIAL_ANN_FILE_SUFF
+KNOWN_FILE_SUFF = [JOINED_ANN_FILE_SUFF]
 TEXT_FILE_SUFFIX = 'txt'
+
 # String used to catenate texts of discontinuous annotations in reference text
 DISCONT_SEP = ' '
+
 ###
 
 # If True, use BioNLP Shared Task 2013 compatibilty mode, allowing
@@ -171,8 +172,8 @@ class Annotations(object):
         """
         Given a document name (path), returns a list of the names of
         specific annotation files relevant to the document, or the
-        empty list if none found. For example, given "1000", may
-        return ["1000.a1", "1000.a2"]. May set self._read_only flag to
+        empty list if none found. For example, given "1000", must 
+        return ["1000.ann", "1000.a2"]. May set self._read_only flag to
         True.
         """
 
@@ -187,11 +188,6 @@ class Annotations(object):
                 if not access(document, W_OK):
                     # TODO: Should raise an exception or warning
                     self._read_only = True
-            elif suff in PARTIAL_ANN_FILE_SUFF:
-                # It is only a partial annotation, we will most likely fail
-                # but we will try opening it
-                input_files = [document]
-                self._read_only = True
             else:
                 input_files = []
         except ValueError:
@@ -209,13 +205,6 @@ class Annotations(object):
                 if not access(sugg_path, W_OK):
                     # TODO: Should raise an exception or warning
                     self._read_only = True
-            else:
-                # Our last shot, we go for as many partial files as possible
-                input_files = [sugg_path_last for sugg_path_last in
-                               (document + '.' + suff
-                                for suff in PARTIAL_ANN_FILE_SUFF)
-                               if isfile(sugg_path)]
-                self._read_only = True
 
         return input_files
 
