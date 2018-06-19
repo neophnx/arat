@@ -268,30 +268,15 @@ def _edit_span(ann_obj, mods, id_, offsets, projectconf, attributes, type_,
     undo_resp['type'] = tb_ann.type_
 
     if not _offsets_equal(tb_ann.spans, offsets):
-        if not isinstance(tb_ann, TextBoundAnnotation):
-            # TODO XXX: the following comment is no longer valid
-            # (possibly related code also) since the introduction of
-            # TextBoundAnnotationWithText. Check.
 
-            # This scenario has been discussed and changing the span inevitably
-            # leads to the text span being out of sync since we can't for sure
-            # determine where in the data format the text (if at all) it is
-            # stored. For now we will fail loudly here.
-            error_msg = ('unable to change the span of an existing annotation'
-                         '(annotation: %s)' % repr(tb_ann))
-            Messager.error(error_msg)
-            # Not sure if we only get an internal server error or the data
-            # will actually reach the client to be displayed.
-            assert False, error_msg
-        else:
-            # TODO: Log modification too?
-            before = six.text_type(tb_ann)
-            #log_info('Will alter span of: "%s"' % str(to_edit_span).rstrip('\n'))
-            tb_ann.spans = offsets[:]
-            tb_ann.text = _text_for_offsets(
-                ann_obj.document_text, tb_ann.spans)
-            #log_info('Span altered')
-            mods.change(before, tb_ann)
+        # TODO: Log modification too?
+        before = six.text_type(tb_ann)
+        #log_info('Will alter span of: "%s"' % str(to_edit_span).rstrip('\n'))
+        tb_ann.spans = offsets[:]
+        tb_ann.text = _text_for_offsets(
+            ann_obj.document_text, tb_ann.spans)
+        #log_info('Span altered')
+        mods.change(before, tb_ann)
 
     if ann.type_ != type_:
         if ann_category != projectconf.type_category(type_):
@@ -481,14 +466,16 @@ def _json_offsets_to_list(offsets):
     try:
         offsets = json_loads(offsets)
     except Exception:
-        Messager.error(
-            'create_span: protocol argument error: expected offsets as JSON, but failed to parse "%s"' % str(offsets))
+        Messager.error('create_span: protocol argument error: expected '
+                       'offsets as JSON, but failed to '
+                       'parse "%s"' % str(offsets))
         raise ProtocolArgumentError
     try:
         offsets = [(int(s), int(e)) for s, e in offsets]
     except Exception:
-        Messager.error(
-            'create_span: protocol argument error: expected offsets as list of int pairs, received "%s"' % str(offsets))
+        Messager.error('create_span: protocol argument error: expected '
+                       'offsets as list of int pairs, '
+                       'received "%s"' % str(offsets))
         raise ProtocolArgumentError
     return offsets
 
@@ -702,7 +689,8 @@ def _create_span(collection, document, offsets, type_, attributes=None,
                                        _attributes, type_, undo_resp=undo_resp)
         else:
             # We are to create a new annotation
-            tb_ann, e_ann = __create_span(ann_obj, mods, type_, offsets, txt_file_path,
+            tb_ann, e_ann = __create_span(ann_obj, mods, type_,
+                                          offsets, txt_file_path,
                                           projectconf, _attributes)
 
             undo_resp['action'] = 'add_tb'
@@ -757,8 +745,9 @@ def _create_equiv(ann_obj, projectconf, mods, origin, target, type_, attributes,
     # unique ID), support for attributes for Equivs would need
     # some extra work. Getting the easy non-Equiv case first.
     if attributes is not None:
-        Messager.warning(
-            '_create_equiv: attributes for Equiv annotation not supported yet, please tell the devs if you need this feature (mention "issue #799").')
+        Messager.warning('_create_equiv: attributes for Equiv annotation not '
+                         'supported yet, please tell the devs if you need '
+                         'this feature (mention "issue #799").')
         attributes = None
 
     ann = None

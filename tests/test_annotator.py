@@ -9,6 +9,10 @@ import unittest
 
 from server import annotator as ant
 from server.common import ProtocolArgumentError
+from server.annotation.annotation_common import TextAnnotations
+from server.annotation.annotation_exceptions import AnnotationNotFoundError
+from server.projectconfig.projectconfiguration import ProjectConfiguration
+import config
 
 
 class TestAnnotator(unittest.TestCase):
@@ -17,6 +21,10 @@ class TestAnnotator(unittest.TestCase):
     """
 
     def test__offsets_equal(self):
+        """
+        annotator._offsets_equal
+        """
+        # pylint: disable=W0212
         # common cases
         self.assertTrue(ant._offsets_equal([], []))
         self.assertTrue(ant._offsets_equal([(1, 1)], [(1, 1)]))
@@ -44,6 +52,10 @@ class TestAnnotator(unittest.TestCase):
                                             [(3, 6), (0, 3)]))
 
     def test__text_for_offsets(self):
+        """
+        annotator._text_for_offsets
+        """
+        # pylint: disable=W0212
 
         # common case
         self.assertEquals(ant._text_for_offsets("Welcome home!",
@@ -65,6 +77,85 @@ class TestAnnotator(unittest.TestCase):
                           ant._text_for_offsets,
                           "Welcome home!",
                           [(0, 2), (0, 100)])
+
+    def test__edit_span(self):
+        """
+        annotator.__edit_span
+        """
+        # pylint: disable=W0212
+
+        ann_obj = TextAnnotations(
+            config.DATA_DIR+"/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_EPI/PMID-11393792")
+        projectconf = ProjectConfiguration(
+            "/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_EPI/")
+        modif_tracker = ant.ModificationTracker()
+        undo_resp = {}
+
+        # change type
+        self.assertEquals(ann_obj.get_ann_by_id('T6').type_,
+                          'Protein')
+
+        ant._edit_span(ann_obj=ann_obj,
+                       mods=modif_tracker,
+                       id_="T6",
+                       offsets=[(1254, 1263)],
+                       projectconf=projectconf,
+                       attributes={},
+                       type_='Entity',
+                       undo_resp=undo_resp)
+
+        self.assertEquals(modif_tracker.json_response(),
+                          {'edited': [[u'T6']]})
+
+        self.assertEquals(ann_obj.get_ann_by_id('T6').type_,
+                          'Entity')
+
+        self.assertEquals(undo_resp,
+                          {'action': 'mod_tb',
+                           'type': u'Protein',
+                           'id': u'T6',
+                           'offsets': [(1254, 1263)]})
+
+        self.assertRaises(AnnotationNotFoundError,
+                          ant._edit_span,
+                          ann_obj=ann_obj,
+                          mods=modif_tracker,
+                          id_="T2048",
+                          offsets=[(1254, 1263)],
+                          projectconf=projectconf,
+                          attributes={},
+                          type_='Entity',
+                          undo_resp=undo_resp)
+
+        # change offset
+        ant._edit_span(ann_obj=ann_obj,
+                       mods=modif_tracker,
+                       id_="T6",
+                       offsets=[(1254, 1265)],
+                       projectconf=projectconf,
+                       attributes={},
+                       type_='Protein',
+                       undo_resp=undo_resp)
+
+        self.assertEquals(modif_tracker.json_response(),
+                          {'edited': [[u'T6']]})
+
+        self.assertEquals(undo_resp,
+                          {'action': 'mod_tb',
+                           'type': u'Entity',
+                           'id': u'T6',
+                           'offsets': [(1254, 1263)]})
+
+        self.assertRaises(AnnotationNotFoundError,
+                          ant._edit_span,
+                          ann_obj=ann_obj,
+                          mods=modif_tracker,
+                          id_="T2048",
+                          offsets=[(1254, 1263)],
+                          projectconf=projectconf,
+                          attributes={},
+                          type_='Entity',
+                          undo_resp=undo_resp)
 
 
 if __name__ == "__main__":
