@@ -40,17 +40,31 @@ CONV_BY_SRC = {
 
 
 class InvalidSrcFormat(ProtocolError):
-    def json(self, json_dic):
-        json_dic['exception'] = 'InvalidSrcFormat'
-        return json_dic
+    """
+    Invalide src format given to convert
+    """
+
+    def __init__(self, format_):
+        ProtocolError.__init__(self)
+        self.format_ = format_
+
+    def __str__(self):
+        return u"Invalid convert src fomat: '%s`" % self.format_
 
 
 def convert(data, src):
+    """
+    Conversion utility
+
+    :param str data: raw data from third party tool
+    :param str src: source type
+    :returns dict: a complete message with text and annotations
+    """
     # Fail early if we don't have a converter
     try:
         conv_text, conv_ann = CONV_BY_SRC[src]
     except KeyError:
-        raise InvalidSrcFormat
+        raise InvalidSrcFormat(src)
 
     # Note: Due to a lack of refactoring we need to write to disk to read
     #   annotions, once this is fixed, the below code needs some clean-up
