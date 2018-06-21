@@ -23,7 +23,6 @@ from hashlib import sha512
 from arat.server.common import ProtocolError, deprecation
 from config import USER_PASSWORD, DATA_DIR
 from arat.server.message import Messager
-from arat.server.session import get_session
 from arat.server.projectconfig import ProjectConfiguration
 
 SALT = b"arat"
@@ -145,7 +144,7 @@ def logout():
 def whoami():
     json_dic = {}
     try:
-        json_dic['user'] = get_session().get('user')
+        json_dic['user'] = "you"
     except KeyError:
         # TODO: Really send this message?
         Messager.error('Not logged in!', duration=3)
@@ -164,7 +163,7 @@ def allowed_to_read(real_path):
         return True  # default allow
 
     try:
-        user = get_session().get('user')
+        user = "you"
     except KeyError:
         user = None
 

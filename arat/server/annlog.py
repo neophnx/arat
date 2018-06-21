@@ -22,7 +22,6 @@ from os.path import join as path_join
 import six
 
 # arat
-from arat.server.session import get_session
 from arat.server.message import Messager
 from arat.server.projectconfig.commons import options_get_annlogfile
 from config import DATA_DIR
@@ -99,11 +98,9 @@ def log_annotation(collection, document, status, action, args):
 
     if not logger:
         return False
-
-    try:
-        user = get_session()['user']
-    except KeyError:
-        user = 'anonymous'
+    
+    # TODO: use real user name whithout the legacy session managment
+    user = 'anonymous'
 
     # avoid redundant logging (assuming first two args are
     # collection and document)

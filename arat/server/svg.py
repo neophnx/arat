@@ -25,7 +25,6 @@ from arat.server.common import ProtocolError, NoPrintJSONError
 from config import BASE_DIR, WORK_DIR
 from arat.server.document import real_directory
 from arat.server.message import Messager
-from arat.server.session import get_session
 
 # Constants
 SVG_DIR = path_join(WORK_DIR, 'svg')
@@ -124,7 +123,7 @@ def _stored_path():
     if not exists(SVG_DIR):
         mkdir(SVG_DIR)
 
-    return path_join(SVG_DIR, get_session().get_sid())
+    return path_join(SVG_DIR, "svg")
 
 
 def _svg_path():

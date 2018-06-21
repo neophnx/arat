@@ -40,7 +40,6 @@ from arat.server.jsonwrap import dumps
 from arat.server.message import Messager
 from arat.server.common import ProtocolError, ProtocolArgumentError, NoPrintJSONError
 from arat.server.dispatch import dispatch
-from arat.server.session import get_session, init_session, close_session, NoSessionError, SessionStoreError
 import config
 from config import DATA_DIR, WORK_DIR
 from config import DEBUG
@@ -134,7 +133,6 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
     log_basic_config(filename=path_join(WORK_DIR, 'server.log'),
                      level=log_level)
 
-    init_session(client_ip, cookie_data=cookie_data)
     response_is_JSON = True
     try:
         # Unpack the arguments into something less obscure than the
@@ -167,19 +165,11 @@ def _safe_serve(params, client_ip, client_hostname, cookie_data):
         response_is_JSON = False
 
     # Get the potential cookie headers and close the session (if any)
-    try:
-        cookie_hdrs = get_session().cookie.hdrs()
-        close_session()
-    except SessionStoreError:
-        Messager.error(
-            "Failed to store cookie (missing write permission to arat work directory)?", -1)
-    except NoSessionError:
-        cookie_hdrs = None
 
     if response_is_JSON:
         response_data = ((JSON_HDR, ), dumps(Messager.output_json(json_dic)))
 
-    return (cookie_hdrs, response_data)
+    return (None, response_data)
 # Programmatically access the stack-trace
 
 

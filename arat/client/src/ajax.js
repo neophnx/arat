@@ -22,15 +22,20 @@ var Ajax = (function($, window, undefined) {
 
         // If no protocol version is explicitly set, set it to current
         if (data.toString() == '[object FormData]') {
+          log("Do'")
+          data = data;
           data.append('protocol', PROTOCOL_VERSION);
         } else if (data['protocol'] === undefined) {
           // TODO: Extract the protocol version somewhere global
           data['protocol'] = PROTOCOL_VERSION;
         }
-
+        
+        
         options = {
-            url: 'ajax.cgi',
-            data: data,
+            url: "/ajax.cgi",
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
             type: 'POST',
             success: function(response) {
               pending--;

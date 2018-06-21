@@ -39,7 +39,7 @@ from arat.server.download import download_file, download_collection
 
 from arat.server.annlog import log_annotation
 from arat.server.svg import store_svg, retrieve_stored
-from arat.server.session import get_session, load_conf, save_conf
+from arat.server.session import load_conf, save_conf
 #from arat.server.search import search_text, search_entity, search_event, search_relation, search_note
 from arat.server.delete import delete_document, delete_collection
 
@@ -108,6 +108,7 @@ DISPATCHER = {
 
     'saveConf': save_conf,
     'loadConf': load_conf,
+
 
     # deactivated until refactoring done
     #'undo': undo,
@@ -311,16 +312,17 @@ class Dispatcher(object):
             if not self._directory_is_safe(self.http_args['collection']):
                 raise DirectorySecurityError(self.http_args['collection'])
 
+#        TODO: enforces authorization without the legacy session managment 
         # Make sure that we are authenticated if we are to do certain actions
-        if self.action in REQUIRES_AUTHENTICATION:
-            try:
-                user = get_session()['user']
-            except KeyError:
-                user = None
-            if user is None:
-                log_info('Authorization failure for "%s" with hostname "%s"'
-                         % (self.client_ip, self.client_hostname))
-                raise NotAuthorisedError(self.action)
+#        if self.action in REQUIRES_AUTHENTICATION:
+#            try:
+#                user = get_session()['user']
+#            except KeyError:
+#                user = None
+#            if user is None:
+#                log_info('Authorization failure for "%s" with hostname "%s"'
+#                         % (self.client_ip, self.client_hostname))
+#                raise NotAuthorisedError(self.action)
 
     def _get_action_handler_and_args(self):
         """
