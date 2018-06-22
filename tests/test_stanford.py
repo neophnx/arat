@@ -279,7 +279,7 @@ class TestStanford(unittest.TestCase):
 
         xml_string = TestStanford.STANFORD_XML
 
-        self.assertEquals(stanford.text(xml_string).encode(
+        self.assertEqual(stanford.text(xml_string).encode(
             'utf-8'), b"Stanford University is located in California. "
                       b"It is a great university.                     "
                       b"                               ")
@@ -289,36 +289,36 @@ class TestStanford(unittest.TestCase):
         test stanford xml POS
         """
         xml_string = TestStanford.STANFORD_XML
-        self.assertEquals([i.type for i in stanford.pos(xml_string)],
-                          [u'NNP',
-                           u'NNP',
-                           u'VBZ',
-                           u'JJ',
-                           u'IN',
-                           u'NNP',
-                           u'__DOT__',
-                           u'PRP',
-                           u'VBZ',
-                           u'DT',
-                           u'JJ',
-                           u'NN',
-                           u'__DOT__'])
+        self.assertEqual([i.type for i in stanford.pos(xml_string)],
+                         [u'NNP',
+                          u'NNP',
+                          u'VBZ',
+                          u'JJ',
+                          u'IN',
+                          u'NNP',
+                          u'__DOT__',
+                          u'PRP',
+                          u'VBZ',
+                          u'DT',
+                          u'JJ',
+                          u'NN',
+                          u'__DOT__'])
 
     def test_ner(self):
         """
         test stanford xml NER
         """
         xml_string = TestStanford.STANFORD_XML
-        self.assertEquals([(i.type, i.spans) for i in stanford.ner(xml_string)],
-                          [(u'ORGANIZATION', ((0, 19),)), (u'LOCATION', ((34, 44),))])
+        self.assertEqual([(i.type, i.spans) for i in stanford.ner(xml_string)],
+                         [(u'ORGANIZATION', ((0, 19),)), (u'LOCATION', ((34, 44),))])
 
     def test_coref(self):
         """
         test stanford xml coreference
         """
         xml_string = TestStanford.STANFORD_XML
-        self.assertEquals([i.type for i in stanford.coref(xml_string)],
-                          ['Mention', 'Mention', 'Mention', 'Coreference'])
+        self.assertEqual([i.type for i in stanford.coref(xml_string)],
+                         ['Mention', 'Mention', 'Mention', 'Coreference'])
 
     def test_basic_dep(self):
         """
@@ -326,29 +326,29 @@ class TestStanford(unittest.TestCase):
         """
         xml_string = TestStanford.STANFORD_XML
 
-        self.assertEquals([i.type for i in stanford.basic_dep(xml_string)],
-                          [u'NNP',
-                           u'NNP',
-                           u'VBZ',
-                           u'JJ',
-                           u'IN',
-                           u'NNP',
-                           u'__DOT__',
-                           u'PRP',
-                           u'VBZ',
-                           u'DT',
-                           u'JJ',
-                           u'NN',
-                           u'__DOT__',
-                           'nn',
-                           'nsubj',
-                           'cop',
-                           'prep',
-                           'pobj',
-                           'nsubj',
-                           'cop',
-                           'det',
-                           'amod'])
+        self.assertEqual([i.type for i in stanford.basic_dep(xml_string)],
+                         [u'NNP',
+                          u'NNP',
+                          u'VBZ',
+                          u'JJ',
+                          u'IN',
+                          u'NNP',
+                          u'__DOT__',
+                          u'PRP',
+                          u'VBZ',
+                          u'DT',
+                          u'JJ',
+                          u'NN',
+                          u'__DOT__',
+                          'nn',
+                          'nsubj',
+                          'cop',
+                          'prep',
+                          'pobj',
+                          'nsubj',
+                          'cop',
+                          'det',
+                          'amod'])
 
     def test_collapsed_dep(self):
         """
@@ -356,28 +356,28 @@ class TestStanford(unittest.TestCase):
         """
         xml_string = TestStanford.STANFORD_XML
 
-        self.assertEquals([i.type for i in stanford.collapsed_dep(xml_string)],
-                          [u'NNP',
-                           u'NNP',
-                           u'VBZ',
-                           u'JJ',
-                           u'IN',
-                           u'NNP',
-                           u'__DOT__',
-                           u'PRP',
-                           u'VBZ',
-                           u'DT',
-                           u'JJ',
-                           u'NN',
-                           u'__DOT__',
-                           'nn',
-                           'nsubj',
-                           'cop',
-                           'prep_in',
-                           'nsubj',
-                           'cop',
-                           'det',
-                           'amod'])
+        self.assertEqual([i.type for i in stanford.collapsed_dep(xml_string)],
+                         [u'NNP',
+                          u'NNP',
+                          u'VBZ',
+                          u'JJ',
+                          u'IN',
+                          u'NNP',
+                          u'__DOT__',
+                          u'PRP',
+                          u'VBZ',
+                          u'DT',
+                          u'JJ',
+                          u'NN',
+                          u'__DOT__',
+                          'nn',
+                          'nsubj',
+                          'cop',
+                          'prep_in',
+                          'nsubj',
+                          'cop',
+                          'det',
+                          'amod'])
 
     def test_collapsed_ccproc_dep(self):
         """
@@ -385,28 +385,28 @@ class TestStanford(unittest.TestCase):
         """
         xml_string = TestStanford.STANFORD_XML
 
-        self.assertEquals([i.type for i in stanford.collapsed_ccproc_dep(xml_string)],
-                          [u'NNP',
-                           u'NNP',
-                           u'VBZ',
-                           u'JJ',
-                           u'IN',
-                           u'NNP',
-                           u'__DOT__',
-                           u'PRP',
-                           u'VBZ',
-                           u'DT',
-                           u'JJ',
-                           u'NN',
-                           u'__DOT__',
-                           'nn',
-                           'nsubj',
-                           'cop',
-                           'prep_in',
-                           'nsubj',
-                           'cop',
-                           'det',
-                           'amod'])
+        self.assertEqual([i.type for i in stanford.collapsed_ccproc_dep(xml_string)],
+                         [u'NNP',
+                          u'NNP',
+                          u'VBZ',
+                          u'JJ',
+                          u'IN',
+                          u'NNP',
+                          u'__DOT__',
+                          u'PRP',
+                          u'VBZ',
+                          u'DT',
+                          u'JJ',
+                          u'NN',
+                          u'__DOT__',
+                          'nn',
+                          'nsubj',
+                          'cop',
+                          'prep_in',
+                          'nsubj',
+                          'cop',
+                          'det',
+                          'amod'])
 
     def test_collapsed_token_offsets(self):
         """
@@ -414,20 +414,20 @@ class TestStanford(unittest.TestCase):
         """
         xml_string = TestStanford.STANFORD_XML
 
-        self.assertEquals([i for i in stanford.token_offsets(xml_string)],
-                          [(0, 8),
-                           (9, 19),
-                           (20, 22),
-                           (23, 30),
-                           (31, 33),
-                           (34, 44),
-                           (44, 45),
-                           (46, 48),
-                           (49, 51),
-                           (52, 53),
-                           (54, 59),
-                           (60, 70),
-                           (70, 71)])
+        self.assertEqual([i for i in stanford.token_offsets(xml_string)],
+                         [(0, 8),
+                          (9, 19),
+                          (20, 22),
+                          (23, 30),
+                          (31, 33),
+                          (34, 44),
+                          (44, 45),
+                          (46, 48),
+                          (49, 51),
+                          (52, 53),
+                          (54, 59),
+                          (60, 70),
+                          (70, 71)])
 
     def test_collapsed_sentence_offsets(self):
         """
@@ -436,7 +436,7 @@ class TestStanford(unittest.TestCase):
         pass
         #xml_string = TestStanford.STANFORD_XML
 
-        # self.assertEquals([i for i in stanford.collapsed_sentence_offsets(xml_string)],
+        # self.assertEqual([i for i in stanford.collapsed_sentence_offsets(xml_string)],
         #                  [])
 
 

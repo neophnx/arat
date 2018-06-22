@@ -39,9 +39,9 @@ class TestSDistance(unittest.TestCase):
             msg = 'levenshtein(%r, %r) != %r' % (i,
                                                  j,
                                                  dist.levenshtein(i, j))
-            self.assertEquals(dist.levenshtein(i, j),
-                              expected,
-                              msg)
+            self.assertEqual(dist.levenshtein(i, j),
+                             expected,
+                             msg)
 
     def test_tsuruoka(self):
         """
@@ -52,9 +52,9 @@ class TestSDistance(unittest.TestCase):
             msg = 'tsuruoka(%r, %r) != %r' % (i,
                                               j,
                                               dist.tsuruoka(i, j))
-            self.assertEquals(dist.tsuruoka(i, j),
-                              expected,
-                              msg)
+            self.assertEqual(dist.tsuruoka(i, j),
+                             expected,
+                             msg)
 
     def test_tsuruoka_local(self):
         """
@@ -65,9 +65,9 @@ class TestSDistance(unittest.TestCase):
             msg = 'tsuruoka_local(%r, %r) != %r' % (i,
                                                     j,
                                                     dist.tsuruoka_local(i, j))
-            self.assertEquals(dist.tsuruoka_local(i, j),
-                              expected,
-                              msg)
+            self.assertEqual(dist.tsuruoka_local(i, j),
+                             expected,
+                             msg)
 
     def test_tsuruoka_norm(self):
         """

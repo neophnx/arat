@@ -34,9 +34,9 @@ class TestPTBesc(unittest.TestCase):
             msg = 'escape(%r) -> %r (!= %r)' % (input_,
                                                 escape(input_),
                                                 expected)
-            self.assertEquals(escape(input_),
-                              expected,
-                              msg)
+            self.assertEqual(escape(input_),
+                             expected,
+                             msg)
 
     def test_unescape(self):
         """
@@ -46,9 +46,9 @@ class TestPTBesc(unittest.TestCase):
             msg = 'unescape(%r) -> %r (!= %r)' % (input_,
                                                   unescape(input_),
                                                   expected)
-            self.assertEquals(unescape(input_),
-                              expected,
-                              msg)
+            self.assertEqual(unescape(input_),
+                             expected,
+                             msg)
 
 
 if __name__ == "__main__":

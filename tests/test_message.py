@@ -35,7 +35,7 @@ class TestMessage(unittest.TestCase):
         Messager.warning(u'Hello 世界！')
         json_dic = {}
         Messager.output_json(json_dic)
-        self.assertEquals(
+        self.assertEqual(
             json_dic, {'messages': [(u'Hello \u4e16\u754c\uff01', 'warning', 3)]})
 
     def test_02_info(self):
@@ -45,7 +45,7 @@ class TestMessage(unittest.TestCase):
         Messager.info(u'Hello 世界！')
         json_dic = {}
         Messager.output_json(json_dic)
-        self.assertEquals(
+        self.assertEqual(
             json_dic, {'messages': [(u'Hello \u4e16\u754c\uff01', 'comment', 3)]})
 
     def test_03_error(self):
@@ -55,7 +55,7 @@ class TestMessage(unittest.TestCase):
         Messager.error(u'Hello 世界！')
         json_dic = {}
         Messager.output_json(json_dic)
-        self.assertEquals(
+        self.assertEqual(
             json_dic, {'messages': [(u'Hello \u4e16\u754c\uff01', 'error', 3)]})
 
     def test_04_debug(self):
@@ -65,7 +65,7 @@ class TestMessage(unittest.TestCase):
         Messager.debug(u'Hello 世界！')
         json_dic = {}
         Messager.output_json(json_dic)
-        self.assertEquals(
+        self.assertEqual(
             json_dic, {'messages': [(u'Hello \u4e16\u754c\uff01', 'debug', 3)]})
 
     def test_05_output(self):
@@ -83,17 +83,17 @@ class TestMessage(unittest.TestCase):
 
             output.close()
             with open(output.name, "r") as output:
-                self.assertEquals(output.read(),
-                                  u"warning : Hello warning\n"
-                                  u"comment : Hello info\n"
-                                  u'debug : Hello debug\n'
-                                  u'error : Hello error\n')
+                self.assertEqual(output.read(),
+                                 u"warning : Hello warning\n"
+                                 u"comment : Hello info\n"
+                                 u'debug : Hello debug\n'
+                                 u'error : Hello error\n')
             Messager.clear()
 
             with open(output.name, "w") as output:
                 Messager.output(output)
             with open(output.name, "r") as output:
-                self.assertEquals(output.read(), "")
+                self.assertEqual(output.read(), "")
         finally:
             os.unlink(output.name)
 

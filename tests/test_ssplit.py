@@ -19,7 +19,7 @@ class TestSentenceSplit(unittest.TestCase):
 
         ret = [o for o in ssplit.jp_sentence_boundary_gen(sentence)]
         ans = [(1, 5), (6, 12), (12, 15), (16, 18)]
-        self.assertEquals(ret, ans)
+        self.assertEqual(ret, ans)
         print('Successful!')
 
     def testEnglish(self):
@@ -29,5 +29,5 @@ class TestSentenceSplit(unittest.TestCase):
 
         ret = [o for o in ssplit.en_sentence_boundary_gen(sentence)]
         ans = [(1, 44), (45, 50), (51, 57)]
-        self.assertEquals(ret, ans)
+        self.assertEqual(ret, ans)
         print('Successful!')

@@ -50,11 +50,11 @@ class PylintTestCase(unittest.TestCase):
         out = DummyReporter()
         run = Run(['--errors-only', "--jobs=8", 'standalone',
                    'server', 'tests'], reporter=out, exit=False)
-        self.assertEquals(run.linter.stats["error"],
-                          0,
-                          "%i pylint error found: "
-                          "please run `make static-test{2,3}' "
-                          "for detail report" % run.linter.stats["error"])
+        self.assertEqual(run.linter.stats["error"],
+                         0,
+                         "%i pylint error found: "
+                         "please run `make static-test{2,3}' "
+                         "for detail report" % run.linter.stats["error"])
 
 
 if __name__ == "__main__":

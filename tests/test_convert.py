@@ -21,17 +21,17 @@ class TestConvert(unittest.TestCase):
         InvalidSrcFormat
         """
         value = convert.InvalidSrcFormat("invalid!")
-        self.assertEquals(str(value),
-                          "Invalid convert src fomat: 'invalid!`")
+        self.assertEqual(str(value),
+                         "Invalid convert src fomat: 'invalid!`")
 
     def test_convert_stanford_pos(self):
         """
         convert stanford-pos
         """
-        self.assertEquals(convert.convert(TestStanford.STANFORD_XML,
-                                          "stanford-pos")["sentence_offsets"],
+        self.assertEqual(convert.convert(TestStanford.STANFORD_XML,
+                                         "stanford-pos")["sentence_offsets"],
 
-                          [(0, 45), (46, 71)])
+                         [(0, 45), (46, 71)])
 
     def test_convert_invalid_src(self):
         """

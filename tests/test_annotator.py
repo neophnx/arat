@@ -58,14 +58,14 @@ class TestAnnotator(unittest.TestCase):
         # pylint: disable=W0212
 
         # common case
-        self.assertEquals(ant._text_for_offsets("Welcome home!",
-                                                [(0, 2), (8, 10)]),
-                          "We ho")
+        self.assertEqual(ant._text_for_offsets("Welcome home!",
+                                               [(0, 2), (8, 10)]),
+                         "We ho")
 
         # overlap
-        self.assertEquals(ant._text_for_offsets("Welcome home!",
-                                                [(0, 2), (0, 1)]),
-                          "We")
+        self.assertEqual(ant._text_for_offsets("Welcome home!",
+                                               [(0, 2), (0, 1)]),
+                         "We")
 
         # out of bounds
         self.assertRaises(ProtocolArgumentError,
@@ -92,8 +92,8 @@ class TestAnnotator(unittest.TestCase):
         undo_resp = {}
 
         # change type
-        self.assertEquals(ann_obj.get_ann_by_id('T6').type_,
-                          'Protein')
+        self.assertEqual(ann_obj.get_ann_by_id('T6').type_,
+                         'Protein')
 
         ant._edit_span(ann_obj=ann_obj,
                        mods=modif_tracker,
@@ -104,17 +104,17 @@ class TestAnnotator(unittest.TestCase):
                        type_='Entity',
                        undo_resp=undo_resp)
 
-        self.assertEquals(modif_tracker.json_response(),
-                          {'edited': [[u'T6']]})
+        self.assertEqual(modif_tracker.json_response(),
+                         {'edited': [[u'T6']]})
 
-        self.assertEquals(ann_obj.get_ann_by_id('T6').type_,
-                          'Entity')
+        self.assertEqual(ann_obj.get_ann_by_id('T6').type_,
+                         'Entity')
 
-        self.assertEquals(undo_resp,
-                          {'action': 'mod_tb',
-                           'type': u'Protein',
-                           'id': u'T6',
-                           'offsets': [(1254, 1263)]})
+        self.assertEqual(undo_resp,
+                         {'action': 'mod_tb',
+                          'type': u'Protein',
+                          'id': u'T6',
+                          'offsets': [(1254, 1263)]})
 
         self.assertRaises(AnnotationNotFoundError,
                           ant._edit_span,
@@ -137,14 +137,14 @@ class TestAnnotator(unittest.TestCase):
                        type_='Protein',
                        undo_resp=undo_resp)
 
-        self.assertEquals(modif_tracker.json_response(),
-                          {'edited': [[u'T6']]})
+        self.assertEqual(modif_tracker.json_response(),
+                         {'edited': [[u'T6']]})
 
-        self.assertEquals(undo_resp,
-                          {'action': 'mod_tb',
-                           'type': u'Entity',
-                           'id': u'T6',
-                           'offsets': [(1254, 1263)]})
+        self.assertEqual(undo_resp,
+                         {'action': 'mod_tb',
+                          'type': u'Entity',
+                          'id': u'T6',
+                          'offsets': [(1254, 1263)]})
 
         self.assertRaises(AnnotationNotFoundError,
                           ant._edit_span,

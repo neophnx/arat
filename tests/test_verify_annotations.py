@@ -28,7 +28,7 @@ class TestVerifyAnnotations(unittest.TestCase):
             if filename.endswith(".txt"):
                 filename = directory+filename[:-4]
                 retcode = main([None, "-q", filename])
-                self.assertEquals(retcode, CHECK_PASSED, filename)
+                self.assertEqual(retcode, CHECK_PASSED, filename)
 
     def test_missing_file(self):
         """
@@ -39,7 +39,7 @@ class TestVerifyAnnotations(unittest.TestCase):
             if filename.endswith(".txt"):
                 filename = directory+(filename[:-4])[::-1]
                 retcode = main([None, "-q", filename, ])
-                self.assertEquals(retcode, FILE_NOT_FOUND, filename)
+                self.assertEqual(retcode, FILE_NOT_FOUND, filename)
 
     def test_bionlp_with_issues(self):
         """
@@ -48,7 +48,7 @@ class TestVerifyAnnotations(unittest.TestCase):
         filename = config.DATA_DIR + \
             "/example-data/corpora/BioNLP-ST_2011/BioNLP-ST_2011_ID/PMC2639726-02-Results-04"
         retcode = main([None, "-q", filename])
-        self.assertEquals(retcode, FOUND_ISSUES, filename)
+        self.assertEqual(retcode, FOUND_ISSUES, filename)
 
 
 if __name__ == "__main__":

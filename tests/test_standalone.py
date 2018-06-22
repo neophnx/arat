@@ -117,10 +117,10 @@ class TestStandalone(unittest.TestCase):
         test GET index  page
         """
         response = requests.get(self.url)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "application/xhtml+xml")
-        self.assertEquals(response.content, open(
+        self.assertEqual(response.content, open(
             "arat/client/index.xhtml", "rb").read())
 
     def test_03_whoami(self):
@@ -129,8 +129,8 @@ class TestStandalone(unittest.TestCase):
         """
         response = requests.post(self.url+"whoami", json={})
 
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
         self.assertTrue("user" in response.json())
 
@@ -143,9 +143,9 @@ class TestStandalone(unittest.TestCase):
 #        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         response = requests.post(self.url+"login",
                                  json=data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         self.assertTrue(u"Hello!" in response.json()["messages"][0],
@@ -159,9 +159,9 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"whoami",
                                  json={},
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         self.assertTrue(response.json()[u"user"], u"admin")
@@ -177,9 +177,9 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"getCollectionInformation",
                                  json=data,
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         for i in [six.u('normalization_config'), six.u('ner_taggers'),
@@ -198,9 +198,9 @@ class TestStandalone(unittest.TestCase):
 
         item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
-        self.assertEquals(item_type, six.u('d'))  # document
-        self.assertEquals(name, six.u('test-01'))
-        self.assertEquals(nb_entities, 0)  # no annotations so far
+        self.assertEqual(item_type, six.u('d'))  # document
+        self.assertEqual(name, six.u('test-01'))
+        self.assertEqual(nb_entities, 0)  # no annotations so far
 
     def test_get_document(self):
         """
@@ -212,9 +212,9 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"getDocument",
                                  json=data,
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         response_keys = set(response.json().keys())
@@ -234,9 +234,9 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"getDocumentTimestamp",
                                  json=data,
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         self.assertTrue('mtime' in response.json().keys())
@@ -256,12 +256,12 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"createSpan",
                                  json=data,
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get("Content-Type", ""),
-                          "text/json")
+        self.assertEqual(response.headers.get("Content-Type", ""),
+                         "text/json")
 
-        self.assertEquals(response.json()["edited"], [[six.u("T1")]])
+        self.assertEqual(response.json()["edited"], [[six.u("T1")]])
 
         # check numbers on the collection level
         data = {"collection": "/test-data"}
@@ -271,14 +271,14 @@ class TestStandalone(unittest.TestCase):
 
         item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
-        self.assertEquals(item_type, six.u('d'))  # document
-        self.assertEquals(name, six.u('test-01'))
-        self.assertEquals(nb_entities, 1)  # this is the one
+        self.assertEqual(item_type, six.u('d'))  # document
+        self.assertEqual(name, six.u('test-01'))
+        self.assertEqual(nb_entities, 1)  # this is the one
 
         # check annotation file content
         with open("data/test-data/test-01.ann", "rb") as fd:
-            self.assertEquals(fd.read().decode("utf-8").strip(),
-                              six.u("T1	Protein 15 21	simple"))
+            self.assertEqual(fd.read().decode("utf-8").strip(),
+                             six.u("T1	Protein 15 21	simple"))
 
     def test_12_logout(self):
         """
@@ -287,13 +287,13 @@ class TestStandalone(unittest.TestCase):
         response = requests.post(self.url+"logout",
                                  json={},
                                  cookies={"user": self.user})
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-        self.assertEquals(response.headers.get(
+        self.assertEqual(response.headers.get(
             "Content-Type", ""), "text/json")
 
         # get the user cookie
-        self.assertEquals(response.cookies.get("user", None), None)
+        self.assertEqual(response.cookies.get("user", None), None)
 
 
 if __name__ == "__main__":
