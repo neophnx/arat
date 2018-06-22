@@ -1353,3 +1353,39 @@ class SplitSpanHandler(AuthenticatedJsonHandler):
         response = split_span(collection, document, args, id_)
 
         return response
+
+
+class CreateArcHandler(AuthenticatedJsonHandler):
+    """
+    Add an arc to a document
+    """
+
+    def _post(self, collection, document, origin, target, type_,
+              attributes=None, old_type=None, old_target=None, comment=None):
+        response = create_arc(collection, document, origin, target, type_,
+                              attributes, old_type, old_target, comment)
+        return response
+
+
+class DeleteArcHandler(AuthenticatedJsonHandler):
+    """
+    Delete an arc of a document
+    """
+
+    def _post(self, collection, document, origin, target, type_,
+              attributes=None, old_type=None, old_target=None, comment=None):
+        response = delete_arc(collection, document, origin, target, type_)
+        return response
+
+
+class ReverseArcHandler(AuthenticatedJsonHandler):
+    """
+    Reverse an arc of a document
+    """
+
+    def _post(self, collection, document, origin, target, type_,
+              attributes=None, old_type=None, old_target=None, comment=None):
+        raise NotImplementedError
+#        response = reverse_arc (collection, document, origin, target, type_,
+#                              attributes, old_type, old_target, comment)
+#        return response

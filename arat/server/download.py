@@ -28,7 +28,7 @@ from six.moves import range
 # arat
 from arat.server.document import real_directory
 from arat.server.annotation import open_textfile
-from arat.server.common import NoPrintJSONError
+from arat.server.common import AuthenticatedJsonHandler
 from subprocess import Popen
 
 
@@ -48,7 +48,8 @@ def download_file(document, collection, extension):
             ('Content-Disposition', 'inline; filename=%s' % fname)]
     with open_textfile(fpath, 'r') as txt_file:
         data = txt_file.read().encode('utf-8')
-    raise NoPrintJSONError(hdrs, data)
+
+    return hdrs, data
 
 
 def find_in_directory_tree(directory, filename):
@@ -118,7 +119,27 @@ def download_collection(collection, include_conf=False):
         with open(tmp_file_path, 'rb') as tmp_file:
             tar_data = tmp_file.read()
 
-        raise NoPrintJSONError(hdrs, tar_data)
+        return hdrs, tar_data
     finally:
         if tmp_file_path is not None:
             remove(tmp_file_path)
+
+
+class DownloadFileHandler(AuthenticatedJsonHandler):
+    """
+    Download a single file
+    """
+
+    def _post(self, collection, document, extension):
+        response = download_file(document, collection, extension)
+        return response
+
+
+class DownloadCollectionHandler(AuthenticatedJsonHandler):
+    """
+    Download an entire collection
+    """
+
+    def _post(self, collection, include_conf=False):
+        response = download_collection(collection, include_conf)
+        return response

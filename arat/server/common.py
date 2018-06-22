@@ -143,20 +143,6 @@ class ProtocolArgumentError(ProtocolError):
     def __str__(self):
         return "Protocol error: wrong argument"
 
-# If received by ajax.cgi, no JSON will be sent
-# XXX: This is an ugly hack to circumvent protocol flaws
-
-
-class NoPrintJSONError(Exception):
-    """
-    Critical situation, JSON can't be print
-    """
-
-    def __init__(self, hdrs, data):
-        Exception.__init__(self)
-        self.hdrs = hdrs
-        self.data = data
-
 
 class AratNotImplementedError(ProtocolError):
     """

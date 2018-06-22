@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
-
+# -*- coding: utf-8; -*-
 '''
 SVG saving and storage functionality.
 
@@ -13,18 +10,23 @@ Version:    2011-04-22
 # TODO: Can we verify somehow that what we are getting is actually an svg?
 # TODO: Limits to size? Or inherent from HTTP?
 
+# future
 from __future__ import with_statement
-
 from __future__ import absolute_import
+
+
+# standard
+from os import makedirs, mkdir
 from os.path import join as path_join
 from os.path import isfile, exists
-from os import makedirs, mkdir
 
+# arat
 from arat.server.annotator import open_textfile
-from arat.server.common import ProtocolError, NoPrintJSONError
-from config import BASE_DIR, WORK_DIR
+from arat.server.common import ProtocolError
+from arat.server.common import AuthenticatedJsonHandler
 from arat.server.document import real_directory
 from arat.server.message import Messager
+from config import BASE_DIR, WORK_DIR
 
 # Constants
 SVG_DIR = path_join(WORK_DIR, 'svg')
@@ -210,4 +212,24 @@ def retrieve_stored(document, suffix):
     with open(stored_path, 'rb') as stored_file:
         data = stored_file.read()
 
-    raise NoPrintJSONError(hdrs, data)
+    return (hdrs, data)
+
+
+class StoreSvgHandler(AuthenticatedJsonHandler):
+    """
+    Store SVG to the server file system
+    """
+
+    def _post(self, collection, document, svg):
+        response = store_svg(collection, document, svg)
+        return response
+
+
+class RetrieveSvgHandler(AuthenticatedJsonHandler):
+    """
+    Retrieve an SVG file stored on th file system
+    """
+
+    def _post(self, document, suffix):
+        response = retrieve_stored(document, suffix)
+        return response

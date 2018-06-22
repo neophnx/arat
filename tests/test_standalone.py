@@ -87,7 +87,7 @@ class TestStandalone(unittest.TestCase):
         free_port = cls._find_free_port()
         cls.url = "http://localhost:%i/" % free_port
 
-        cls.proc = Popen([sys.executable, "standalone.py", str(free_port)])
+        cls.proc = Popen([sys.executable, standalone.__file__, str(free_port)])
 
         if not wait_net_service("localhost", free_port, 5):
             raise OSError
@@ -111,114 +111,6 @@ class TestStandalone(unittest.TestCase):
         rmtree("data/test-data", ignore_errors=True)
 
         cls.proc.terminate()
-
-    def test_permission_parse_error(self):
-        """
-        PermissionParseError
-        """
-        value = standalone.PermissionParseError(linenum=10,
-                                                line="invalid line",
-                                                message=None)
-        self.assertEquals(str(value),
-                          'line 10: invalid line')
-
-        value = standalone.PermissionParseError(linenum=10,
-                                                line="invalid line",
-                                                message="message")
-        self.assertEquals(str(value),
-                          'line 10 (message): invalid line')
-
-    def test_path_permissions(self):
-        """
-        test permission file parser
-        """
-
-        valid_permissions = ["#ignored comment",
-                             "Allow : *.txt",
-                             "Disallow : *.png",
-                             "Allow : /allowed",
-                             "Disallow : /disallowed"]
-
-        # check permission with default=True
-        value = standalone.PathPermissions(default_allow=True)
-        self.assertEquals(value.entries,
-                          [])
-        self.assertEquals(value.default_allow,
-                          True)
-
-        self.assertTrue(value.allow("/default"))
-        self.assertTrue(value.allow("/default/index.html"))
-        self.assertTrue(value.allow("/allowed"))
-        self.assertTrue(value.allow("/disallowed"))
-        self.assertTrue(value.allow("/allowed/text.txt"))
-        self.assertTrue(value.allow("/disallowed/text.txt"))
-        self.assertTrue(value.allow("/allowed/img.png"))
-        self.assertTrue(value.allow("/disallowed/img.png"))
-
-        # check permission with default=False
-        value = standalone.PathPermissions(default_allow=False)
-        self.assertEquals(value.entries,
-                          [])
-        self.assertEquals(value.default_allow,
-                          False)
-
-        self.assertFalse(value.allow("/default"))
-        self.assertFalse(value.allow("/default/index.html"))
-        self.assertFalse(value.allow("/allowed"))
-        self.assertFalse(value.allow("/disallowed"))
-        self.assertFalse(value.allow("/allowed/text.txt"))
-        self.assertFalse(value.allow("/disallowed/text.txt"))
-        self.assertFalse(value.allow("/allowed/img.png"))
-        self.assertFalse(value.allow("/disallowed/img.png"))
-
-        # check permission with defined rules and default=False
-        value.parse(valid_permissions)
-        self.assertEquals(value.entries,
-                          [(standalone.ExtensionPattern(".txt"), True),
-                           (standalone.ExtensionPattern(".png"), False),
-                           (standalone.PathPattern("/allowed"), True),
-                           (standalone.PathPattern("/disallowed"), False)],
-                          str(value.entries))
-        self.assertEquals(value.default_allow,
-                          False)
-
-        self.assertFalse(value.allow("/default"))
-        self.assertFalse(value.allow("/default/index.html"))
-        self.assertTrue(value.allow("/allowed"))
-        self.assertFalse(value.allow("/disallowed"))
-        self.assertTrue(value.allow("/allowed/text.txt"))
-        self.assertTrue(value.allow("/disallowed/text.txt"))
-        self.assertFalse(value.allow("/allowed/img.png"))
-        self.assertFalse(value.allow("/disallowed/img.png"))
-
-        # check for syntax error
-
-        missing_colon_permissions = ["#ignored comment",
-                                     "Allow = *.txt",
-                                     "Disallow : *.png",
-                                     "Allow : /allowed",
-                                     "Disallow : /disallowed"]
-        self.assertRaises(standalone.PermissionParseError,
-                          value.parse,
-                          missing_colon_permissions)
-
-        unknown_directive_permissions = ["#ignored comment",
-                                         "Allow : *.txt",
-                                         "Disallow : *.png",
-                                         "DontAllow : /allowed",
-                                         "Disallow : /disallowed"]
-        self.assertRaises(standalone.PermissionParseError,
-                          value.parse,
-                          unknown_directive_permissions)
-
-        wrong_pattern_permissions = ["#ignored comment",
-                                     "Allow : *.txt",
-                                     "Disallow : index.html?",
-                                     "Allow : /allowed",
-                                     "Disallow : /disallowed"]
-        self.assertRaises(standalone.PermissionParseError,
-                          value.parse,
-                          wrong_pattern_permissions)
 
     def test_01_home(self):
         """
