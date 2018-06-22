@@ -20,7 +20,12 @@ print(INSTALL_DIR)
 
 class AjaxRestAdapter(tornado.web.RequestHandler):
     def post(self):
+        print(self.request.body)
         body = json.loads(self.request.body)
+        
+        # replace key to protected one
+        body = {(i+"_" if i in ["id", "type"] else i):j
+                for i,j in body.items()}
         
         # ensure a collection is set
         body["collection"] = body.get("collection", "/")
@@ -41,12 +46,21 @@ def make_app():
             (r'/client/(.*)', tornado.web.StaticFileHandler, {'path': INSTALL_DIR}),
             (r'/ajax.cgi', AjaxRestAdapter),
             (r'/data/(.*)(/[^/]*)', None, {'path': 'client'}),
-            (r'/(index.x?html|favicon.ico)?', tornado.web.StaticFileHandler, {"path": INSTALL_DIR})],
+            (r'/(index.x?html|favicon.ico)', tornado.web.StaticFileHandler, {"path": INSTALL_DIR}),
+            (r"/", tornado.web.RedirectHandler, {"url":"/index.xhtml"}),],
             verbose=True,
             autoreload=True,
            serve_traceback=True )
 
-if __name__ == "__main__":
+def main():
+    import sys
+    if len(sys.argv)>=2:
+        port = int(sys.argv[1])
+    else:
+        port=8888
     app = make_app()
-    app.listen(8888)
+    app.listen(port)
     tornado.ioloop.IOLoop.current().start()
+    
+if __name__ == "__main__":
+    main()

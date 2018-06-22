@@ -12,7 +12,7 @@ from __future__ import print_function
 # standard
 import unittest
 import socket
-from threading import Thread
+from subprocess import Popen
 import sys
 import os
 from shutil import rmtree
@@ -88,10 +88,7 @@ class TestStandalone(unittest.TestCase):
         free_port = cls._find_free_port()
         cls.url = "http://localhost:%i/" % free_port
 
-        cls.thread = Thread(target=standalone.main,
-                            args=([standalone.__file__, str(free_port)],))
-        cls.thread.setDaemon(True)
-        cls.thread.start()
+        cls.proc = Popen([sys.executable, "standalone.py", str(free_port)])
 
         if not wait_net_service("localhost", free_port, 5):
             raise OSError
@@ -117,6 +114,8 @@ class TestStandalone(unittest.TestCase):
 
         # remove test directory recursively
         rmtree("data/test-data", ignore_errors=True)
+        
+        cls.proc.terminate()
 
     def test_permission_parse_error(self):
         """
@@ -233,8 +232,8 @@ class TestStandalone(unittest.TestCase):
         response = requests.get(self.url)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
-            "Content-Type", ""), "text/html")
-        self.assertEquals(response.content, open("index.html", "rb").read())
+            "Content-Type", ""), "application/xhtml+xml")
+        self.assertEquals(response.content, open("arat/client/index.xhtml", "rb").read())
 
     def test_02_cookie(self):
         """
@@ -246,31 +245,31 @@ class TestStandalone(unittest.TestCase):
         """
         test whoami action
         """
-        response = requests.post(self.url+"ajax.cgi", data="action=whoami&protocol=1",
-                                 headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        response = requests.post(self.url+"ajax.cgi", json={"action":"whoami",
+                                                            "protocol":1})
 
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
-            "Content-Type", ""), "application/json")
+            "Content-Type", ""), "text/json")
         self.assertTrue("user" in response.json())
 
     def test_04_login_known_user(self):
         """
         test to authenticate and login
         """
-        data = urlencode({"action": "login",
+        data = {"action": "login",
                           "user": "admin",
                           "password": "admin",
-                          "protocol": "1"})
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                          "protocol": "1"}
+#        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         response = requests.post(self.url+"ajax.cgi",
-                                 data=data,
-                                 headers=headers,
+                                 json=data,
+#                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
-            "Content-Type", ""), "application/json")
+            "Content-Type", ""), "text/json")
 
         self.assertTrue(u"Hello!" in response.json()["messages"][0],
                         response.json()["messages"])
@@ -278,13 +277,14 @@ class TestStandalone(unittest.TestCase):
         # whoami
 
         response = requests.post(self.url+"ajax.cgi",
-                                 data="action=whoami&protocol=1",
-                                 headers=headers,
+                                 json={"action":"whoami",
+                                       "protocol":1},
+#                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
-            "Content-Type", ""), "application/json")
+            "Content-Type", ""), "text/json")
 
         self.assertTrue(response.json()[u"user"], u"admin")
 
@@ -292,19 +292,19 @@ class TestStandalone(unittest.TestCase):
         """
         test the getCollectionInformation action
         """
-        data = urlencode({"action": "getCollectionInformation",
+        data = {"action": "getCollectionInformation",
                           "collection": "/test-data",
-                          "protocol": "1"})
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                          "protocol": "1"}
+#        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
         response = requests.post(self.url+"ajax.cgi",
-                                 data=data,
-                                 headers=headers,
+                                 json=data,
+#                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
-            "Content-Type", ""), "application/json")
+            "Content-Type", ""), "text/json")
 
         for i in [six.u('normalization_config'), six.u('ner_taggers'),
                   six.u('entity_types'),
@@ -332,33 +332,34 @@ class TestStandalone(unittest.TestCase):
         """
         test the createSpan action
         """
-        data = urlencode({"action": "createSpan",
+        data = {"action": "createSpan",
                           "collection": "/test-data",
                           "document": "test-01",
                           "attributes": "{}",
                           "normalizations": "[]",
                           "offsets": "[[15,21]]",
                           "type": "Protein",
-                          "protocol": "1"})
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                          "protocol": "1"}
+#        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
         response = requests.post(self.url+"ajax.cgi",
-                                 data=data,
-                                 headers=headers,
+                                 json=data,
+#                                 headers=headers,
                                  cookies={"sid": self.sid})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get("Content-Type", ""),
-                          "application/json")
+                          "text/json")
 
         self.assertEquals(response.json()["edited"], [[six.u("T1")]])
 
         # check numbers on the collection level
-        data = urlencode({"action": "getCollectionInformation",
+        data = {"action": "getCollectionInformation",
                           "collection": "/test-data",
-                          "protocol": "1"})
-        response = requests.post(self.url+"ajax.cgi", data,
-                                 headers=headers,
+                          "protocol": "1"}
+        response = requests.post(self.url+"ajax.cgi",
+                                 json=data,
+#                                 headers=headers,
                                  cookies={"sid": self.sid})
 
         item_type, _, name, _, nb_entities, _, _ = response.json()[
