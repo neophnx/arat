@@ -60,6 +60,7 @@ from arat.server.auth import allowed_to_read, AccessDeniedError
 from arat.server.annlog import annotation_logging_active
 from arat.server.tokenise import tokeniser_by_name
 from arat.server.verify_annotations import verify_annotation
+from arat.server.common import JsonHandler, AuthenticatedJsonHandler
 
 
 def _fill_type_configuration(nodes, project_conf, hotkey_by_type, all_connections=None):
@@ -445,8 +446,8 @@ def get_annotator_config(directory):
     return ProjectConfiguration(directory).get_annotator_config()
 
 
-def assert_allowed_to_read(doc_path):
-    if not allowed_to_read(doc_path):
+def assert_allowed_to_read(doc_path, user):
+    if not allowed_to_read(doc_path, user):
         raise AccessDeniedError  # Permission denied by access control
 
 
@@ -466,12 +467,12 @@ def _is_hidden(file_name):
     return file_name.startswith('hidden_') or file_name.startswith('.')
 
 
-def _listdir(directory):
+def _listdir(directory, user):
     # return listdir(directory)
     try:
-        assert_allowed_to_read(directory)
+        assert_allowed_to_read(directory, user)
         return [f for f in listdir(directory) if not _is_hidden(f)
-                and allowed_to_read(path_join(directory, f))]
+                and allowed_to_read(path_join(directory, f), user)]
     except OSError as exception:
         Messager.error("Error listing %s: %s" % (directory, exception))
         raise AnnotationCollectionNotFoundError(directory)
@@ -500,9 +501,8 @@ def _getmtime(file_path):
 
 
 class InvalidConfiguration(ProtocolError):
-    def json(self, json_dic):
-        json_dic['exception'] = 'invalidConfiguration'
-        return json_dic
+    def __str__(self):
+        return "Invalid configuration"
 
 
 # TODO: Is this what we would call the configuration? It is minimal.
@@ -555,15 +555,15 @@ def _inject_annotation_type_conf(dir_path, json_dic=None):
 # TODO: This is not the prettiest of functions
 
 
-def get_directory_information(collection):
+def get_directory_information(collection, user):
     directory = collection
 
     real_dir = real_directory(directory)
 
-    assert_allowed_to_read(real_dir)
+    assert_allowed_to_read(real_dir, user)
 
     # Get the document names
-    base_names = [fn[0:-4] for fn in _listdir(real_dir)
+    base_names = [fn[0:-4] for fn in _listdir(real_dir, user)
                   if fn.endswith('txt')]
 
     doclist = base_names[:]
@@ -587,7 +587,7 @@ def get_directory_information(collection):
     doclist = [doclist[i] + doc_stats[i] for i in range(len(doclist))]
     doclist_header += stats_types
 
-    dirlist = [i for i in _listdir(real_dir)
+    dirlist = [i for i in _listdir(real_dir, user)
                if isdir(path_join(real_dir, i))]
     # just in case, and for generality
     dirlist = [[i] for i in dirlist]
@@ -656,21 +656,15 @@ class UnableToReadTextFile(ProtocolError):
     def __str__(self):
         return 'Unable to read text file %s' % self.path
 
-    def json(self, json_dic):
-        json_dic['exception'] = 'unableToReadTextFile'
-        return json_dic
-
 
 class IsDirectoryError(ProtocolError):
     def __init__(self, path):
         self.path = path
+        ProtocolError.__init__(self)
 
     def __str__(self):
-        return ''
+        return '"%s" is not a directory' % self.path
 
-    def json(self, json_dic):
-        json_dic['exception'] = 'isDirectoryError'
-        return json_dic
 
 # TODO: All this enrichment isn't a good idea, at some point we need an object
 
@@ -903,10 +897,10 @@ def get_document(collection, document):
     return _document_json_dict(doc_path)
 
 
-def get_document_timestamp(collection, document):
+def get_document_timestamp(collection, document, user):
     directory = collection
     real_dir = real_directory(directory)
-    assert_allowed_to_read(real_dir)
+    assert_allowed_to_read(real_dir, user)
     doc_path = path_join(real_dir, document)
     ann_path = doc_path + '.' + JOINED_ANN_FILE_SUFF
     mtime = _getmtime(ann_path)
@@ -914,3 +908,48 @@ def get_document_timestamp(collection, document):
     return {
         'mtime': mtime,
     }
+
+
+class CollectionInformationHandler(JsonHandler):
+    """
+    Get the list of document and meta data about a collection
+    """
+
+    def _post(self, collection):
+        user = self.get_secure_cookie("user")
+        response = get_directory_information(collection, user)
+
+        return response
+
+
+class DocumentHandler(JsonHandler):
+    """
+    Get a document text, current annotation and segmentation
+    """
+
+    def _post(self, collection, document):
+        response = get_document(collection, document)
+
+        return response
+
+
+class DocumentTimestampHandler(JsonHandler):
+    """
+    Get a document timestamp
+    """
+
+    def _post(self, collection, document):
+        user = self.get_secure_cookie("user")
+        response = get_document_timestamp(collection, document, user)
+        return response
+
+
+class SaveDocumentHandler(AuthenticatedJsonHandler):
+    """
+    Save a document
+    """
+
+    def _post(self, **arg):
+
+        response = arg
+        return response

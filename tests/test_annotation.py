@@ -4,10 +4,16 @@ Created on Sun Jun  3 10:58:39 2018
 
 @author: phnx
 """
-from __future__ import absolute_import
-import unittest
 
-from server import annotation as anno
+# future
+from __future__ import absolute_import
+
+# standard
+import unittest
+import sys
+
+# arat
+from arat.server import annotation as anno
 import config
 
 
@@ -17,6 +23,9 @@ class TestAnnotation(unittest.TestCase):
     """
 
     def test_annotation_id_prefix(self):
+        """
+        annotation.annotation_id_prefix
+        """
         self.assertEquals(anno.annotation_id_prefix("foo1"),
                           'foo')
 
@@ -31,6 +40,9 @@ class TestAnnotation(unittest.TestCase):
                           "12_a")
 
     def test_annotation_id_number(self):
+        """
+        annotation.annotation_id_number
+        """
         self.assertEquals(anno.annotation_id_number("foo1"),
                           "1")
 
@@ -46,6 +58,9 @@ class TestAnnotation(unittest.TestCase):
                           "12_a")
 
     def test_is_valid_id(self):
+        """
+        annotation.is_valid_id
+        """
         self.assertEquals(anno.is_valid_id("foo1"),
                           True)
 
@@ -91,6 +106,5 @@ class TestAnnotation(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import sys
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotation)
     unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(SUITE)

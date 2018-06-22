@@ -20,7 +20,6 @@ from shutil import rmtree
 # third party
 import requests
 import six
-from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 # arat
 from arat import standalone
@@ -93,11 +92,7 @@ class TestStandalone(unittest.TestCase):
         if not wait_net_service("localhost", free_port, 5):
             raise OSError
 
-        # get a session id
-        response = requests.post(cls.url+"ajax.cgi", json={"action": "getCollectionInformation",
-                                                           "collection": "/",
-                                                           "protocol": "1"})
-        cls.sid = response.cookies.get("sid", "")
+        cls.user = None
 
         # populate a datadir with simple test file
         if not os.path.isdir("data/test-data"):
@@ -114,7 +109,7 @@ class TestStandalone(unittest.TestCase):
 
         # remove test directory recursively
         rmtree("data/test-data", ignore_errors=True)
-        
+
         cls.proc.terminate()
 
     def test_permission_parse_error(self):
@@ -233,20 +228,14 @@ class TestStandalone(unittest.TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
             "Content-Type", ""), "application/xhtml+xml")
-        self.assertEquals(response.content, open("arat/client/index.xhtml", "rb").read())
-
-    def test_02_cookie(self):
-        """
-        test cookie presence
-        """
-        self.assertNotEquals(self.sid, "")
+        self.assertEquals(response.content, open(
+            "arat/client/index.xhtml", "rb").read())
 
     def test_03_whoami(self):
         """
         test whoami action
         """
-        response = requests.post(self.url+"ajax.cgi", json={"action":"whoami",
-                                                            "protocol":1})
+        response = requests.post(self.url+"whoami", json={})
 
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.headers.get(
@@ -257,15 +246,11 @@ class TestStandalone(unittest.TestCase):
         """
         test to authenticate and login
         """
-        data = {"action": "login",
-                          "user": "admin",
-                          "password": "admin",
-                          "protocol": "1"}
+        data = {"user": "admin",
+                "password": "admin"}
 #        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        response = requests.post(self.url+"ajax.cgi",
-                                 json=data,
-#                                 headers=headers,
-                                 cookies={"sid": self.sid})
+        response = requests.post(self.url+"login",
+                                 json=data)
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
@@ -274,13 +259,14 @@ class TestStandalone(unittest.TestCase):
         self.assertTrue(u"Hello!" in response.json()["messages"][0],
                         response.json()["messages"])
 
+        # get the user cookie
+        TestStandalone.user = response.cookies.get("user", "")
+
         # whoami
 
-        response = requests.post(self.url+"ajax.cgi",
-                                 json={"action":"whoami",
-                                       "protocol":1},
-#                                 headers=headers,
-                                 cookies={"sid": self.sid})
+        response = requests.post(self.url+"whoami",
+                                 json={},
+                                 cookies={"user": self.user})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
@@ -292,35 +278,31 @@ class TestStandalone(unittest.TestCase):
         """
         test the getCollectionInformation action
         """
-        data = {"action": "getCollectionInformation",
-                          "collection": "/test-data",
-                          "protocol": "1"}
+        data = {"collection": "/test-data",
+                "protocol": "1"}
 #        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-        response = requests.post(self.url+"ajax.cgi",
+        response = requests.post(self.url+"getCollectionInformation",
                                  json=data,
-#                                 headers=headers,
-                                 cookies={"sid": self.sid})
+                                 cookies={"user": self.user})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get(
             "Content-Type", ""), "text/json")
 
         for i in [six.u('normalization_config'), six.u('ner_taggers'),
-                  six.u('entity_types'),
-                  six.u('protocol'), six.u('description'), six.u('parent'),
+                  six.u('entity_types'), six.u('description'), six.u('parent'),
                   six.u('event_attribute_types'), six.u(
                       'items'), six.u('unconfigured_types'),
                   six.u('messages'), six.u(
                       'disambiguator_config'), six.u('ui_names'),
                   six.u('header'), six.u(
                       'entity_attribute_types'), six.u('event_types'),
-                  six.u('relation_types'), six.u(
-                      'action'), six.u('search_config'),
+                  six.u('relation_types'), six.u('search_config'),
                   six.u('annotation_logging'), six.u(
                       'relation_attribute_types'),
                   six.u('visual_options')]:
-            self.assertTrue(i in response.json())
+            self.assertTrue(i in response.json(), i)
 
         item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
@@ -328,24 +310,60 @@ class TestStandalone(unittest.TestCase):
         self.assertEquals(name, six.u('test-01'))
         self.assertEquals(nb_entities, 0)  # no annotations so far
 
+    def test_get_document(self):
+        """
+        get_document
+        """
+        data = {u'document': u'000-introduction',
+                u'collection': u'/example-data/tutorials/news/'}
+
+        response = requests.post(self.url+"getDocument",
+                                 json=data,
+                                 cookies={"user": self.user})
+        self.assertEquals(response.status_code, 200)
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "text/json")
+
+        response_keys = set(response.json().keys())
+        self.assertTrue(response_keys.intersection(['offsets',
+                                                    'sentence_offsets',
+                                                    'sentence_offsets',
+                                                    'entities',
+                                                    'triggers']))
+
+    def test_get_document_timestamp(self):
+        """
+        get_document_timestamp
+        """
+        data = {u'document': u'000-introduction',
+                u'collection': u'/example-data/tutorials/news/'}
+
+        response = requests.post(self.url+"getDocumentTimestamp",
+                                 json=data,
+                                 cookies={"user": self.user})
+        self.assertEquals(response.status_code, 200)
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "text/json")
+
+        self.assertTrue('mtime' in response.json().keys())
+
     def test_11_create_span(self):
         """
         test the createSpan action
         """
-        data = {"action": "createSpan",
-                          "collection": "/test-data",
-                          "document": "test-01",
-                          "attributes": "{}",
-                          "normalizations": "[]",
-                          "offsets": "[[15,21]]",
-                          "type": "Protein",
-                          "protocol": "1"}
-#        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        data = {"collection": "/test-data",
+                "document": "test-01",
+                "attributes": "{}",
+                "normalizations": "[]",
+                "offsets": "[[15,21]]",
+                "type": "Protein",
+                "protocol": "1"}
 
-        response = requests.post(self.url+"ajax.cgi",
+        response = requests.post(self.url+"createSpan",
                                  json=data,
-#                                 headers=headers,
-                                 cookies={"sid": self.sid})
+                                 cookies={"user": self.user})
         self.assertEquals(response.status_code, 200)
 
         self.assertEquals(response.headers.get("Content-Type", ""),
@@ -354,13 +372,10 @@ class TestStandalone(unittest.TestCase):
         self.assertEquals(response.json()["edited"], [[six.u("T1")]])
 
         # check numbers on the collection level
-        data = {"action": "getCollectionInformation",
-                          "collection": "/test-data",
-                          "protocol": "1"}
-        response = requests.post(self.url+"ajax.cgi",
+        data = {"collection": "/test-data"}
+        response = requests.post(self.url+"getCollectionInformation",
                                  json=data,
-#                                 headers=headers,
-                                 cookies={"sid": self.sid})
+                                 cookies={"user": self.user})
 
         item_type, _, name, _, nb_entities, _, _ = response.json()[
             "items"][-1]
@@ -373,10 +388,20 @@ class TestStandalone(unittest.TestCase):
             self.assertEquals(fd.read().decode("utf-8").strip(),
                               six.u("T1	Protein 15 21	simple"))
 
-#    def test_arat_http_request_handler(self):
-#        """
-#        AratHTTPRequestHandler
-#        """
+    def test_12_logout(self):
+        """
+        test to logout
+        """
+        response = requests.post(self.url+"logout",
+                                 json={},
+                                 cookies={"user": self.user})
+        self.assertEquals(response.status_code, 200)
+
+        self.assertEquals(response.headers.get(
+            "Content-Type", ""), "text/json")
+
+        # get the user cookie
+        self.assertEquals(response.cookies.get("user", None), None)
 
 
 if __name__ == "__main__":

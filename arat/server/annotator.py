@@ -23,7 +23,6 @@ from six.moves import range  # pylint disable: import-error
 # arat
 from arat.server.annotation import (OnelineCommentAnnotation, TEXT_FILE_SUFFIX,
                                     TextAnnotations, DependingAnnotationDeleteError,
-                                    TextBoundAnnotation,
                                     EventAnnotation, EquivAnnotation, open_textfile,
                                     AnnotationsIsReadOnlyError, AttributeAnnotation,
                                     NormalizationAnnotation, SpanOffsetOverlapError,
@@ -35,6 +34,7 @@ from arat.server.jsonwrap import loads as json_loads, dumps as json_dumps
 from arat.server.message import Messager
 from arat.server.projectconfig import ProjectConfiguration
 from arat.server.projectconfig.commons import ENTITY_CATEGORY, EVENT_CATEGORY
+from arat.server.common import AuthenticatedJsonHandler
 
 from config import DEBUG
 
@@ -1319,3 +1319,37 @@ def get_status(directory, document):
         'status': status
     }
     return json_dic
+
+
+class CreateSpanHandler(AuthenticatedJsonHandler):
+    """
+    Add a span to a document
+    """
+
+    def _post(self, collection, document, offsets, type_, attributes=None,
+              normalizations=None, id_=None, comment=None):
+        response = create_span(collection, document, offsets, type_, attributes,
+                               normalizations, id_, comment)
+        return response
+
+
+class DeleteSpanHandler(AuthenticatedJsonHandler):
+    """
+    Delete a span from a document
+    """
+
+    def _post(self, collection, document, id_, type_, offsets):
+        response = delete_span(collection, document, id_)
+
+        return response
+
+
+class SplitSpanHandler(AuthenticatedJsonHandler):
+    """
+    Split a span from a document
+    """
+
+    def _post(self, collection, document, args, id_):
+        response = split_span(collection, document, args, id_)
+
+        return response

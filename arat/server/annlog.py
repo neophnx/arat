@@ -98,7 +98,7 @@ def log_annotation(collection, document, status, action, args):
 
     if not logger:
         return False
-    
+
     # TODO: use real user name whithout the legacy session managment
     user = 'anonymous'
 

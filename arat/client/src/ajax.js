@@ -30,10 +30,10 @@ var Ajax = (function($, window, undefined) {
           data['protocol'] = PROTOCOL_VERSION;
         }
         
-        
+        data_json = JSON.stringify(data)
         options = {
-            url: "/ajax.cgi",
-            data: JSON.stringify(data),
+            url: "/"+data["action"],
+            data: data_json,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             type: 'POST',

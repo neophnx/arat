@@ -9,9 +9,96 @@ Author:     Pontus Stenetorp    <pontus is s u-tokyo ac jp>
 Version:    2011-04-21
 '''
 
-
+# future
 from __future__ import absolute_import
+from __future__ import print_function
+
+# standard
 import warnings
+
+# third party
+from tornado.web import RequestHandler
+import ujson as json
+
+
+class JsonHandler(RequestHandler):
+    """
+    Abstract class tking care of JSON serialization/ deserialization
+
+    """
+
+    def post(self):
+        """
+        This method should be called by tornado
+        """
+        body = json.loads(self.request.body)
+        action = body.get(u"action", None)
+
+        print(body)
+        if u"protocol" in body:
+            del body["protocol"]
+        if u"action" in body:
+            del body["action"]
+
+        body = {(i+"_" if i in ["id", "type"] else i): j
+                for i, j
+                in body.items()}
+
+        response = self._post(**body)
+
+        if "messages" not in response:
+            response["messages"] = []
+
+        if "action" not in response and action is not None:
+            response["action"] = action
+
+        print(response)
+
+        self.set_header("Content-Type", "text/json")
+        self.write(json.dumps(response))
+
+    def _post(self, **args):
+        """
+        Overide this method to implement handler.
+
+        args are unpacked from JSON request
+        expect a dict result to serialized to JSON
+
+        """
+        raise NotImplementedError
+
+    def data_received(self):
+        """
+        Streamed request are not implemented
+        """
+        # provides a no-op implementation to prevent pylint to complain about
+        # missing overide
+        pass
+
+
+class AuthenticatedJsonHandler(JsonHandler):
+    """
+    Same a JsonHandler with authentication check
+    """
+
+    def post(self,):
+        if self.get_secure_cookie('user') is None:
+            self.set_status(403)
+            self.finish()
+            return
+
+        JsonHandler.post(self)
+
+    def _post(self, **args):
+        """
+        Overide this method to implement an handler
+        wich requires authorization.
+
+        args are unpacked from JSON request
+        expect a dict result to serialized to JSON
+
+        """
+        raise NotImplementedError
 
 
 def deprecation(message):

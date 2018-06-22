@@ -26,15 +26,11 @@ from six.moves import zip
 
 # arat
 from arat.server.annotator import create_arc, delete_arc, reverse_arc
-from arat.server.annotator import create_span, delete_span
-from arat.server.annotator import split_span
-from arat.server.auth import login, logout, whoami, NotAuthorisedError
+from arat.server.auth import NotAuthorisedError
 from arat.server.common import ProtocolError
 from config import DATA_DIR
 from arat.server.convert.convert import convert
-from arat.server.docimport import save_import
-from arat.server.document import (get_directory_information, get_document,
-                                  get_document_timestamp, get_configuration)
+from arat.server.document import get_configuration
 from arat.server.download import download_file, download_collection
 
 from arat.server.annlog import log_annotation
@@ -63,23 +59,12 @@ def logging_no_op(collection, document, log):
 # Constants
 # Function call-backs
 DISPATCHER = {
-    'getCollectionInformation': get_directory_information,
-    'getDocument': get_document,
-    'getDocumentTimestamp': get_document_timestamp,
-    'importDocument': save_import,
 
     'storeSVG': store_svg,
     'retrieveStored': retrieve_stored,
     'downloadFile': download_file,
     'downloadCollection': download_collection,
 
-    'login': login,
-    'logout': logout,
-    'whoami': whoami,
-
-    'createSpan': create_span,
-    'deleteSpan': delete_span,
-    'splitSpan': split_span,
 
     'createArc': create_arc,
     'reverseArc': reverse_arc,
@@ -132,9 +117,6 @@ DISPATCHER = {
 ANNOTATION_ACTION = set((
     'createArc',
     'deleteArc',
-    'createSpan',
-    'deleteSpan',
-    'splitSpan',
     #    'suggestSpanTypes',
     #    'undo',
 ))
@@ -148,7 +130,6 @@ LOGGED_ANNOTATOR_ACTION = ANNOTATION_ACTION | set((
 # Actions that require authentication
 REQUIRES_AUTHENTICATION = ANNOTATION_ACTION | set((
     # Document functionality
-    'importDocument',
 
     # Search functionality in whole collection (heavy on the CPU/disk ATM)
     #    'searchTextInCollection',
@@ -312,7 +293,7 @@ class Dispatcher(object):
             if not self._directory_is_safe(self.http_args['collection']):
                 raise DirectorySecurityError(self.http_args['collection'])
 
-#        TODO: enforces authorization without the legacy session managment 
+#        TODO: enforces authorization without the legacy session managment
         # Make sure that we are authenticated if we are to do certain actions
 #        if self.action in REQUIRES_AUTHENTICATION:
 #            try:

@@ -19,11 +19,13 @@ from __future__ import absolute_import
 from os.path import dirname, join as path_join, isdir, relpath
 from hashlib import sha512
 
+
 # arat
 from arat.server.common import ProtocolError, deprecation
 from config import USER_PASSWORD, DATA_DIR
 from arat.server.message import Messager
 from arat.server.projectconfig import ProjectConfiguration
+from arat.server.common import JsonHandler
 
 SALT = b"arat"
 
@@ -52,16 +54,6 @@ class AccessDeniedError(ProtocolError):
         json_dic['exception'] = 'accessDenied'
         # TODO: Client should be responsible here
         Messager.error('Access Denied')
-        return json_dic
-
-
-class InvalidAuthError(ProtocolError):
-
-    def __str__(self):
-        return 'Incorrect login and/or password'
-
-    def json(self, json_dic):
-        json_dic['exception'] = 'invalidAuth'
         return json_dic
 
 
@@ -121,37 +113,7 @@ def _password_hash(password):
     return sha512(SALT+password).hexdigest()
 
 
-def login(user, password):
-    if not _is_authenticated(user, password):
-        raise InvalidAuthError
-
-    get_session()['user'] = user
-    Messager.info('Hello!')
-    return {}
-
-
-def logout():
-    try:
-        del get_session()['user']
-    except KeyError:
-        # Already deleted, let it slide
-        pass
-    # TODO: Really send this message?
-    Messager.info('Bye!')
-    return {}
-
-
-def whoami():
-    json_dic = {}
-    try:
-        json_dic['user'] = "you"
-    except KeyError:
-        # TODO: Really send this message?
-        Messager.error('Not logged in!', duration=3)
-    return json_dic
-
-
-def allowed_to_read(real_path):
+def allowed_to_read(real_path, user):
     data_path = path_join('/', relpath(real_path, DATA_DIR))
     # add trailing slash to directories, required to comply to robots.txt
     if isdir(real_path):
@@ -162,12 +124,51 @@ def allowed_to_read(real_path):
     if robotparser is None:
         return True  # default allow
 
-    try:
-        user = "you"
-    except KeyError:
-        user = None
-
     if user is None:
-        user = 'guest'
-
+        user = b'guest'
     return robotparser.can_fetch(user, data_path)
+
+
+class LoginHandler(JsonHandler):
+    """
+    Login user add set a cookie  accordingly
+    """
+
+    def _post(self, user, password):
+
+        response = {}
+
+        if not _is_authenticated(user, password):
+            response["messages"] = ["Incorrect login and/or password"]
+        else:
+            self.set_secure_cookie("user", user)
+            response["messages"] = ["Hello!"]
+
+        return response
+
+
+class LogoutHandler(JsonHandler):
+    """
+    Logout user by removing previously set cookie
+    """
+
+    def _post(self):
+
+        response = {}
+
+        self.clear_all_cookies()
+        response["messages"] = ["Bye!"]
+
+        return response
+
+
+class WhoAmIHandler(JsonHandler):
+    """
+    Get current user name
+    """
+
+    def _post(self):
+
+        response = {"user": self.get_secure_cookie("user")}
+
+        return response
