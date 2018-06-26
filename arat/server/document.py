@@ -1,9 +1,6 @@
-#!/usr/bin/env python
-# -*- Mode: Python; tab-width: 4; indent-tabs-mode: nil; coding: utf-8; -*-
-# vim:set ft=python ts=4 sw=4 sts=4 autoindent:
+# -*- coding: utf-8 -*-
 
 # XXX: This module along with stats and annotator is pretty much pure chaos
-# TODO: use an object oriented paradigm for Document
 
 '''
 Document handling functionality.
@@ -19,7 +16,7 @@ from __future__ import absolute_import
 
 # standard
 import os
-from os import listdir, mkdir
+from os import listdir
 from os.path import abspath, dirname, isabs, isdir, normpath, getmtime, isfile
 from os.path import join as path_join
 from os.path import splitext
@@ -62,6 +59,7 @@ from arat.server.tokenise import tokeniser_by_name
 from arat.server.verify_annotations import verify_annotation
 from arat.server.common import JsonHandler, AuthenticatedJsonHandler
 import config
+
 
 def _fill_type_configuration(nodes, project_conf, hotkey_by_type, all_connections=None):
     # all_connections is an optimization to reduce invocations of
@@ -913,200 +911,297 @@ def get_document_timestamp(collection, document, user):
 class Collection(object):
     """
     A collection consists of a set of other collections and document.
-    
+
     For a given storage system, the root collection define thus a tree with
     intenal nodes consisting of Collection instances
     and leaves consisting in Document/
-    
+
     Notice that a configuration may exists at each level of the tree. 
     The effective configuration for a given Document is the accumulation 
     of all configuration layers
-    
+
     """
-    def __init__(self, collection_id, parent=None):
+
+    def __init__(self, collection_id):
         """
-        Be aware that only the root collection has an empty parent set
         """
-        
-        
+
         self.collection_id = collection_id
-        self.parent = parent
-        
+
     def __iter__(self):
         """
         Iterate over the children of this collection
         Children consists in Collection and Document
         """
         raise NotImplementedError
-        
+
     def breadth_first_iter(self,
                            include_collection=True,
                            include_document=True):
         """
         Iterate over all nodes in the sub-tree in a breadth first manner
-        
+
         At least one argument must be True, otherwise there no expected output
         """
         for node in self._traverse_iter(include_collection,
                                         include_document,
                                         breadth_first=True):
             yield node
-        
+
     def depth_first_iter(self,
                          include_collection=True,
                          include_document=True):
         """
         Iterate over all nodes in the sub-tree in a breadth first manner
-        
+
         At least one argument must be True, otherwise there no expected output
         """
         for node in self._traverse_iter(include_collection,
                                         include_document,
                                         breadth_first=False):
             yield node
-            
+
     def _traverse_iter(self,
                        include_collection=True,
                        include_document=True,
                        breadth_first=True):
         """
         Actual traverse iterator.
-        
+
         see breadth_first_iter and depth_first_iter
         """
         if not (include_collection or include_document):
             raise ValueError("breadth_first_iter requires at least one "
                              "argument set to True")
-        
+
         first_out = 0 if breadth_first else -1
-            
+
         mem = [self]
         while mem:
             current = mem.pop(first_out)
             for node in iter(current):
-                mem.append(node)
+                if isinstance(node, Collection):
+                    mem.append(node)
                 if isinstance(node, Collection) and include_collection:
                     yield node
                 elif include_document:
                     yield node
-                
-    
-        
+
     @classmethod
     def root(cls):
         """
         Collection tree traversal will start from this point
         """
         raise NotImplementedError
-    
-    def addCollection(self, collection_id):
-        raise NotImplementedError
-        
-    #def unique_id(self):
+
     def __repr__(self):
-        return "%s(%r, ...)"%(type(self).__name__, self.collection_id)
+        return "%s(%r)" % (type(self).__name__, self.collection_id)
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.collection_id == other.collection_id and self.parent == other.parent
+        return type(self) == type(other) and self.collection_id == other.collection_id
 
-    
+
 class Document(object):
     """
     A Document instance gather all aspects of a document (text, token offsets)
     as well as its relation with Annotation and Collection.
-    
+
     A document does not necessary exists on a file system.
-    
+
     document_id is enforced to be unique among a collection
     (not the entire tree)
-    
+
     """
-    def __init__(self, document_id, collection, text=None):
+
+    def __init__(self, document_id, text=None):
         """
         If text is given it will replace the current text if it exists
         """
+        print(type(self).__name__, document_id)
         assert isinstance(document_id, str)
-        assert isinstance(collection, Collection)
-        
+
         self.document_id = document_id
-        self.collection = collection
         self._text = None
         if text is not None:
-            self.text = text 
-            
+            self.text = text
+
+    def _load_text(self):
+        """
+        Overide it to implements load text facilty from the backend storage
+
+        :rtype str: the text of the document or None if
+                    document does not exists in backend
+        """
+        raise NotImplementedError
+
+    def _save_text(self, text):
+        """
+        Overide it to implements save text facilty to the backend storage
+
+        :param text str: the text of the document
+        """
+        raise NotImplementedError
+
+    @property
+    def configuration(self):
+        """
+        get effective configuration for this document
+
+        :rtype dict: a dict of settings
+        """
+        raise NotImplementedError
+
+    @property
+    def tokens(self):
+        """
+        :returns: list of token tuple offsets
+        """
+
+        tokeniser = self.configuration["tokenizer"]
+
+        # First, generate tokenisation
+        tok_offset_gen = tokeniser_by_name(tokeniser)
+        return [o for o in tok_offset_gen(self.text)]
+
+    @property
+    def sentences(self):
+        """
+        :returns: list of sentence tuple offsets
+        """
+        ssplitter = self.configuration["sentence-splitter"]
+        if ssplitter == 'newline':
+            from arat.server.ssplit import newline_sentence_boundary_gen
+            ss_offset_gen = newline_sentence_boundary_gen
+        elif ssplitter == 'regex':
+            from arat.server.ssplit import regex_sentence_boundary_gen
+            ss_offset_gen = regex_sentence_boundary_gen
+        else:
+            Messager.warning('Unrecognized sentence splitting option '
+                             ', reverting to newline sentence splitting.')
+            from arat.server.ssplit import newline_sentence_boundary_gen
+            ss_offset_gen = newline_sentence_boundary_gen
+
+        return [o for o in ss_offset_gen(self.text)]
 
     @property
     def text(self):
         if self._text is None:
             self._text = self._load_text()
-        
+
         return self._text
-    
+
     @text.setter
     def text(self, text):
         assert isinstance(text, str)
         if self._text is None:
             self._text = self._load_text()
-            
+
         if self._text is not None and self._text != text:
             raise NotImplementedError("Text modification is not implemented "
                                       "yet")
         else:
             self._text = text
             self._save_text(text)
-    
 
     def __repr__(self):
-        return "%s(%r, %r)"%(type(self).__name__, self.document_id, self.collection.collection_id)
-    
+        return "%s(%r)" % (type(self).__name__, self.document_id)
+
     def __eq__(self, other):
-        return type(self) == type(other) and self.document_id == other.document_id and self.collection == other.collection
-    
+        return type(self) == type(other) and self.document_id == other.document_id
+
+
 class FileCollection(Collection):
     """
     Collection of documents stored on the filesystem
     """
+
+    @classmethod
+    def _canonical_path(cls, path):
+        return normpath(path).replace("//", "/")
+
     @classmethod
     def root(self):
         return FileCollection('/')
-    
+
     def __iter__(self):
         basedir = config.DATA_DIR+self.collection_id
-        for name in os.listdir(basedir):
-            if isdir(basedir+"/"+name):
-                yield FileCollection(self.collection_id+'/'+name,
-                                     parent=self)
-            elif isfile(basedir+"/"+name) and name.endswith(".txt"):
-                yield FileDocument(self.collection_id+'/'+name, self)
-                
-    def addCollection(self, collection_id):
-        basedir = config.DATA_DIR+self.collection_id+collection_id+"/"
-        if not isdir(basedir):
-            if isfile(basedir):
-                raise ValueError("collection_id %s unavailable"%collection_id)
-            else:
-                mkdir(basedir)
-        return FileCollection((self.collection_id+collection_id+"/").replace('//', "/"))
 
-    def addDocument(self, document_id, text=None):
-        return FileDocument(document_id, self, text)
+        children = []
+        if isdir(basedir):
+            children = os.listdir(basedir)
+
+        for name in children:
+            if isdir(basedir+"/"+name):
+                yield FileCollection(self._canonical_path(self.collection_id+'/'+name))
+            elif isfile(basedir+"/"+name) and name.endswith(".txt"):
+                yield FileDocument(self._canonical_path(self.collection_id+'/'+name[:-4]))
+
 
 class FileDocument(Document):
-    
+
     def _load_text(self):
         try:
-            with open(config.DATA_DIR+self.collection.collection_id+self.document_id+".txt") as file_desc:
+            with open(config.DATA_DIR+self.document_id+".txt") as file_desc:
                 return file_desc.read()
         except IOError:
             return None
 
     def _save_text(self, text):
-        with open(config.DATA_DIR+self.collection.collection_id+self.document_id+".txt", "w") as file_desc:
+        backend_path = config.DATA_DIR+self.document_id+".txt"
+        backend_dir = dirname(backend_path)
+        if not isdir(backend_dir):
+            os.makedirs(backend_dir)
+        with open(backend_path, "w") as file_desc:
             file_desc.write(text)
-            
-        
-        
-    
+
+    @property
+    def configuration(self):
+        txt_file_path = config.DATA_DIR+self.document_id+".txt"
+        return {"tokenizer": options_get_tokenization(dirname(txt_file_path)),
+                "sentence-splitter": options_get_ssplitter(dirname(txt_file_path))}
+
+    @property
+    def metadata(self):
+        """
+        TODO: annotations must be define as properties not metadata
+        """
+        res = {"events": [],
+               "triggers": [],
+               'entities': [],
+               'relations': [],
+               'attributes': [],
+               'equivs': [],
+               'normalizations': []}
+        document = config.DATA_DIR+self.document_id
+        with TextAnnotations(document) as ann_obj:
+            # Note: At this stage the sentence offsets can conflict with the
+            #   annotations, we thus merge any sentence offsets that lie within
+            #   annotations
+            # XXX: ~O(tb_ann * sentence_breaks), can be optimised
+            # XXX: The merge strategy can lead to unforeseen consequences if two
+            #   sentences are not adjacent (the format allows for this:
+            #   S_1: [0, 10], S_2: [15, 20])
+            s_breaks = self.sentences
+            for tb_ann in ann_obj.get_textbounds():
+                s_i = 0
+                while s_i < len(s_breaks):
+                    s_start, s_end = s_breaks[s_i]
+                    # Does any subspan of the annotation strech over the
+                    # end of the sentence?
+                    found_spanning = False
+                    for tb_start, tb_end in tb_ann.spans:
+                        if tb_start < s_end and tb_end > s_end:
+                            found_spanning = True
+                            break
+                    if found_spanning:
+                        # Merge this sentence and the next sentence
+                        s_breaks[s_i] = (s_start, s_breaks[s_i + 1][1])
+                        del s_breaks[s_i + 1]
+                    else:
+                        s_i += 1
+
+            _enrich_json_with_data(res, ann_obj)
+        return res
 
 
 class CollectionInformationHandler(JsonHandler):
@@ -1127,8 +1222,13 @@ class DocumentHandler(JsonHandler):
     """
 
     def _post(self, collection, document):
-        response = get_document(collection, document)
-
+        doc = FileDocument((collection+"/"+document).encode("utf-8"))
+        response = {}
+        response["text"] = doc.text
+        response["modifications"] = []
+        response['token_offsets'] = doc.tokens
+        response['sentence_offsets'] = doc.sentences
+        response.update(doc.metadata)
         return response
 
 

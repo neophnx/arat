@@ -8,10 +8,6 @@ from __future__ import absolute_import
 import unittest
 from tempfile import mkdtemp
 from shutil import rmtree
-from time import sleep
-from os import listdir
-from os.path import join as join_path
-from datetime import timedelta
 
 from arat.server.document import FileCollection, FileDocument
 import config
@@ -21,7 +17,7 @@ class TestFileDocument(unittest.TestCase):
     """
     FileCollection and FileDocument test cases
     """
-    
+
     @classmethod
     def setUpClass(cls):
         # mock config.DATA_DIR
@@ -33,33 +29,58 @@ class TestFileDocument(unittest.TestCase):
         # revert to user defined DATA_DIR
         rmtree(config.DATA_DIR)
         config.DATA_DIR = cls.DATA_DIR
-        
-    
+
     def test_01_empty_collection(self):
         """
         empty collection
         """
         collection = FileCollection.root()
-        
+
         self.assertEqual(list(collection), [])
 
     def test_02_add_document_root(self):
         """
         add documents in the root collection
         """
-        
+
         root = FileCollection.root()
-        collection = root
-        doc01 = FileDocument("doc01", collection, "file content doc01")
-        doc02 = FileDocument("doc02", collection, "file content doc02")
+        doc01 = FileDocument("/doc01", "file content doc01")
 
-        coll01 = collection.addCollection("coll01")
-        doc02 = coll01.addDocument("doc02", "file content doc02")
+        coll01 = FileCollection("/coll01")
+        doc02 = FileDocument("/coll01/doc02", "file content doc02")
 
-        collection = coll01.addCollection("coll02")
-        collection = coll01.addCollection("coll03")
-        
+        coll02 = FileCollection("/coll02")
+
+        # coll02 is empty, so it does not exists yet
+        self.assertNotIn(coll02, list(root))
+
+        coll03 = FileCollection("/coll02/coll03")
+
+        # coll03 is empty, so it does not exists yet
+        self.assertNotIn(coll02, list(coll02))
+
+        doc03 = FileDocument("/coll02/coll03/doc03", "file content doc03")
+
+        # coll02 and coll03 should be created now
+        self.assertIn(coll02, list(root))
+        self.assertIn(coll03, list(coll02))
+        self.assertIn(doc03, list(coll03))
+
         self.assertIn(coll01, list(root))
+
+        # doc01 is the only direct child of root
+        self.assertIn(doc01, list(root))
+        self.assertNotIn(doc02, list(root))
+        self.assertNotIn(doc03, list(root))
+
+        # all docs are in the tree
+        self.assertIn(doc01, list(
+            root.breadth_first_iter(include_collection=False)))
+        self.assertIn(doc02, list(
+            root.breadth_first_iter(include_collection=False)))
+        self.assertIn(doc03, list(
+            root.breadth_first_iter(include_collection=False)))
+
 
 if __name__ == "__main__":
     import sys
